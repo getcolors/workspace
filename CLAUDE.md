@@ -22,8 +22,9 @@ SDK            green ──┬── once ──┬── once-colors        (OC
 (engine)       red   ──┤ (3 colours)
                blue  ──┘          │
                                   ├── walter  ── walter-oci        (OCI dev machine)
-               green ─────────────┼── airflow ── airflow-digitalocean
-                                  └── k3s     ── k3s-hetzner       (Hetzner K3s)
+               green ─────────────┼── airflow    ── airflow-digitalocean
+                                  ├── k3s        ── k3s-hetzner       (Hetzner K3s)
+                                  └── clickhouse ── clickhouse-hetzner (Hetzner data stack)
 ```
 
 **SDK — the workflow engine, three implementations of one model.**
@@ -47,15 +48,20 @@ engine namespace (`:green/exit` → `"red/exit"` → `"blue/exit"`).
 | `walter/` | green only | one remote development machine (+`stop`/`start`) |
 | `airflow/` | green only | one Apache Airflow server |
 | `k3s/` | green only | one Hetzner K3s + Flux node |
+| `clickhouse/` | green only | three ClickHouse/Keeper nodes + Metabase on Hetzner |
 
 **Deployments — desired state only, no source code.** `once-colors/`,
-`walter-oci/`, `airflow-digitalocean/`, `k3s-hetzner/`. Each holds a
+`walter-oci/`, `airflow-digitalocean/`, `k3s-hetzner/`,
+`clickhouse-hetzner/`. Each holds a
 `colors.yml`, an installed launcher, `.envrc`, and `devenv.nix`; everything else
 is generated (`.colors/`) or secret (`.envrc.private`).
 
 **Applications — container images the deployments run.** `colors-website/`
 (Astro landing page for www.getcolors.ai), `colors-redirect/` (Caddy 301 for the
 apex), `k3s-helloworld/` (the public GitOps fixture `k3s-hetzner` reconciles).
+
+**`workspace/`** — the tracked GitHub Pages portfolio/readiness audit for this
+multi-repository workspace; it is documentation, not a build root.
 
 **`skills/`** — machine-level agent skills (currently `refresh-oci-token`),
 installed by hand into `~/.claude/skills/`. Unrelated to Package Skills; see its
@@ -81,7 +87,7 @@ Each repo, from its own directory:
 | `red/` | `bun test` · `bun run typecheck` |
 | `blue/` | `uv sync && uv run pytest` (one test: `-k <name>`) |
 | `once/` | per-colour suites, then `./scripts/parity.sh` and `./scripts/launcher.sh` |
-| `walter/`, `airflow/`, `k3s/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
+| `walter/`, `airflow/`, `k3s/`, `clickhouse/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
 | `colors-website/` | `pnpm typecheck` · `pnpm build` · `pnpm dev` |
 | `colors-redirect/` | `caddy validate --config Caddyfile --adapter caddyfile` |
 
@@ -99,7 +105,7 @@ makes them the safe way to check a `colors.yml` edit. Exit code 2 means
 validation or usage failure and lists every problem at once. The launcher walks
 up from the working directory to find `colors.yml`, so any subdirectory works.
 Package repos run the same verbs against their own checkout as `bb green build`
-(`bb walter build` in `walter/`).
+(`bb walter build` in `walter/`; `./green build` in `clickhouse/`).
 
 Toolchains come from `devenv` via `direnv` — run `direnv allow` once per
 deployment checkout. `blue/` is the exception and expects its tools on `PATH`.
@@ -136,8 +142,8 @@ in `green/` is invisible in `once/` until it is pushed *and* the pin moves;
 `bb pin` in a package repo stamps its launcher after a push. Never invent or
 hand-edit a SHA. To develop across a boundary without pinning, point the launcher
 at a working tree: `GREEN_LIB_ROOT`, `RED_LIB_ROOT`, `BLUE_LIB_ROOT`,
-`ONCE_LIB_ROOT`, `WALTER_LIB_ROOT`. A change that spans two repos is two commits
-in two repos, upstream pushed first.
+`ONCE_LIB_ROOT`, `WALTER_LIB_ROOT`, `CLICKHOUSE_LIB_ROOT`. A change that spans
+two repos is two commits in two repos, upstream pushed first.
 
 **Installed launchers are copies, not symlinks.** In a deployment repo, the root
 `./green` (or `./walter`) is a copy of `.agents/skills/package-*/…`.
@@ -158,7 +164,8 @@ catch a skipped copy. The same trap applies to `skills/` → `~/.claude/skills/`
 feeds one fixture through all three colours and diffs generated trees byte for
 byte — a change to shared behaviour lands in green, red, and blue in the same
 commit, and passes here or it is not done. `bb golden` in `walter`, `airflow`,
-and `k3s` diffs every provider variant against committed output; those packages
+`k3s`, and `clickhouse` diffs every provider variant against committed output;
+those packages
 consume ONCE internals (its provider registry as data, its compute templates as
 classpath resources) across a surface ONCE's own rules leave free to change.
 Read a golden diff after a pin bump; never `bb golden:accept` merely to make it
