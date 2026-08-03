@@ -63,9 +63,12 @@ apex), `k3s-helloworld/` (the public GitOps fixture `k3s-hetzner` reconciles).
 **`workspace/`** — the tracked GitHub Pages portfolio/readiness audit for this
 multi-repository workspace; it is documentation, not a build root.
 
-**`skills/`** — machine-level agent skills (currently `refresh-oci-token`),
-installed by hand into `~/.claude/skills/`. Unrelated to Package Skills; see its
-`CLAUDE.md`.
+**`skills/`** — Agent Skills. `refresh-oci-token` renews the shared OCI session,
+while `create-package-skill` governs the phased workflow for creating a Package
+Skill and its deployment. Use the latter directly with
+`npx skills use getcolors/skills@create-package-skill`; only skills that need
+persistent local files are copied into `~/.claude/skills/`. They are not Package
+Skills themselves. See that repo's `CLAUDE.md` and each skill's `SKILL.md`.
 
 ## Two name collisions worth knowing before you read anything
 
@@ -73,9 +76,10 @@ installed by hand into `~/.claude/skills/`. Unrelated to Package Skills; see its
   languages. The **SDK** repositories are the sibling `green/`, `red/`, `blue/`
   checkouts. Instructions in one are not instructions for the other.
 - "Skill" means two unrelated things: a Package Skill (`package-once-green`,
-  `package-walter-green`, …, installed into a project with `npx skills add`,
-  SHA-pinned, recorded in `skills-lock.json`) and a machine skill (`skills/`,
-  copied into `~/.claude/skills/`, no pin, no lockfile).
+  `package-walter-green`, …, optionally installed into a project with
+  `npx skills add`, SHA-pinned, recorded in `skills-lock.json`) and an Agent Skill
+  (`skills/`, normally used on demand with `npx skills use`, no library pin or
+  desired-state lifecycle).
 
 ## Commands
 
@@ -156,9 +160,12 @@ npx skills update -p
 cp .agents/skills/package-once-green/green green    # and red, blue
 ```
 
-`npx skills use` does *not* install anything despite the name; the installing
-verbs are `add` and `update`. `once-colors` CI diffs root against payload to
-catch a skipped copy. The same trap applies to `skills/` → `~/.claude/skills/`.
+`npx skills use` intentionally does not install anything: it fetches a skill and
+prints instructions for an agent, which is the main interface for one-shot Agent
+Skills such as `create-package-skill`. The persistent installing verbs are `add`
+and `update`. `once-colors` CI diffs root against payload to catch a skipped
+launcher copy. Manually installed script-bearing Agent Skills such as
+`refresh-oci-token` have the same copy trap under `~/.claude/skills/`.
 
 **Two regression nets guard what nothing upstream promises.** `once/scripts/parity.sh`
 feeds one fixture through all three colours and diffs generated trees byte for
