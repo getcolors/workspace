@@ -18,13 +18,13 @@ repositories and what a reader of any single one would not know.
 The stack is four layers. An arrow means "is built on and pins by git SHA".
 
 ```text
-SDK            green ──┬── once ──┬── once-colors        (OCI VM, www.getcolors.ai)
-(engine)       red   ──┤ (3 colours)
-               blue  ──┘          │
-                                  ├── walter  ── walter-oci        (OCI dev machine)
-               green ─────────────┼── airflow    ── airflow-digitalocean
-                                  ├── k3s        ── k3s-hetzner       (Hetzner K3s)
-                                  └── clickhouse ── clickhouse-hetzner (Hetzner data stack)
+SDK            green ──┬── once ──┬── once-colors          (OCI VM, www.getcolors.ai)
+(engine)       red   ──┤           ├── airflow (3 colours) ── airflow-digitalocean
+               blue  ──┘           │
+               green ──────────────┼── walter    ── walter-oci          (OCI dev machine)
+                                   ├── k3s       ── k3s-hetzner         (Hetzner K3s)
+                                   ├── k8s       ── k8s-digitalocean    (DigitalOcean Kubernetes)
+                                   └── clickhouse ── clickhouse-hetzner (Hetzner data stack)
 ```
 
 **SDK — the workflow engine, three implementations of one model.**
@@ -46,19 +46,28 @@ engine namespace (`:green/exit` → `"red/exit"` → `"blue/exit"`).
 |---|---|---|
 | `once/` | green, red, blue | Basecamp ONCE single-server PaaS |
 | `walter/` | green only | one remote development machine (+`stop`/`start`) |
-| `airflow/` | green only | one Apache Airflow server |
+| `airflow/` | green, red, blue | one Apache Airflow server |
 | `k3s/` | green only | one Hetzner K3s + Flux node |
+| `k8s/` | green only | two-node kubeadm Kubernetes on DigitalOcean |
 | `clickhouse/` | green only | three ClickHouse/Keeper nodes + Metabase on Hetzner |
 
 **Deployments — desired state only, no source code.** `once-colors/`,
 `walter-oci/`, `airflow-digitalocean/`, `k3s-hetzner/`,
-`clickhouse-hetzner/`. Each holds a
-`colors.yml`, an installed launcher, `.envrc`, and `devenv.nix`; everything else
-is generated (`.colors/`) or secret (`.envrc.private`).
+`k8s-digitalocean/`, `clickhouse-hetzner/`. Each holds a `colors.yml`, one or
+more installed launchers, `.envrc`, and `devenv.nix`; everything else is
+generated (`.colors/`) or secret (`.envrc.private`).
 
-**Applications — container images the deployments run.** `colors-website/`
-(Astro landing page for www.getcolors.ai), `colors-redirect/` (Caddy 301 for the
-apex), `k3s-helloworld/` (the public GitOps fixture `k3s-hetzner` reconciles).
+**Applications — container images and GitOps sources the deployments run.**
+`colors-website/` (Astro landing page for www.getcolors.ai), `colors-redirect/`
+(Caddy 301 for the apex), `k3s-helloworld/` (the public fixture `k3s-hetzner`
+reconciles), and `k8s-helloworld/` (the public Flux source and application
+`k8s-digitalocean` reconciles).
+
+**Repository landing pages.** Every tracked root `index.html` uses GA4
+measurement ID `G-4VKP1WY4QJ`. Its explicit `page_title` must equal the decoded
+HTML `<title>` and remain distinct and stable, so one Analytics property can
+separate repositories. Add the same tag when adding a root page; do not add an
+`index.html` merely to satisfy this convention.
 
 **`workspace/`** — the tracked GitHub Pages portfolio/readiness audit for this
 multi-repository workspace; it is documentation, not a build root.
@@ -91,7 +100,8 @@ Each repo, from its own directory:
 | `red/` | `bun test` · `bun run typecheck` |
 | `blue/` | `uv sync && uv run pytest` (one test: `-k <name>`) |
 | `once/` | per-colour suites, then `./scripts/parity.sh` and `./scripts/launcher.sh` |
-| `walter/`, `airflow/`, `k3s/`, `clickhouse/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
+| `airflow/` | `cd green && bb test && bb golden` · red/blue suites · `./scripts/parity.sh` · `./scripts/launcher.sh` |
+| `walter/`, `k3s/`, `k8s/`, `clickhouse/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
 | `colors-website/` | `pnpm typecheck` · `pnpm build` · `pnpm dev` |
 | `colors-redirect/` | `caddy validate --config Caddyfile --adapter caddyfile` |
 
@@ -108,8 +118,9 @@ Deployment repos have no test suite. Their commands are the launcher itself:
 makes them the safe way to check a `colors.yml` edit. Exit code 2 means
 validation or usage failure and lists every problem at once. The launcher walks
 up from the working directory to find `colors.yml`, so any subdirectory works.
-Package repos run the same verbs against their own checkout as `bb green build`
-(`bb walter build` in `walter/`; `./green build` in `clickhouse/`).
+Package repos run the same verbs through their own launcher (`bb walter build`
+in `walter/`; `cd green && bb green build` in `airflow/`; `./green build` in
+`k3s/`, `k8s/`, and `clickhouse/`).
 
 Toolchains come from `devenv` via `direnv` — run `direnv allow` once per
 deployment checkout. `blue/` is the exception and expects its tools on `PATH`.
@@ -146,8 +157,9 @@ in `green/` is invisible in `once/` until it is pushed *and* the pin moves;
 `bb pin` in a package repo stamps its launcher after a push. Never invent or
 hand-edit a SHA. To develop across a boundary without pinning, point the launcher
 at a working tree: `GREEN_LIB_ROOT`, `RED_LIB_ROOT`, `BLUE_LIB_ROOT`,
-`ONCE_LIB_ROOT`, `WALTER_LIB_ROOT`, `CLICKHOUSE_LIB_ROOT`. A change that spans
-two repos is two commits in two repos, upstream pushed first.
+`ONCE_LIB_ROOT`, `WALTER_LIB_ROOT`, `AIRFLOW_LIB_ROOT`, `K3S_LIB_ROOT`,
+`K8S_LIB_ROOT`, `CLICKHOUSE_LIB_ROOT`. A change that spans two repos is two
+commits in two repos, upstream pushed first.
 
 **Installed launchers are copies, not symlinks.** In a deployment repo, the root
 `./green` (or `./walter`) is a copy of `.agents/skills/package-*/…`.
@@ -167,16 +179,14 @@ and `update`. `once-colors` CI diffs root against payload to catch a skipped
 launcher copy. Manually installed script-bearing Agent Skills such as
 `refresh-oci-token` have the same copy trap under `~/.claude/skills/`.
 
-**Two regression nets guard what nothing upstream promises.** `once/scripts/parity.sh`
-feeds one fixture through all three colours and diffs generated trees byte for
-byte — a change to shared behaviour lands in green, red, and blue in the same
-commit, and passes here or it is not done. `bb golden` in `walter`, `airflow`,
-`k3s`, and `clickhouse` diffs every provider variant against committed output;
-those packages
-consume ONCE internals (its provider registry as data, its compute templates as
-classpath resources) across a surface ONCE's own rules leave free to change.
-Read a golden diff after a pin bump; never `bb golden:accept` merely to make it
-pass.
+**Three regression nets guard what dependencies do not promise.**
+`once/scripts/parity.sh` feeds one fixture through all three colours and diffs
+generated trees byte for byte — a change to shared behaviour lands in green,
+red, and blue in the same commit, and passes here or it is not done. Airflow has
+its own `scripts/parity.sh` for the same three-colour guarantee. `bb golden` in
+`walter`, `airflow`, `k3s`, `k8s`, and `clickhouse` protects provider templates,
+state/resource addresses, and any ONCE internals each package reuses. Read a
+golden diff after a pin bump; never `bb golden:accept` merely to make it pass.
 
 ## Git
 
