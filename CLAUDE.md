@@ -9,6 +9,12 @@ own; each subdirectory is a separate clone of `git@github.com:getcolors/<name>`.
 Nothing here builds as a whole and there is no root manifest, task runner, or
 test command.
 
+The workspace-root `~/code/getcolors/CLAUDE.md` is a symlink to
+`workspace/CLAUDE.md`. Cross-repository instruction changes made through either
+path therefore belong to the `workspace/` repository and must be committed and
+pushed from there; do not treat the root path as untracked merely because the
+workspace root has no `.git`.
+
 Every checkout has its own `CLAUDE.md` and most have a `README.md`. **Read the
 one for the directory you are working in** — this file only covers what spans
 repositories and what a reader of any single one would not know.
@@ -22,6 +28,7 @@ SDK            green ──┬── once ──┬── once-colors          (
 (engine)       red   ──┤           ├── airflow (3 colours) ── airflow-digitalocean
                blue  ──┘           │
                green ──────────────┼── walter    ── walter-oci          (OCI dev machine)
+                                   ├── rama      ── rama-digitalocean   (DigitalOcean Rama)
                                    ├── k3s       ── k3s-hetzner         (Hetzner K3s)
                                    ├── k8s       ── k8s-digitalocean    (DigitalOcean Kubernetes)
                                    └── clickhouse ── clickhouse-hetzner (Hetzner data stack)
@@ -47,12 +54,13 @@ engine namespace (`:green/exit` → `"red/exit"` → `"blue/exit"`).
 | `once/` | green, red, blue | Basecamp ONCE single-server PaaS |
 | `walter/` | green only | one remote development machine (+`stop`/`start`) |
 | `airflow/` | green, red, blue | one Apache Airflow server |
+| `rama/` | green only | one private single-node Rama cluster |
 | `k3s/` | green only | one Hetzner K3s + Flux node |
 | `k8s/` | green only | two-node kubeadm Kubernetes on DigitalOcean |
 | `clickhouse/` | green only | three ClickHouse/Keeper nodes + Metabase on Hetzner |
 
 **Deployments — desired state only, no source code.** `once-colors/`,
-`walter-oci/`, `airflow-digitalocean/`, `k3s-hetzner/`,
+`walter-oci/`, `airflow-digitalocean/`, `rama-digitalocean/`, `k3s-hetzner/`,
 `k8s-digitalocean/`, `clickhouse-hetzner/`. Each holds a `colors.yml`, one or
 more installed launchers, `.envrc`, and `devenv.nix`; everything else is
 generated (`.colors/`) or secret (`.envrc.private`).
@@ -101,7 +109,7 @@ Each repo, from its own directory:
 | `blue/` | `uv sync && uv run pytest` (one test: `-k <name>`) |
 | `once/` | per-colour suites, then `./scripts/parity.sh` and `./scripts/launcher.sh` |
 | `airflow/` | `cd green && bb test && bb golden` · red/blue suites · `./scripts/parity.sh` · `./scripts/launcher.sh` |
-| `walter/`, `k3s/`, `k8s/`, `clickhouse/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
+| `walter/`, `rama/`, `k3s/`, `k8s/`, `clickhouse/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
 | `colors-website/` | `pnpm typecheck` · `pnpm build` · `pnpm dev` |
 | `colors-redirect/` | `caddy validate --config Caddyfile --adapter caddyfile` |
 
@@ -158,8 +166,8 @@ in `green/` is invisible in `once/` until it is pushed *and* the pin moves;
 hand-edit a SHA. To develop across a boundary without pinning, point the launcher
 at a working tree: `GREEN_LIB_ROOT`, `RED_LIB_ROOT`, `BLUE_LIB_ROOT`,
 `ONCE_LIB_ROOT`, `WALTER_LIB_ROOT`, `AIRFLOW_LIB_ROOT`, `K3S_LIB_ROOT`,
-`K8S_LIB_ROOT`, `CLICKHOUSE_LIB_ROOT`. A change that spans two repos is two
-commits in two repos, upstream pushed first.
+`K8S_LIB_ROOT`, `CLICKHOUSE_LIB_ROOT`, `RAMA_LIB_ROOT`. A change that spans two
+repos is two commits in two repos, upstream pushed first.
 
 **Installed launchers are copies, not symlinks.** In a deployment repo, the root
 `./green` (or `./walter`) is a copy of `.agents/skills/package-*/…`.
@@ -184,8 +192,8 @@ launcher copy. Manually installed script-bearing Agent Skills such as
 generated trees byte for byte — a change to shared behaviour lands in green,
 red, and blue in the same commit, and passes here or it is not done. Airflow has
 its own `scripts/parity.sh` for the same three-colour guarantee. `bb golden` in
-`walter`, `airflow`, `k3s`, `k8s`, and `clickhouse` protects provider templates,
-state/resource addresses, and any ONCE internals each package reuses. Read a
+`walter`, `airflow`, `rama`, `k3s`, `k8s`, and `clickhouse` protects provider
+templates, state/resource addresses, and any ONCE internals each package reuses. Read a
 golden diff after a pin bump; never `bb golden:accept` merely to make it pass.
 
 ## Git
