@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Package Skills → Colors SDK extraction review</title>
+<style>
+:root{--bg:#0b1020;--panel:#121a2d;--panel2:#182238;--text:#e8edf7;--muted:#aebbd0;--line:#2b3955;--green:#65d99b;--amber:#ffc766;--blue:#77b7ff;--red:#ff8796;--code:#080d18}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:linear-gradient(135deg,#0b1020,#10182a 55%,#0b1020);color:var(--text);font:16px/1.58 system-ui,-apple-system,Segoe UI,sans-serif}main{max-width:1180px;margin:auto;padding:38px 22px 80px}header{padding:30px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,#16213a,#101729);box-shadow:0 18px 60px #0006}h1{font-size:clamp(2rem,5vw,3.7rem);line-height:1.03;margin:0 0 15px;letter-spacing:-.045em}h2{margin-top:52px;font-size:1.8rem}h3{margin:0 0 10px;font-size:1.32rem}p{margin:.6em 0;color:var(--muted)}strong,th{color:var(--text)}a{color:var(--blue)}code{color:#c9e1ff;background:#0a1120;padding:.12em .35em;border-radius:5px}pre{background:var(--code);border:1px solid var(--line);border-radius:10px;padding:15px;overflow:auto;color:#d6e4f5;font:13px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}.meta,.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:13px;margin-top:20px}.stat,.card{border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:18px}.stat b{display:block;font-size:1.55rem;color:var(--green)}.toc{columns:2;column-gap:30px}.toc a{display:block;padding:4px 0;text-decoration:none}.finding{margin:20px 0;padding:24px;border:1px solid var(--line);border-radius:15px;background:var(--panel)}.finding.high{border-left:5px solid var(--green)}.finding.medium{border-left:5px solid var(--amber)}.finding.low{border-left:5px solid var(--blue)}.badge{display:inline-block;border:1px solid currentColor;border-radius:999px;padding:2px 9px;font-size:.73rem;font-weight:750;letter-spacing:.06em;text-transform:uppercase;margin-right:6px}.high .badge{color:var(--green)}.medium .badge{color:var(--amber)}.low .badge{color:var(--blue)}.evidence{font-size:.91rem;border-left:2px solid var(--line);padding-left:13px;margin:13px 0}.recommend{color:var(--text)}table{width:100%;border-collapse:collapse;background:var(--panel);border-radius:12px;overflow:hidden}th,td{text-align:left;vertical-align:top;border-bottom:1px solid var(--line);padding:12px}td{color:var(--muted)}.yes{color:var(--green);font-weight:700}.no{color:var(--red);font-weight:700}.warn{padding:16px;border-radius:10px;background:#2c2513;border:1px solid #6b5724;color:#ffe0a2}.footer{margin-top:55px;padding-top:20px;border-top:1px solid var(--line);font-size:.9rem}@media(max-width:650px){.toc{columns:1}.finding{padding:18px}th,td{padding:8px;font-size:.88rem}}
+</style>
+</head>
+<body><main>
+<header>
+  <div class="badge" style="color:var(--blue)">Architecture review</div>
+  <h1>What package code belongs in Green, Red, and Blue?</h1>
+  <p>Review of all six Package Skill repositories: <code>once</code>, <code>airflow</code>, <code>walter</code>, <code>k3s</code>, <code>k8s</code>, and <code>clickhouse</code>. The review covers exact duplication and broader reusable abstractions.</p>
+  <div class="meta">
+    <div class="stat"><b>6</b>package repositories reviewed</div>
+    <div class="stat"><b>3</b>SDK implementations targeted</div>
+    <div class="stat"><b>4</b>high-value extractions</div>
+    <div class="stat"><b>0</b>production files changed</div>
+  </div>
+</header>
+
+<h2>Executive conclusion</h2>
+<p>The strongest extractions are not package domain logic. They are the conventions every package rebuilds around the engines: stage-directory resolution, lifecycle preflight, conventional backend configuration, and provider-registry mechanics. Implement these behaviorally in all three SDKs, then migrate ONCE and Airflow first so the existing three-colour parity harness validates them. Migrate green-only packages afterward.</p>
+<p class="warn"><strong>Do not move ONCE’s concrete cloud templates or provider catalog directly into the workflow engines.</strong> The mechanism is SDK-level; the concrete catalog is a separately versioned cloud/package concern. Moving provider HCL into Green/Red/Blue would make otherwise generic engines own a product policy and would not solve the current unsafe ONCE-internals dependency cleanly.</p>
+
+<h2>Contents</h2>
+<nav class="toc">
+<a href="#stage-dir">1. Stage directory resolver</a>
+<a href="#preflight">2. Lifecycle preflight step</a>
+<a href="#backend">3. Conventional backend advice</a>
+<a href="#providers">4. Provider registry mechanics</a>
+<a href="#cli">5. Project-aware CLI discovery</a>
+<a href="#content">6. Direct-content scaffold specs</a>
+<a href="#operator">7. Interactive delegated command runner</a>
+<a href="#github">8. Command-plan executor</a>
+<a href="#dont">What should stay in packages</a>
+<a href="#plan">Migration plan</a>
+</nav>
+
+<h2>Recommended extractions</h2>
+<section id="stage-dir" class="finding high">
+<span class="badge">High value</span><span class="badge">Low risk</span>
+<h3>1. Add a canonical stage-directory resolver</h3>
+<p><strong>Problem.</strong> Every package independently resolves <code>&lt;state-file-dir&gt;/&lt;workdir&gt;/&lt;profile&gt;/&lt;stage&gt;</code>. This is state-addressing behavior: a small drift can make colours render into different trees or point backend advice at a different directory.</p>
+<div class="evidence"><strong>Evidence:</strong> near-identical Green implementations in <code>once/green/.../tools.clj:23</code>, <code>airflow/green/.../tools.clj:107</code>, <code>walter/.../tools.clj:48</code>, <code>k3s/.../tools.clj:24</code>, <code>k8s/.../utils.clj:8</code>, and <code>clickhouse/.../tools.clj:30</code>. Equivalent copies exist at <code>once/red/src/tools.ts:62</code>, <code>once/blue/.../tools.py:30</code>, and Airflow Red/Blue.</div>
+<p class="recommend"><strong>Lift to:</strong> <code>green.cli/stage-dir</code>, <code>red/cli.stageDir</code>, <code>blue.cli.stage_dir</code> (or a small paths module in each SDK).</p>
+<pre>// Red API sketch
+stageDir(opts, tool, { defaultWorkdir: ".colors", defaultProfile: "default" })
+
+# Blue
+stage_dir(opts, tool, default_workdir=".colors", default_profile="default")
+
+;; Green
+(cli/stage-dir opts tool {:default-workdir ".colors" :default-profile "default"})</pre>
+<p>Require an absolute engine state-file key when <code>workdir</code> is relative; preserve absolute workdirs. Packages then supply only their fallback profile, and backend and tool execution necessarily share one resolver.</p>
+</section>
+
+<section id="preflight" class="finding high">
+<span class="badge">High value</span><span class="badge">Moderate risk</span>
+<h3>2. Introduce a configurable lifecycle preflight step</h3>
+<p><strong>Problem.</strong> Every workflow has a <code>start-step</code> that merges defaults, reapplies <code>COLORS_PAR_*</code>, distinguishes real execution from dry-run/build, aggregates environment/state/secret errors, enforces <code>compute-prevent-destroy</code>, and returns exit 2. Copies already differ in punctuation and whether environment guards are included.</p>
+<div class="evidence"><strong>Evidence:</strong> <code>once/green/.../workflow.clj:66</code>, <code>airflow/green/.../workflow.clj:103</code>, <code>walter/.../workflow.clj:72</code>, <code>k3s/.../workflow.clj:23</code>, <code>k8s/.../workflow.clj:28</code>, <code>clickhouse/.../workflow.clj:17</code>; matching ONCE/Airflow implementations in Red and Blue.</div>
+<p class="recommend"><strong>Lift to:</strong> a new SDK <code>lifecycle</code> module, parameterized by package callbacks rather than aware of compute, providers, or ONCE.</p>
+<pre>// Red API sketch
+const start = lifecycle.preflight({
+  defaults,
+  envErrors: (env) =&gt; validate.envErrors(env),
+  stateErrors: validate.stateErrors,
+  secretErrors: validate.secretErrors,
+  lifecycleEvents: ["create", "delete"],
+  destroyGuard: { event: "delete", key: "compute-prevent-destroy" },
+  afterValidate: async (opts, ctx) =&gt; ctx.real &amp;&amp; ctx.event === "delete"
+    ? adoptExistingState(opts) : withDeployKeys(opts, ctx.real),
+});</pre>
+<p>The SDK should guarantee ordered error aggregation, exit 2, no secret validation for build/dry-run, and an injected environment for tests. Package-specific key generation/state adoption remains a callback.</p>
+</section>
+
+<section id="backend" class="finding high">
+<span class="badge">High value</span><span class="badge">Low risk</span>
+<h3>3. Add “conventional backend” advice above existing backend primitives</h3>
+<p><strong>Problem.</strong> The SDKs already expose local/S3/R2 advice and a selector, but each package rebuilds the same policy map and the same <code>&lt;profile&gt;/&lt;tool&gt;.tfstate</code> key.</p>
+<div class="evidence"><strong>Evidence:</strong> <code>once/green/.../workflow.clj:143</code>, <code>airflow/green/.../workflow.clj:209</code>, <code>walter/.../workflow.clj:207</code>, <code>k3s/.../workflow.clj:66</code>, <code>k8s/.../workflow.clj:65</code>, and <code>clickhouse/.../workflow.clj:77</code>. The same assembly appears in ONCE/Airflow Red and Blue. Existing lower-level hook: <code>green/src/green/tofu.clj:160</code> and equivalents.</div>
+<p class="recommend"><strong>Lift to:</strong> <code>tofu/conventional-backend-advice</code>, retaining all low-level APIs.</p>
+<pre>conventionalBackendAdvice({
+  dir: (opts) =&gt; stageDir(opts, tool),
+  key: (opts) =&gt; `${opts.profile ?? fallback}/${tool}.tfstate`,
+  choose: (opts) =&gt; opts["provider-backend"] ?? "local",
+  fields: {
+    s3: { bucket: "s3-bucket", region: "s3-region" },
+    r2: { bucket: "r2-bucket", endpoint: "r2-endpoint" }
+  }
+})</pre>
+<p>Make key and directory functions explicit so Airflow can preserve delegated ONCE stage names. Do not silently standardize existing state addresses.</p>
+</section>
+
+<section id="providers" class="finding high">
+<span class="badge">High value</span><span class="badge">Moderate risk</span>
+<h3>4. Lift provider-registry mechanics, not provider data</h3>
+<p><strong>Problem.</strong> All packages repeat <code>entry</code>, <code>slot-keys</code>, placeholder detection, missing-key discovery, selected-provider validation, secret-error formatting, <code>tofu-env</code>, and credential environment construction. Five packages import ONCE’s registry as an unprotected internal API; K8s copies a subset.</p>
+<div class="evidence"><strong>Evidence:</strong> <code>clickhouse/.../validate.clj:25–31</code>, <code>k3s/.../validate.clj:11–31</code>, <code>k8s/.../validate.clj:36–44</code>, <code>airflow/green/.../validate.clj:69–112</code>, and <code>walter/.../validate.clj:69–96</code>. Credential env is repeated in every <code>tools</code> namespace. ONCE has parallel implementations in all colours.</div>
+<p class="recommend"><strong>Lift to:</strong> <code>green.providers</code>, <code>red/providers</code>, and <code>blue.providers</code>, operating on caller-supplied registry data.</p>
+<pre>const selected = providers.select(registry, opts, slots);
+providers.selectionErrors(registry, opts, slots);
+providers.requiredErrors(registry, opts, slots, ownRequired);
+providers.secretErrors(registry, opts, slots, ownSecrets, parName);
+providers.toolEnv(registry, opts, [...slots, "provider-backend"]);
+providers.refuseOverlay(env, "profile", "profile selects remote state");</pre>
+<p><strong>Boundary:</strong> keep DigitalOcean/Hetzner/OCI/etc. definitions and HCL out of the SDK. A later <code>colors-cloud</code> package, implemented per colour or as language-neutral resources/data, should own the catalog. This removes the current “depend on ONCE internals” architecture without coupling the engines to ONCE.</p>
+</section>
+
+<section id="cli" class="finding medium">
+<span class="badge">Medium value</span><span class="badge">Low risk</span>
+<h3>5. Make SDK CLIs project-aware</h3>
+<p><strong>Problem.</strong> Package CLIs repeatedly walk upward for <code>colors.yml</code>, detect explicit <code>-f/--file</code>, dispatch help and package events, and print outcomes. This exists both in package libraries and copied launchers.</p>
+<div class="evidence"><strong>Evidence:</strong> <code>once/red/src/cli.ts:12–42</code>, <code>once/blue/.../cli.py:15–38</code>, Airflow Red/Blue CLI files, and Green launchers in all six <code>skills/package-*/</code> trees. Green SDK currently defaults only to <code>green.yml</code>; Red to <code>red.yml</code>; Blue to <code>blue.yml</code>.</div>
+<p class="recommend"><strong>Lift to:</strong> options on <code>run-cli</code>: <code>defaultFile</code>, <code>searchParents</code>, <code>allowedEvents</code>, and optional custom handlers.</p>
+<pre>runCli(workflow, args, {
+  defaultFile: "colors.yml",
+  searchParents: true,
+  events: ["build", "create", "delete"],
+  handlers: { describe: ({file}) =&gt; describeFile(file) }
+})</pre>
+<p>Keep dependency bootstrap and contract checks in launchers: those must run before the SDK can be loaded. The SDK can eliminate post-bootstrap dispatch duplication, not bootstrap itself.</p>
+</section>
+
+<section id="content" class="finding medium">
+<span class="badge">Medium value</span><span class="badge">Low risk</span>
+<h3>6. Let scaffolds write direct content</h3>
+<p><strong>Problem.</strong> Every package ships a one-line <code>raw</code> template and wraps it with <code>raw-spec</code> solely to write generated JSON/YAML/key files. They also repeat the same alternate Selmer delimiters.</p>
+<div class="evidence"><strong>Evidence:</strong> ONCE <code>tools.clj:14–55</code>, Airflow <code>tools.clj:97–149</code>, Walter <code>tools.clj:36–75</code>, K3s <code>tools.clj:20–43</code>, K8s <code>tools.clj:20–28</code>, ClickHouse <code>tools.clj:26–39</code>, plus Red/Blue counterparts.</div>
+<p class="recommend"><strong>Lift to:</strong> a direct <code>content</code> spec accepted by scaffold, and an exported delimiter preset.</p>
+<pre>{ target: `${dir}/inventory.json`, content: inventory(data) }
+// or scaffold.contentSpec(target, content)
+
+scaffold.PRESERVE_JINJA_DELIMITERS</pre>
+<p>Delete the package <code>raw</code> resources after parity proves byte identity. Define deletion behavior exactly like template specs.</p>
+</section>
+
+<section id="operator" class="finding low">
+<span class="badge">Useful</span><span class="badge">Green proven</span>
+<h3>7. Add an interactive delegated-command runner</h3>
+<p><strong>Problem.</strong> K3s and K8s contain almost identical implementations for POSIX shell quoting, inherited terminal execution, desired-state loading, environment validation, and subprocess-exit normalization for <code>kubectl</code> over SSH.</p>
+<div class="evidence"><strong>Evidence:</strong> <code>k3s/.../kubectl.clj:13–58</code> and <code>k8s/.../operator.clj:8–50</code>.</div>
+<p class="recommend"><strong>Lift to:</strong> generic pieces only: <code>process/run-inherit</code>, <code>process/posix-quote</code>, and <code>cli/run-delegated</code>. Keep the remote kubectl argv and host alias package-specific. Port APIs to Red/Blue now for model parity even though current consumers are Green-only.</p>
+</section>
+
+<section id="github" class="finding low">
+<span class="badge">Defer</span><span class="badge">Extract seam first</span>
+<h3>8. Consider a command-plan executor, not a GitHub domain module</h3>
+<p>ONCE and Airflow each model labeled <code>gh</code> commands, inject runners, execute sequentially, stop on create failure, tolerate delete absence, and clean ephemeral key state. A reusable <code>process/run-plan</code> could standardize this. However repository creation, environments, key publication, and seed pushes are product policy and should remain package code.</p>
+<div class="evidence"><strong>Evidence:</strong> <code>once/*/github</code> and <code>airflow/*/github</code> in all implemented colours.</div>
+<p>Extract only after defining consistent semantics for “continue on delete”, stderr snippets, timeout, redaction, and cleanup. This is less urgent than findings 1–6.</p>
+</section>
+
+<h2 id="dont">What should stay in the Package Skills</h2>
+<table><thead><tr><th>Code</th><th>Decision</th><th>Reason</th></tr></thead><tbody>
+<tr><td>Workflow DAGs and stage ordering</td><td class="no">Keep</td><td>Ordering encodes application invariants: SMTP/DNS verification, deploy-key timing, Kubernetes teardown, ClickHouse convergence.</td></tr>
+<tr><td>Concrete cloud templates/provider catalog</td><td class="no">Not in SDK</td><td>Reusable, but belongs in a separate cloud resource library, not generic workflow engines.</td></tr>
+<tr><td>ONCE/Airflow report and container matching</td><td class="no">Keep</td><td>Product-specific remote inspection. Continue cross-colour parity tests.</td></tr>
+<tr><td>Ansible local/remote playbooks</td><td class="no">Keep</td><td>Package docs explicitly reject coupling here; seemingly similar SSH stages have different ownership and security semantics.</td></tr>
+<tr><td>GitHub repository/environment policy</td><td class="no">Keep</td><td>The process seam can be generic; command meaning is package policy.</td></tr>
+<tr><td>Launcher bootstrap, pins, contracts</td><td class="no">Keep</td><td>They execute before SDK loading and protect copied payload compatibility.</td></tr>
+<tr><td>Validation regexes and v1 constraints</td><td class="no">Keep</td><td>Domain requirements (K3s version format, topology counts, Airflow paths) are not engine behavior.</td></tr>
+<tr><td>Placeholder/missing/provider selection mechanics</td><td class="yes">Lift</td><td>Language-portable data operations repeated across packages.</td></tr>
+</tbody></table>
+
+<h2 id="plan">Suggested implementation order</h2>
+<div class="cards">
+<div class="card"><h3>1 · Paths + scaffold content</h3><p>Add parity tests in the three SDKs. Migrate ONCE first; run all SDK suites and ONCE parity.</p></div>
+<div class="card"><h3>2 · Backend convention</h3><p>Build above existing primitives. Assert generated <code>backend.tf.json</code> and state keys are unchanged byte-for-byte.</p></div>
+<div class="card"><h3>3 · Provider mechanics</h3><p>Add caller-supplied registry helpers. Migrate ONCE and Airflow in one parity-protected change, then Green-only packages.</p></div>
+<div class="card"><h3>4 · Lifecycle preflight</h3><p>Lock error ordering and exact messages first. Use callbacks for package state adoption/key generation.</p></div>
+<div class="card"><h3>5 · CLI options</h3><p>Move upward discovery and event dispatch after bootstrap. Preserve script-adjacent fallback behavior in launchers.</p></div>
+<div class="card"><h3>6 · Optional seams</h3><p>Add interactive process and command-plan helpers only with focused tests and at least two migrated consumers.</p></div>
+</div>
+
+<h2>Verification gates</h2>
+<ul>
+<li><strong>SDKs:</strong> <code>green: bb test + clojure -X:test</code>; <code>red: bun test + bun run typecheck</code>; <code>blue: uv run pytest</code>.</li>
+<li><strong>Three-colour consumers:</strong> ONCE and Airflow per-colour suites plus both parity and launcher scripts.</li>
+<li><strong>Green-only consumers:</strong> unit tests, golden diffs reviewed rather than blindly accepted, and launcher scripts.</li>
+<li><strong>State safety:</strong> assert every existing stage directory and <code>&lt;profile&gt;/&lt;stage&gt;.tfstate</code> key remains unchanged.</li>
+<li><strong>Secrets:</strong> assert generated trees contain lookups, never credential values; build and dry-run remain credential-free.</li>
+</ul>
+
+<h2>Review method and limitations</h2>
+<p>I read the workspace and repository guidance, the Blue primary README, source inventories, package workflow/tool/validation/CLI implementations, and launcher discovery patterns. I excluded generated <code>.colors</code>, dependency directories, and golden output as source. This is a static architecture review; no package tests were run because no production code was changed. Line references describe the current working trees and may move.</p>
+<p>The review includes all implemented colours: ONCE and Airflow in Green/Red/Blue; Walter, K3s, K8s, and ClickHouse in Green. “Lift to the libs” means behaviorally equivalent public APIs in all three SDKs, even where the first consumers are currently Green-only.</p>
+
+<p class="footer">Generated at <code>/home/ubuntu/code/getcolors/report.html</code>. No repository was committed or pushed.</p>
+</main></body></html>
