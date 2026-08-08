@@ -5,9 +5,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## What this directory is
 
 `~/code/getcolors` is a **workspace, not a repository**. It has no `.git` of its
-own; each subdirectory is a separate clone of `git@github.com:getcolors/<name>`.
-Nothing here builds as a whole and there is no root manifest, task runner, or
-test command.
+own; almost every subdirectory is a separate clone of
+`git@github.com:getcolors/<name>`. Nothing here builds as a whole and there is
+no root manifest, task runner, or test command.
+
+Two exceptions worth knowing before you assume a directory is a clone you can
+push. `rama-aws-deploy/` is a clone of `redplanetlabs/rama-aws-deploy`, a
+third-party upstream rather than a `getcolors` repository. And `once-aws/`,
+`once-azure/`, `once-google/` and `dotfiles-ubuntu/` have the shape of a
+deployment — `colors.yml`, a launcher, generated `.colors/` — but **no `.git` at
+all**: they are local-only, and nothing in them is backed up by pushing. Check
+for `.git` before promising a change can be committed.
 
 The workspace-root `~/code/getcolors/CLAUDE.md` is a symlink to
 `workspace/CLAUDE.md`. Cross-repository instruction changes made through either
@@ -31,7 +39,9 @@ SDK            green ──┬── once ──┬── once-colors          (
                                    ├── rama      ── rama-digitalocean   (DigitalOcean Rama)
                                    ├── k3s       ── k3s-hetzner         (Hetzner K3s)
                                    ├── k8s       ── k8s-digitalocean    (DigitalOcean Kubernetes)
-                                   └── clickhouse ── clickhouse-hetzner (Hetzner data stack)
+                                   ├── clickhouse ── clickhouse-hetzner (Hetzner data stack)
+                                   └── dotfiles  ─┬─ dotfiles-colors    (this machine's home)
+                                                  └─ dotfiles-ubuntu    (local only, no .git)
 ```
 
 **SDK — the workflow engine, three implementations of one model.**
@@ -58,12 +68,29 @@ engine namespace (`:green/exit` → `"red/exit"` → `"blue/exit"`).
 | `k3s/` | green only | one Hetzner K3s + Flux node |
 | `k8s/` | green only | two-node kubeadm Kubernetes on DigitalOcean |
 | `clickhouse/` | green only | three ClickHouse/Keeper nodes + Metabase on Hetzner |
+| `dotfiles/` | green only | Ubuntu or macOS home configuration on the local machine |
+
+`dotfiles/` is the one package that provisions no infrastructure: it renders a
+profile under `.colors/` and copies the managed files into a configured local
+target, so its verbs are `build`, `diff` and `create` — there is no `delete`.
 
 **Deployments — desired state only, no source code.** `once-colors/`,
 `walter-oci/`, `airflow-digitalocean/`, `rama-digitalocean/`, `k3s-hetzner/`,
-`k8s-digitalocean/`, `clickhouse-hetzner/`. Each holds a `colors.yml`, one or
-more installed launchers, `.envrc`, and `devenv.nix`; everything else is
-generated (`.colors/`) or secret (`.envrc.private`).
+`k8s-digitalocean/`, `clickhouse-hetzner/`, `dotfiles-colors/`. Each holds a
+`colors.yml`, one or more installed launchers, `.envrc`, and `devenv.nix`;
+everything else is generated (`.colors/`) or secret (`.envrc.private`).
+
+Four more directories have exactly this shape but no `.git`, as noted above:
+`once-aws/`, `once-azure/`, `once-google/` and `dotfiles-ubuntu/`. Treat them as
+deployments for every purpose except version control.
+
+How the launcher gets installed is **not** uniform, so check before relying on
+it. `once-colors/`, `k3s-hetzner/`, `k8s-digitalocean/` and `dotfiles-colors/`
+track a `skills-lock.json` and an `.agents/skills/package-*/` payload;
+`walter-oci/` tracks the payload but no lockfile; `airflow-digitalocean/` and
+`rama-digitalocean/` track only the root launcher, with neither. Where there is
+no payload there is nothing to diff the root launcher against, so the copy trap
+described below cannot be detected there at all.
 
 **Applications — container images and GitOps sources the deployments run.**
 `colors-website/` (Astro landing page for www.getcolors.ai), `colors-redirect/`
@@ -109,7 +136,7 @@ Each repo, from its own directory:
 | `blue/` | `uv sync && uv run pytest` (one test: `-k <name>`) |
 | `once/` | per-colour suites, then `./scripts/parity.sh` and `./scripts/launcher.sh` |
 | `airflow/` | `cd green && bb test && bb golden` · red/blue suites · `./scripts/parity.sh` · `./scripts/launcher.sh` |
-| `walter/`, `rama/`, `k3s/`, `k8s/`, `clickhouse/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
+| `walter/`, `rama/`, `k3s/`, `k8s/`, `clickhouse/`, `dotfiles/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
 | `colors-website/` | `pnpm typecheck` · `pnpm build` · `pnpm dev` |
 | `colors-redirect/` | `caddy validate --config Caddyfile --adapter caddyfile` |
 
@@ -128,7 +155,7 @@ validation or usage failure and lists every problem at once. The launcher walks
 up from the working directory to find `colors.yml`, so any subdirectory works.
 Package repos run the same verbs through their own launcher (`bb walter build`
 in `walter/`; `cd green && bb green build` in `airflow/`; `./green build` in
-`k3s/`, `k8s/`, and `clickhouse/`).
+`k3s/`, `k8s/`, `clickhouse/`, and `dotfiles/`).
 
 Toolchains come from `devenv` via `direnv` — run `direnv allow` once per
 deployment checkout. `blue/` is the exception and expects its tools on `PATH`.
@@ -192,7 +219,7 @@ launcher copy. Manually installed script-bearing Agent Skills such as
 generated trees byte for byte — a change to shared behaviour lands in green,
 red, and blue in the same commit, and passes here or it is not done. Airflow has
 its own `scripts/parity.sh` for the same three-colour guarantee. `bb golden` in
-`walter`, `airflow`, `rama`, `k3s`, `k8s`, and `clickhouse` protects provider
+`walter`, `airflow`, `rama`, `k3s`, `k8s`, `clickhouse`, and `dotfiles` protects provider
 templates, state/resource addresses, and any ONCE internals each package reuses. Read a
 golden diff after a pin bump; never `bb golden:accept` merely to make it pass.
 
