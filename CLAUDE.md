@@ -9,13 +9,9 @@ own; almost every subdirectory is a separate clone of
 `git@github.com:getcolors/<name>`. Nothing here builds as a whole and there is
 no root manifest, task runner, or test command.
 
-Two exceptions worth knowing before you assume a directory is a clone you can
-push. `rama-aws-deploy/` is a clone of `redplanetlabs/rama-aws-deploy`, a
-third-party upstream rather than a `getcolors` repository. And `once-aws/`,
-`once-azure/`, `once-google/` and `dotfiles-ubuntu/` have the shape of a
-deployment — `colors.yml`, a launcher, generated `.colors/` — but **no `.git` at
-all**: they are local-only, and nothing in them is backed up by pushing. Check
-for `.git` before promising a change can be committed.
+One exception worth knowing before you assume a directory is a `getcolors`
+clone: `rama-aws-deploy/` is a clone of `redplanetlabs/rama-aws-deploy`, a
+third-party upstream.
 
 The workspace-root `~/code/getcolors/CLAUDE.md` is a symlink to
 `workspace/CLAUDE.md`. Cross-repository instruction changes made through either
@@ -41,7 +37,7 @@ SDK            green ──┬── once ──┬── once-colors          (
                                    ├── k8s       ── k8s-digitalocean    (DigitalOcean Kubernetes)
                                    ├── clickhouse ── clickhouse-hetzner (Hetzner data stack)
                                    └── dotfiles  ─┬─ dotfiles-colors    (this machine's home)
-                                                  └─ dotfiles-ubuntu    (local only, no .git)
+                                                  └─ dotfiles-ubuntu    (Ubuntu home)
 ```
 
 **SDK — the workflow engine, three implementations of one model.**
@@ -75,18 +71,17 @@ profile under `.colors/` and copies the managed files into a configured local
 target, so its verbs are `build`, `diff` and `create` — there is no `delete`.
 
 **Deployments — desired state only, no source code.** `once-colors/`,
-`walter-oci/`, `airflow-digitalocean/`, `rama-digitalocean/`, `k3s-hetzner/`,
-`k8s-digitalocean/`, `clickhouse-hetzner/`, `dotfiles-colors/`. Each holds a
-`colors.yml`, one or more installed launchers, `.envrc`, and `devenv.nix`;
-everything else is generated (`.colors/`) or secret (`.envrc.private`).
-
-Four more directories have exactly this shape but no `.git`, as noted above:
-`once-aws/`, `once-azure/`, `once-google/` and `dotfiles-ubuntu/`. Treat them as
-deployments for every purpose except version control.
+`once-aws/`, `once-azure/`, `once-google/`, `walter-oci/`,
+`airflow-digitalocean/`, `rama-digitalocean/`, `k3s-hetzner/`,
+`k8s-digitalocean/`, `clickhouse-hetzner/`, `dotfiles-colors/`, and
+`dotfiles-ubuntu/`. Each holds a `colors.yml`, one or more installed launchers,
+`.envrc`, and `devenv.nix`; everything else is generated (`.colors/`) or secret
+(`.envrc.private`).
 
 How the launcher gets installed is **not** uniform, so check before relying on
-it. `once-colors/`, `k3s-hetzner/`, `k8s-digitalocean/` and `dotfiles-colors/`
-track a `skills-lock.json` and an `.agents/skills/package-*/` payload;
+it. `once-colors/`, `once-aws/`, `once-azure/`, `once-google/`, `k3s-hetzner/`,
+`k8s-digitalocean/`, `dotfiles-colors/`, and `dotfiles-ubuntu/` track a
+`skills-lock.json` and an `.agents/skills/package-*/` payload;
 `walter-oci/` tracks the payload but no lockfile; `airflow-digitalocean/` and
 `rama-digitalocean/` track only the root launcher, with neither. Where there is
 no payload there is nothing to diff the root launcher against, so the copy trap
