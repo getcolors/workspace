@@ -197,7 +197,7 @@ at a working tree: `GREEN_LIB_ROOT`, `RED_LIB_ROOT`, `BLUE_LIB_ROOT`,
 repos is two commits in two repos, upstream pushed first.
 
 **Installed launchers are copies, not symlinks.** In a deployment repo, the root
-`./green` (or `./walter`) is a copy of `.agents/skills/package-*/…`.
+`./green` is a copy of `.agents/skills/package-*/…`.
 `npx skills update -p` rewrites the payload and leaves the root file alone, so
 the project keeps running the old pin while `skills-lock.json` claims the new
 one. The copy is not optional:
