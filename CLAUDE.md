@@ -9,7 +9,7 @@ own; almost every subdirectory is a separate clone of
 `git@github.com:getcolors/<name>`. Nothing here builds as a whole and there is
 no root manifest, task runner, or test command.
 
-The workspace currently contains 32 checkouts, all from the `getcolors` GitHub
+The workspace currently contains 40 checkouts, all from the `getcolors` GitHub
 organisation. Audit the directories rather than relying on a hard-coded count:
 new Package Skills and deployments are added independently.
 
@@ -38,6 +38,10 @@ SDK            green ──┬── once ──┬── once-colors          (
                                    ├── k3s       ─── k3s-hetzner        (Hetzner K3s)
                                    ├── k8s       ─── k8s-digitalocean   (DigitalOcean Kubernetes)
                                    ├── clickhouse ─ clickhouse-hetzner  (Hetzner data stack)
+                                   ├── dbos      ─── dbos-digitalocean  (DigitalOcean DBOS)
+                                   ├── restate   ─── restate-digitalocean (DigitalOcean Restate)
+                                   ├── temporal  ─── temporal-digitalocean (DigitalOcean Temporal)
+                                   ├── vaultwarden ─ vaultwarden-digitalocean (DigitalOcean Vaultwarden)
                                    └── dotfiles  ─┬─ dotfiles-colors    (this machine's home)
                                                   └─ dotfiles-ubuntu    (Ubuntu home)
 ```
@@ -67,6 +71,10 @@ engine namespace (`:green/exit` → `"red/exit"` → `"blue/exit"`).
 | `k8s/` | green only | two-node kubeadm Kubernetes on DigitalOcean |
 | `clickhouse/` | green only | three ClickHouse/Keeper nodes + Metabase on Hetzner |
 | `alice/` | green only | ephemeral Transmission server on DigitalOcean (+`sync`/`tunnel`) |
+| `dbos/` | green only | one DBOS TypeScript service with colocated PostgreSQL |
+| `restate/` | green only | one Restate server and TypeScript workflow application |
+| `temporal/` | green only | one Temporal stack and TypeScript worker/application |
+| `vaultwarden/` | green only | one Vaultwarden service with Litestream replication |
 | `dotfiles/` | green only | Ubuntu or macOS home configuration on the local machine |
 
 `dotfiles/` is the one package that provisions no infrastructure: it renders a
@@ -77,15 +85,16 @@ target, so its verbs are `build`, `diff` and `create` — there is no `delete`.
 `once-aws/`, `once-azure/`, `once-google/`, `walter-oci/`, `walter-ada/`,
 `airflow-digitalocean/`, `alice-digitalocean/`, `rama-digitalocean/`,
 `k3s-hetzner/`, `k8s-digitalocean/`, `clickhouse-hetzner/`,
-`dotfiles-colors/`, and `dotfiles-ubuntu/`. Each holds a `colors.yml`, one or
+`dbos-digitalocean/`, `restate-digitalocean/`, `temporal-digitalocean/`,
+`vaultwarden-digitalocean/`, `dotfiles-colors/`, and `dotfiles-ubuntu/`. Each holds a `colors.yml`, one or
 more installed launchers, `.envrc`, and `devenv.nix`; everything else is
 generated (`.colors/`) or secret (`.envrc.private`).
 
 Every current deployment tracks an `.agents/skills/package-*/` payload, but
 launcher provenance is **not** uniform. The four ONCE deployments, Airflow,
-Rama, K3s, K8s, and both dotfiles deployments also track `skills-lock.json`.
-Alice, both Walter deployments, and ClickHouse track hand-copied payloads with
-no lockfile. A lockfile proves an install; never fabricate one for a manual
+Rama, K3s, K8s, DBOS, Restate, Temporal, and both dotfiles deployments also
+track `skills-lock.json`. Alice, both Walter deployments, ClickHouse, and
+Vaultwarden track hand-copied payloads with no lockfile. A lockfile proves an install; never fabricate one for a manual
 copy. In every case the root launcher remains a separate copy and must be
 compared with the payload after an update.
 
@@ -103,6 +112,10 @@ separate repositories. Add the same tag when adding a root page; do not add an
 
 **`workspace/`** — the tracked GitHub Pages portfolio/readiness audit for this
 multi-repository workspace; it is documentation, not a build root.
+`repositories.json` is the canonical organization-wide description/homepage
+inventory, including the remote-only `airflow-dags` repository. Run
+`./scripts/github-metadata.py` to check GitHub, add `--apply` to synchronize it,
+and run `./scripts/generate-report.py` after checkout or metadata changes.
 
 **`skills/`** — Agent Skills. `refresh-oci-token` renews the shared OCI session,
 while `create-package-skill` governs the phased workflow for creating a Package
@@ -133,7 +146,7 @@ Each repo, from its own directory:
 | `blue/` | `uv sync && uv run pytest` (one test: `-k <name>`) |
 | `once/` | per-colour suites, then `./scripts/parity.sh` and `./scripts/launcher.sh` |
 | `airflow/` | `cd green && bb test && bb golden` · red/blue suites · `./scripts/parity.sh` · `./scripts/launcher.sh` |
-| `walter/`, `rama/`, `k3s/`, `k8s/`, `clickhouse/`, `alice/`, `dotfiles/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
+| `walter/`, `rama/`, `k3s/`, `k8s/`, `clickhouse/`, `alice/`, `dbos/`, `restate/`, `temporal/`, `vaultwarden/`, `dotfiles/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
 | `colors-website/` | `pnpm typecheck` · `pnpm build` · `pnpm dev` |
 | `colors-redirect/` | `caddy validate --config Caddyfile --adapter caddyfile` |
 
@@ -193,7 +206,8 @@ in `green/` is invisible in `once/` until it is pushed *and* the pin moves;
 hand-edit a SHA. To develop across a boundary without pinning, point the launcher
 at a working tree: `GREEN_LIB_ROOT`, `RED_LIB_ROOT`, `BLUE_LIB_ROOT`,
 `ONCE_LIB_ROOT`, `WALTER_LIB_ROOT`, `AIRFLOW_LIB_ROOT`, `K3S_LIB_ROOT`,
-`K8S_LIB_ROOT`, `CLICKHOUSE_LIB_ROOT`, `RAMA_LIB_ROOT`, `ALICE_LIB_ROOT`. A change that spans two
+`K8S_LIB_ROOT`, `CLICKHOUSE_LIB_ROOT`, `RAMA_LIB_ROOT`, `ALICE_LIB_ROOT`,
+`DBOS_LIB_ROOT`, `RESTATE_LIB_ROOT`, `TEMPORAL_LIB_ROOT`, `VAULTWARDEN_LIB_ROOT`. A change that spans two
 repos is two commits in two repos, upstream pushed first.
 
 **Installed launchers are copies, not symlinks.** In a deployment repo, the root
@@ -219,7 +233,8 @@ launcher copy. Manually installed script-bearing Agent Skills such as
 generated trees byte for byte — a change to shared behaviour lands in green,
 red, and blue in the same commit, and passes here or it is not done. Airflow has
 its own `scripts/parity.sh` for the same three-colour guarantee. `bb golden` in
-`walter`, `airflow`, `rama`, `k3s`, `k8s`, `clickhouse`, `alice`, and `dotfiles` protects provider
+`walter`, `airflow`, `rama`, `k3s`, `k8s`, `clickhouse`, `alice`, `dbos`,
+`restate`, `temporal`, `vaultwarden`, and `dotfiles` protects provider
 templates, state/resource addresses, and any ONCE internals each package reuses. Read a
 golden diff after a pin bump; never `bb golden:accept` merely to make it pass.
 
