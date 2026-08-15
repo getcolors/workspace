@@ -9,9 +9,9 @@ own; almost every subdirectory is a separate clone of
 `git@github.com:getcolors/<name>`. Nothing here builds as a whole and there is
 no root manifest, task runner, or test command.
 
-One exception worth knowing before you assume a directory is a `getcolors`
-clone: `rama-aws-deploy/` is a clone of `redplanetlabs/rama-aws-deploy`, a
-third-party upstream.
+The workspace currently contains 32 checkouts, all from the `getcolors` GitHub
+organisation. Audit the directories rather than relying on a hard-coded count:
+new Package Skills and deployments are added independently.
 
 The workspace-root `~/code/getcolors/CLAUDE.md` is a symlink to
 `workspace/CLAUDE.md`. Cross-repository instruction changes made through either
@@ -31,11 +31,13 @@ The stack is four layers. An arrow means "is built on and pins by git SHA".
 SDK            green ──┬── once ──┬── once-colors          (OCI VM, www.getcolors.ai)
 (engine)       red   ──┤           ├── airflow (3 colours) ── airflow-digitalocean
                blue  ──┘           │
-               green ──────────────┼── walter    ── walter-oci          (OCI dev machine)
-                                   ├── rama      ── rama-digitalocean   (DigitalOcean Rama)
-                                   ├── k3s       ── k3s-hetzner         (Hetzner K3s)
-                                   ├── k8s       ── k8s-digitalocean    (DigitalOcean Kubernetes)
-                                   ├── clickhouse ── clickhouse-hetzner (Hetzner data stack)
+               green ──────────────┼── walter    ─┬─ walter-oci        (OCI dev machine)
+                                   │              └─ walter-ada        (OCI dev machine)
+                                   ├── alice     ─── alice-digitalocean (ephemeral Transmission)
+                                   ├── rama      ─── rama-digitalocean  (DigitalOcean Rama)
+                                   ├── k3s       ─── k3s-hetzner        (Hetzner K3s)
+                                   ├── k8s       ─── k8s-digitalocean   (DigitalOcean Kubernetes)
+                                   ├── clickhouse ─ clickhouse-hetzner  (Hetzner data stack)
                                    └── dotfiles  ─┬─ dotfiles-colors    (this machine's home)
                                                   └─ dotfiles-ubuntu    (Ubuntu home)
 ```
@@ -64,6 +66,7 @@ engine namespace (`:green/exit` → `"red/exit"` → `"blue/exit"`).
 | `k3s/` | green only | one Hetzner K3s + Flux node |
 | `k8s/` | green only | two-node kubeadm Kubernetes on DigitalOcean |
 | `clickhouse/` | green only | three ClickHouse/Keeper nodes + Metabase on Hetzner |
+| `alice/` | green only | ephemeral Transmission server on DigitalOcean (+`sync`/`tunnel`) |
 | `dotfiles/` | green only | Ubuntu or macOS home configuration on the local machine |
 
 `dotfiles/` is the one package that provisions no infrastructure: it renders a
@@ -71,21 +74,20 @@ profile under `.colors/` and copies the managed files into a configured local
 target, so its verbs are `build`, `diff` and `create` — there is no `delete`.
 
 **Deployments — desired state only, no source code.** `once-colors/`,
-`once-aws/`, `once-azure/`, `once-google/`, `walter-oci/`,
-`airflow-digitalocean/`, `rama-digitalocean/`, `k3s-hetzner/`,
-`k8s-digitalocean/`, `clickhouse-hetzner/`, `dotfiles-colors/`, and
-`dotfiles-ubuntu/`. Each holds a `colors.yml`, one or more installed launchers,
-`.envrc`, and `devenv.nix`; everything else is generated (`.colors/`) or secret
-(`.envrc.private`).
+`once-aws/`, `once-azure/`, `once-google/`, `walter-oci/`, `walter-ada/`,
+`airflow-digitalocean/`, `alice-digitalocean/`, `rama-digitalocean/`,
+`k3s-hetzner/`, `k8s-digitalocean/`, `clickhouse-hetzner/`,
+`dotfiles-colors/`, and `dotfiles-ubuntu/`. Each holds a `colors.yml`, one or
+more installed launchers, `.envrc`, and `devenv.nix`; everything else is
+generated (`.colors/`) or secret (`.envrc.private`).
 
-How the launcher gets installed is **not** uniform, so check before relying on
-it. `once-colors/`, `once-aws/`, `once-azure/`, `once-google/`, `k3s-hetzner/`,
-`k8s-digitalocean/`, `dotfiles-colors/`, and `dotfiles-ubuntu/` track a
-`skills-lock.json` and an `.agents/skills/package-*/` payload;
-`walter-oci/` tracks the payload but no lockfile; `airflow-digitalocean/` and
-`rama-digitalocean/` track only the root launcher, with neither. Where there is
-no payload there is nothing to diff the root launcher against, so the copy trap
-described below cannot be detected there at all.
+Every current deployment tracks an `.agents/skills/package-*/` payload, but
+launcher provenance is **not** uniform. The four ONCE deployments, Airflow,
+Rama, K3s, K8s, and both dotfiles deployments also track `skills-lock.json`.
+Alice, both Walter deployments, and ClickHouse track hand-copied payloads with
+no lockfile. A lockfile proves an install; never fabricate one for a manual
+copy. In every case the root launcher remains a separate copy and must be
+compared with the payload after an update.
 
 **Applications — container images and GitOps sources the deployments run.**
 `colors-website/` (Astro landing page for www.getcolors.ai), `colors-redirect/`
@@ -131,7 +133,7 @@ Each repo, from its own directory:
 | `blue/` | `uv sync && uv run pytest` (one test: `-k <name>`) |
 | `once/` | per-colour suites, then `./scripts/parity.sh` and `./scripts/launcher.sh` |
 | `airflow/` | `cd green && bb test && bb golden` · red/blue suites · `./scripts/parity.sh` · `./scripts/launcher.sh` |
-| `walter/`, `rama/`, `k3s/`, `k8s/`, `clickhouse/`, `dotfiles/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
+| `walter/`, `rama/`, `k3s/`, `k8s/`, `clickhouse/`, `alice/`, `dotfiles/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
 | `colors-website/` | `pnpm typecheck` · `pnpm build` · `pnpm dev` |
 | `colors-redirect/` | `caddy validate --config Caddyfile --adapter caddyfile` |
 
@@ -173,9 +175,12 @@ These hold in every package and deployment; do not relitigate them per repo.
 - **`.colors/` is generated output.** Never edit it, never read it as source,
   never commit it. Change `colors.yml` or the upstream template.
 - **`delete` is guarded** by `compute-prevent-destroy: true` in `colors.yml`,
-  liftable only with `COLORS_PAR_COMPUTE_PREVENT_DESTROY=false` for one run.
-  Never edit the committed flag. Never run a real `create`/`delete` against a
-  live deployment without explicit authorization.
+  liftable only with `COLORS_PAR_COMPUTE_PREVENT_DESTROY=false` for one run in
+  the conventional packages. Alice deliberately ignores that override: an
+  explicit `delete`, or `sync` only after its final checksummed copy, is the
+  authorization boundary. Never edit the committed flag. Never run a real
+  `create`/`delete` (or Alice `sync`) against a live deployment without explicit
+  authorization.
 - **Deployment `.gitignore`s are `.*` with narrow negations**, so a new dotfile
   is invisible to git until negated. Check `git ls-files` rather than inferring
   what is tracked from the working tree.
@@ -188,7 +193,7 @@ in `green/` is invisible in `once/` until it is pushed *and* the pin moves;
 hand-edit a SHA. To develop across a boundary without pinning, point the launcher
 at a working tree: `GREEN_LIB_ROOT`, `RED_LIB_ROOT`, `BLUE_LIB_ROOT`,
 `ONCE_LIB_ROOT`, `WALTER_LIB_ROOT`, `AIRFLOW_LIB_ROOT`, `K3S_LIB_ROOT`,
-`K8S_LIB_ROOT`, `CLICKHOUSE_LIB_ROOT`, `RAMA_LIB_ROOT`. A change that spans two
+`K8S_LIB_ROOT`, `CLICKHOUSE_LIB_ROOT`, `RAMA_LIB_ROOT`, `ALICE_LIB_ROOT`. A change that spans two
 repos is two commits in two repos, upstream pushed first.
 
 **Installed launchers are copies, not symlinks.** In a deployment repo, the root
@@ -214,7 +219,7 @@ launcher copy. Manually installed script-bearing Agent Skills such as
 generated trees byte for byte — a change to shared behaviour lands in green,
 red, and blue in the same commit, and passes here or it is not done. Airflow has
 its own `scripts/parity.sh` for the same three-colour guarantee. `bb golden` in
-`walter`, `airflow`, `rama`, `k3s`, `k8s`, `clickhouse`, and `dotfiles` protects provider
+`walter`, `airflow`, `rama`, `k3s`, `k8s`, `clickhouse`, `alice`, and `dotfiles` protects provider
 templates, state/resource addresses, and any ONCE internals each package reuses. Read a
 golden diff after a pin bump; never `bb golden:accept` merely to make it pass.
 
