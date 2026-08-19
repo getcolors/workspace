@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "1.0.0",
+  "name": "getcolors-invariant-knowledge-graph",
+  "description": "Proprietary database of software packaging invariants, kernel optimizations, cloud-native storage rules, and failure remediations.",
+  "invariants": [
+    {
+      "id": "RULE-KAFKA-AWS-GRAVITON-XFS",
+      "target_software": "kafka",
+      "cloud_provider": "aws",
+      "architecture": "arm64",
+      "context": "Apache Kafka KRaft 3-node cluster with high write throughput on AWS Graviton3 (c7g / m6g)",
+      "defect": "High P99 latency caused by Linux kernel dirty background writeback stalls and unaligned cross-socket NUMA memory accesses.",
+      "remediation": {
+        "kernel_sysctl": {
+          "vm.dirty_background_ratio": 5,
+          "vm.dirty_ratio": 10,
+          "vm.swappiness": 1
+        },
+        "jvm_flags": [
+          "-XX:+UseNUMA",
+          "-XX:+UseG1GC",
+          "-XX:MaxGCPauseMillis=20",
+          "-XX:InitiatingHeapOccupancyPercent=45"
+        ],
+        "storage": {
+          "type": "gp3",
+          "mount_opts": "noatime,nodiratime,logbufs=8,allocsize=64M",
+          "filesystem": "xfs",
+          "min_iops": 6000,
+          "min_throughput_mbps": 250
+        }
+      },
+      "verified_in_gym": true,
+      "last_tested": "2026-08-17T17:44:27Z"
+    },
+    {
+      "id": "RULE-CLICKHOUSE-HETZNER-NVME",
+      "target_software": "clickhouse",
+      "cloud_provider": "hetzner",
+      "architecture": "x86_64",
+      "context": "ClickHouse Keeper + 3-Node Raft cluster on bare-metal NVMe drives",
+      "defect": "Keeper fsync lock contention during heavy background merges when Raft log shares disk with data parts.",
+      "remediation": {
+        "storage": {
+          "separate_keeper_disk": true,
+          "disk_scheduler": "none",
+          "mount_opts": "noatime,nodiratime,barrier=0"
+        },
+        "systemd": {
+          "LimitNOFILE": 500000,
+          "LimitNPROC": 500000
+        }
+      },
+      "verified_in_gym": true,
+      "last_tested": "2026-08-17T17:44:27Z"
+    },
+    {
+      "id": "RULE-POSTGRES-GCP-HYPERDISK",
+      "target_software": "postgres",
+      "cloud_provider": "gcp",
+      "architecture": "x86_64",
+      "context": "PostgreSQL 16 HA with Patroni on GCP Compute Engine using Hyperdisk Balanced",
+      "defect": "Unpredictable WAL flush latency spikes due to default transparent hugepage defragmentation.",
+      "remediation": {
+        "kernel_sysctl": {
+          "transparent_hugepage": "madvise",
+          "vm.overcommit_memory": 2,
+          "vm.overcommit_ratio": 80
+        },
+        "storage": {
+          "type": "hyperdisk-balanced",
+          "provisioned_iops_multiplier": 50
+        }
+      },
+      "verified_in_gym": true,
+      "last_tested": "2026-08-17T17:44:27Z"
+    }
+  ]
+}
