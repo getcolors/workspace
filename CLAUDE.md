@@ -110,12 +110,11 @@ HTML `<title>` and remain distinct and stable, so one Analytics property can
 separate repositories. Add the same tag when adding a root page; do not add an
 `index.html` merely to satisfy this convention.
 
-**`workspace/`** — the tracked GitHub Pages portfolio/readiness audit for this
-multi-repository workspace; it is documentation, not a build root.
-`repositories.json` is the canonical organization-wide description/homepage
-inventory, including the remote-only `airflow-dags` repository. Run
-`./scripts/github-metadata.py` to check GitHub, add `--apply` to synchronize it,
-and run `./scripts/generate-report.py` after checkout or metadata changes.
+**`workspace/`** — cross-repository documentation for this multi-repository
+workspace; it is documentation, not a build root. `repositories.json` is the
+canonical organization-wide description/homepage inventory, including the
+remote-only `airflow-dags` repository. Run `./scripts/github-metadata.py` to
+check GitHub, and add `--apply` to synchronize it.
 
 **`skills/`** — Agent Skills. `refresh-oci-token` renews the shared OCI session,
 while `create-package-skill` governs the phased workflow for creating a Package
