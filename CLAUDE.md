@@ -82,7 +82,7 @@ profile under `.colors/` and copies the managed files into a configured local
 target, so its verbs are `build`, `diff` and `create` — there is no `delete`.
 
 **Deployments — desired state only, no source code.** `once-colors/`,
-`once-aws/`, `once-azure/`, `once-google/`, `walter-oci/`, `walter-ada/`,
+`once-aws/`, `once-azure/`, `once-google/`, `once-vultr/`, `walter-oci/`, `walter-ada/`,
 `airflow-digitalocean/`, `alice-digitalocean/`, `rama-digitalocean/`,
 `k3s-hetzner/`, `k8s-digitalocean/`, `clickhouse-hetzner/`,
 `dbos-digitalocean/`, `restate-digitalocean/`, `temporal-digitalocean/`,
@@ -91,7 +91,7 @@ more installed launchers, `.envrc`, and `devenv.nix`; everything else is
 generated (`.colors/`) or secret (`.envrc.private`).
 
 Every current deployment tracks an `.agents/skills/package-*/` payload, but
-launcher provenance is **not** uniform. The four ONCE deployments, Airflow,
+launcher provenance is **not** uniform. The five ONCE deployments, Airflow,
 Rama, K3s, K8s, DBOS, Restate, Temporal, and both dotfiles deployments also
 track `skills-lock.json`. Alice, both Walter deployments, ClickHouse, and
 Vaultwarden track hand-copied payloads with no lockfile. A lockfile proves an install; never fabricate one for a manual

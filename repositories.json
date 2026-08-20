@@ -30,6 +30,7 @@
   "once-azure": {"category":"deployment","description":"Desired state for a Basecamp ONCE server on Azure.","homepage":""},
   "once-colors": {"category":"deployment","description":"Production desired state for the Colors website on an Oracle Cloud ONCE server.","homepage":"https://www.getcolors.ai"},
   "once-google": {"category":"deployment","description":"Desired state for a Basecamp ONCE server on Google Cloud.","homepage":""},
+  "once-vultr": {"category":"deployment","description":"Desired state for a Basecamp ONCE server on Vultr.","homepage":""},
   "postgres-agy": {"category":"package","description":"Provision a three-node PostgreSQL 17 failover cluster with Patroni, colocated etcd, HAProxy routing, and pgBackRest WAL backups to R2 on DigitalOcean.","homepage":"https://getcolors.github.io/postgres-agy/"},
   "postgres-agy-digitalocean": {"category":"deployment","description":"Desired state for a three-node Patroni PostgreSQL failover cluster on DigitalOcean.","homepage":"https://getcolors.github.io/postgres-agy-digitalocean/"},
   "postgres-ha": {"category":"package","description":"Provision a three-node PostgreSQL failover cluster with Patroni, colocated etcd, and pgBackRest point-in-time recovery to R2 on DigitalOcean.","homepage":"https://getcolors.github.io/postgres-ha/"},
