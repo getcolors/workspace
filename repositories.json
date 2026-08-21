@@ -44,6 +44,7 @@
   "restate-digitalocean": {"category":"deployment","description":"Desired state for a production-oriented single-node Restate service on DigitalOcean.","homepage":"https://getcolors.github.io/restate-digitalocean/"},
   "rybbit": {"category":"package","description":"Provision a production-oriented single-node Rybbit analytics service on DigitalOcean with Green.","homepage":"https://getcolors.github.io/rybbit/"},
   "rybbit-digitalocean": {"category":"deployment","description":"Desired state for a production-oriented single-node Rybbit analytics service on DigitalOcean.","homepage":"https://getcolors.github.io/rybbit-digitalocean/"},
+  "rybbit-vultr": {"category":"deployment","description":"Desired state for a production-oriented single-node Rybbit analytics service on Vultr.","homepage":"https://getcolors.github.io/rybbit-vultr/"},
   "skills": {"category":"automation","description":"Agent Skills for operating and extending the Colors workspace.","homepage":"https://getcolors.github.io/skills/"},
   "temporal": {"category":"package","description":"Provision a production-oriented single-machine Temporal stack on DigitalOcean with Green.","homepage":"https://getcolors.github.io/temporal/"},
   "temporal-digitalocean": {"category":"deployment","description":"Desired state for a production-oriented Temporal stack on DigitalOcean.","homepage":"https://getcolors.github.io/temporal-digitalocean/"},
