@@ -53,6 +53,7 @@
   "vaultwarden-digitalocean": {"category":"deployment","description":"Desired state for a Vaultwarden deployment with R2 recovery on DigitalOcean.","homepage":""},
   "walter": {"category":"package","description":"Provision and operate a remote development machine on Oracle Cloud with Green.","homepage":"https://getcolors.github.io/walter/"},
   "walter-ada": {"category":"deployment","description":"Desired state for the Walter Ada development machine on Oracle Cloud.","homepage":"https://getcolors.github.io/walter-ada/"},
+  "walter-liliana": {"category":"deployment","description":"Desired state for the Walter Liliana development machine on Oracle Cloud.","homepage":"https://getcolors.github.io/walter-liliana/"},
   "walter-oci": {"category":"deployment","description":"Desired state for a Walter development machine on Oracle Cloud.","homepage":"https://getcolors.github.io/walter-oci/"},
   "workspace": {"category":"portfolio","description":"Cross-repository portfolio and readiness audit for the Colors workspace.","homepage":""}
 }
