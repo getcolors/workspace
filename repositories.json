@@ -59,6 +59,7 @@
   "walter-liliana": {"category":"deployment","description":"Desired state for the Walter Liliana development machine on Oracle Cloud.","homepage":"https://getcolors.github.io/walter-liliana/"},
   "walter-oci": {"category":"deployment","description":"Desired state for a Walter development machine on Oracle Cloud.","homepage":"https://getcolors.github.io/walter-oci/"},
   "walter-vultr": {"category":"deployment","description":"Desired state for a Walter development machine on Vultr.","homepage":"https://getcolors.github.io/walter-vultr/"},
+  "walter-vultr": {"category":"deployment","description":"Desired state for a Walter development machine on Vultr.","homepage":"https://getcolors.github.io/walter-vultr/"},
   "wavehouse": {"category":"package","description":"Provision a public WaveHouse analytics demo with a live GitHub stats dashboard on Vultr with Green.","homepage":"https://getcolors.github.io/wavehouse/"},
   "wavehouse-vultr": {"category":"deployment","description":"Desired state for the WaveHouse analytics demo at stats.bigconfig.space on Vultr.","homepage":"https://getcolors.github.io/wavehouse-vultr/"},
   "workspace": {"category":"portfolio","description":"Cross-repository portfolio and readiness audit for the Colors workspace.","homepage":""}

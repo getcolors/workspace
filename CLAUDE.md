@@ -33,7 +33,8 @@ SDK            green ──┬── once ──┬── once-colors          (
                blue  ──┘           │
                green ──────────────┼── walter    ─┬─ walter-oci        (OCI dev machine)
                                    │              ├─ walter-ada        (OCI dev machine)
-                                   │              └─ walter-liliana    (OCI dev machine)
+                                   │              ├─ walter-liliana    (OCI dev machine)
+                                   │              └─ walter-vultr      (Vultr dev machine)
                                    ├── alice     ─── alice-digitalocean (ephemeral Transmission)
                                    ├── rama      ─── rama-digitalocean  (DigitalOcean Rama)
                                    ├── k3s       ─── k3s-hetzner        (Hetzner K3s)
@@ -88,7 +89,7 @@ target, so its verbs are `build`, `diff` and `create` — there is no `delete`.
 
 **Deployments — desired state only, no source code.** `once-colors/`,
 `once-aws/`, `once-azure/`, `once-google/`, `once-vultr/`, `walter-oci/`,
-`walter-ada/`, `walter-liliana/`,
+`walter-ada/`, `walter-liliana/`, `walter-vultr/`,
 `airflow-digitalocean/`, `alice-digitalocean/`, `rama-digitalocean/`,
 `k3s-hetzner/`, `k8s-digitalocean/`, `clickhouse-hetzner/`,
 `dbos-digitalocean/`, `restate-digitalocean/`, `temporal-digitalocean/`,
@@ -99,9 +100,10 @@ generated (`.colors/`) or secret (`.envrc.private`).
 
 Every current deployment tracks an `.agents/skills/package-*/` payload, but
 launcher provenance is **not** uniform. The five ONCE deployments, Airflow,
-Rama, K3s, K8s, DBOS, Restate, Temporal, GitHub DWH, WaveHouse, and both dotfiles deployments also
-track `skills-lock.json`. Alice, all three Walter deployments, ClickHouse, and
-Vaultwarden track hand-copied payloads with no lockfile. A lockfile proves an install; never fabricate one for a manual
+Rama, K3s, K8s, DBOS, Restate, Temporal, GitHub DWH, WaveHouse, Walter Vultr,
+and both dotfiles deployments also track `skills-lock.json`. Alice, the three
+OCI Walter deployments, ClickHouse, and Vaultwarden track hand-copied payloads
+with no lockfile. A lockfile proves an install; never fabricate one for a manual
 copy. In every case the root launcher remains a separate copy and must be
 compared with the payload after an update.
 
