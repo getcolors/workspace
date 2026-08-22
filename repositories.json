@@ -1,6 +1,6 @@
 {
   "airflow": {"category":"package","description":"Deploy one Apache Airflow server with Green, Red, or Blue Package Skills.","homepage":"https://getcolors.github.io/airflow/"},
-  "airflow-dags": {"category":"application","description":"Airflow DAGs deployed to airflow.bigconfig.online by Colors.","homepage":"","checkout":false},
+  "airflow-dags": {"category":"application","description":"Airflow DAGs deployed to airflow.bigconfig.online by Colors.","homepage":""},
   "airflow-digitalocean": {"category":"deployment","description":"Desired state for an Apache Airflow server on DigitalOcean.","homepage":"https://getcolors.github.io/airflow-digitalocean/"},
   "alice": {"category":"package","description":"Provision an ephemeral private Transmission server on DigitalOcean with Green.","homepage":"https://getcolors.github.io/alice/"},
   "alice-digitalocean": {"category":"deployment","description":"Desired state for the ephemeral Alice deployment on DigitalOcean.","homepage":"https://getcolors.github.io/alice-digitalocean/"},
@@ -58,5 +58,8 @@
   "walter-ada": {"category":"deployment","description":"Desired state for the Walter Ada development machine on Oracle Cloud.","homepage":"https://getcolors.github.io/walter-ada/"},
   "walter-liliana": {"category":"deployment","description":"Desired state for the Walter Liliana development machine on Oracle Cloud.","homepage":"https://getcolors.github.io/walter-liliana/"},
   "walter-oci": {"category":"deployment","description":"Desired state for a Walter development machine on Oracle Cloud.","homepage":"https://getcolors.github.io/walter-oci/"},
+  "walter-vultr": {"category":"deployment","description":"Desired state for a Walter development machine on Vultr.","homepage":"https://getcolors.github.io/walter-vultr/"},
+  "wavehouse": {"category":"package","description":"Provision a public WaveHouse analytics demo with a live GitHub stats dashboard on Vultr with Green.","homepage":"https://getcolors.github.io/wavehouse/"},
+  "wavehouse-vultr": {"category":"deployment","description":"Desired state for the WaveHouse analytics demo at stats.bigconfig.space on Vultr.","homepage":"https://getcolors.github.io/wavehouse-vultr/"},
   "workspace": {"category":"portfolio","description":"Cross-repository portfolio and readiness audit for the Colors workspace.","homepage":""}
 }
