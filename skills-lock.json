@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "skills": {
+    "clipboard-screenshot": {
+      "source": "getcolors/skills",
+      "sourceType": "github",
+      "skillPath": "clipboard-screenshot/SKILL.md",
+      "computedHash": "2211973d43a5725f13775e96aa1d2cff3e920ba98e793d2fc596b89614e1cb67"
+    },
+    "create-package-skill": {
+      "source": "getcolors/skills",
+      "sourceType": "github",
+      "skillPath": "create-package-skill/SKILL.md",
+      "computedHash": "b720bd8df77ceef5025774c0e2ff0a980142411b857dd9926ba694a99d21428b"
+    },
+    "refresh-oci-token": {
+      "source": "getcolors/skills",
+      "sourceType": "github",
+      "skillPath": "refresh-oci-token/SKILL.md",
+      "computedHash": "48494517e044682acfa4ee34a5600418dd738145872ce12056432c2daa5cbec0"
+    },
+    "submit-package-skill": {
+      "source": "getcolors/skills",
+      "sourceType": "github",
+      "skillPath": "submit-package-skill/SKILL.md",
+      "computedHash": "886986541358e8534dcb9888ac983dcce421be156cc7d4240065de5e75857400"
+    }
+  }
+}
