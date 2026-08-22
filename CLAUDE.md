@@ -113,11 +113,15 @@ compared with the payload after an update.
 reconciles), and `k8s-helloworld/` (the public Flux source and application
 `k8s-digitalocean` reconciles).
 
-**Repository landing pages.** Every tracked root `index.html` uses GA4
-measurement ID `G-4VKP1WY4QJ`. Its explicit `page_title` must equal the decoded
-HTML `<title>` and remain distinct and stable, so one Analytics property can
-separate repositories. Add the same tag when adding a root page; do not add an
-`index.html` merely to satisfy this convention.
+**Repository landing pages.** Every tracked root `index.html` carries two
+analytics tags: GA4 measurement ID `G-4VKP1WY4QJ`, and the self-hosted Rybbit
+snippet
+`<script src="https://rybbit.bigconfig.online/api/script.js" data-site-id="9fb9c41a6d49" defer></script>`.
+The GA4 `page_title` must equal the decoded HTML `<title>` and remain distinct
+and stable, so one Analytics property can separate repositories; Rybbit shares
+one site ID across all pages because `getcolors.github.io/<repo>/` paths
+already encode the repository. Add both tags when adding a root page; do not
+add an `index.html` merely to satisfy this convention.
 
 **`workspace/`** — cross-repository documentation for this multi-repository
 workspace; it is documentation, not a build root. `repositories.json` is the
