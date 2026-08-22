@@ -15,7 +15,7 @@
   "dotfiles-colors": {"category":"deployment","description":"Desired state for the local macOS home managed by getcolors/dotfiles.","homepage":""},
   "dotfiles-ubuntu": {"category":"deployment","description":"Desired state for the local Ubuntu home managed by getcolors/dotfiles.","homepage":""},
   "green": {"category":"sdk","description":"Clojure/Babashka workflow engine for building idempotent DevOps CLIs.","homepage":"https://getcolors.github.io/green/"},
-  "github-dwh": {"category":"package","description":"Blue Package Skill for a GitHub organization warehouse on ClickHouse with a PocketBase control plane","homepage":""},
+  "github-dwh": {"category":"package","description":"Provision a single-host GitHub organization warehouse with ClickHouse, dlt, dbt, Lightdash analytics, and a PocketBase control plane on Vultr.","homepage":"https://getcolors.github.io/github-dwh/"},
   "github-dwh-vultr": {"category":"deployment","description":"Desired-state deployment of github-dwh on Vultr","homepage":""},
   "k3s": {"category":"package","description":"Provision a secure single-node K3s and Flux server on Hetzner with Green.","homepage":"https://getcolors.github.io/k3s/"},
   "k3s-helloworld": {"category":"application","description":"Minimal GitOps application demonstrating pull-based deployment with K3s and Flux.","homepage":"https://getcolors.github.io/k3s-helloworld/"},
