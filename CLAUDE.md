@@ -43,6 +43,7 @@ SDK            green ──┬── once ──┬── once-colors          (
                                    ├── restate   ─── restate-digitalocean (DigitalOcean Restate)
                                    ├── temporal  ─── temporal-digitalocean (DigitalOcean Temporal)
                                    ├── vaultwarden ─ vaultwarden-digitalocean (DigitalOcean Vaultwarden)
+                                   ├── github-dwh ── github-dwh-vultr (Vultr GitHub warehouse)
                                    └── dotfiles  ─┬─ dotfiles-colors    (this machine's home)
                                                   └─ dotfiles-ubuntu    (Ubuntu home)
 ```
@@ -76,6 +77,7 @@ engine namespace (`:green/exit` → `"red/exit"` → `"blue/exit"`).
 | `restate/` | green only | one Restate server and TypeScript workflow application |
 | `temporal/` | green only | one Temporal stack and TypeScript worker/application |
 | `vaultwarden/` | green only | one Vaultwarden service with Litestream replication |
+| `github-dwh/` | blue only | one GitHub organization warehouse with ClickHouse and PocketBase |
 | `dotfiles/` | green only | Ubuntu or macOS home configuration on the local machine |
 
 `dotfiles/` is the one package that provisions no infrastructure: it renders a
@@ -88,13 +90,13 @@ target, so its verbs are `build`, `diff` and `create` — there is no `delete`.
 `airflow-digitalocean/`, `alice-digitalocean/`, `rama-digitalocean/`,
 `k3s-hetzner/`, `k8s-digitalocean/`, `clickhouse-hetzner/`,
 `dbos-digitalocean/`, `restate-digitalocean/`, `temporal-digitalocean/`,
-`vaultwarden-digitalocean/`, `dotfiles-colors/`, and `dotfiles-ubuntu/`. Each holds a `colors.yml`, one or
+`vaultwarden-digitalocean/`, `github-dwh-vultr/`, `dotfiles-colors/`, and `dotfiles-ubuntu/`. Each holds a `colors.yml`, one or
 more installed launchers, `.envrc`, and `devenv.nix`; everything else is
 generated (`.colors/`) or secret (`.envrc.private`).
 
 Every current deployment tracks an `.agents/skills/package-*/` payload, but
 launcher provenance is **not** uniform. The five ONCE deployments, Airflow,
-Rama, K3s, K8s, DBOS, Restate, Temporal, and both dotfiles deployments also
+Rama, K3s, K8s, DBOS, Restate, Temporal, GitHub DWH, and both dotfiles deployments also
 track `skills-lock.json`. Alice, all three Walter deployments, ClickHouse, and
 Vaultwarden track hand-copied payloads with no lockfile. A lockfile proves an install; never fabricate one for a manual
 copy. In every case the root launcher remains a separate copy and must be
@@ -148,6 +150,7 @@ Each repo, from its own directory:
 | `once/` | per-colour suites, then `./scripts/parity.sh` and `./scripts/launcher.sh` |
 | `airflow/` | `cd green && bb test && bb golden` · red/blue suites · `./scripts/parity.sh` · `./scripts/launcher.sh` |
 | `walter/`, `rama/`, `k3s/`, `k8s/`, `clickhouse/`, `alice/`, `dbos/`, `restate/`, `temporal/`, `vaultwarden/`, `dotfiles/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
+| `github-dwh/` | `uv run pytest` · `./scripts/golden.sh` · `./scripts/launcher.sh` |
 | `colors-website/` | `pnpm typecheck` · `pnpm build` · `pnpm dev` |
 | `colors-redirect/` | `caddy validate --config Caddyfile --adapter caddyfile` |
 
@@ -235,7 +238,7 @@ generated trees byte for byte — a change to shared behaviour lands in green,
 red, and blue in the same commit, and passes here or it is not done. Airflow has
 its own `scripts/parity.sh` for the same three-colour guarantee. `bb golden` in
 `walter`, `airflow`, `rama`, `k3s`, `k8s`, `clickhouse`, `alice`, `dbos`,
-`restate`, `temporal`, `vaultwarden`, and `dotfiles` protects provider
+`restate`, `temporal`, `vaultwarden`, `github-dwh`, and `dotfiles` protects provider
 templates, state/resource addresses, and any ONCE internals each package reuses. Read a
 golden diff after a pin bump; never `bb golden:accept` merely to make it pass.
 
