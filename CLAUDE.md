@@ -127,7 +127,10 @@ add an `index.html` merely to satisfy this convention.
 workspace; it is documentation, not a build root. `repositories.json` is the
 canonical organization-wide description/homepage inventory, including the
 remote-only `airflow-dags` repository. Run `./scripts/github-metadata.py` to
-check GitHub, and add `--apply` to synchronize it.
+check GitHub, and add `--apply` to synchronize it. `standards/` holds the
+normative cross-package conventions: `standards/ssh-keypair.md` defines how a
+package generates and owns the profile-named machine SSH keypair in `.ssh/`
+(reference implementation: `once`; packages adopt behind their pin flow).
 
 **`skills/`** — Agent Skills. `refresh-oci-token` renews the shared OCI session,
 while `create-package-skill` governs the phased workflow for creating a Package
