@@ -20,7 +20,7 @@ manage the machine-access keypair itself:
   and comment `<profile> managed by Colors`:
 
   ```sh
-  ssh-keygen -q -t ed25519 -N "" -C "<profile> managed by Colors" -f .ssh/<profile>
+  ssh-keygen -q -t ed25519 -N "" -C "<profile> managed by Colors" -f ~/.ssh/<profile>
   ```
 
 - The keypair is named after the **profile**, the same value that keys remote
@@ -34,22 +34,34 @@ value exactly as before this standard and MUST NOT generate, validate, or
 delete any key material. Presence of the explicit key is the only switch;
 there is no flag.
 
-## 2. The `.ssh/` directory
+## 2. The `~/.ssh` location
 
-All SSH state of a deployment lives in `.ssh/` next to `colors.yml`: the
-private key `.ssh/<profile>`, the public key `.ssh/<profile>.pub`, and any
-per-deployment `known_hosts` or agent socket a package needs.
+All SSH state of a deployment lives in the operator's `~/.ssh`, named by
+profile: the private key `~/.ssh/<profile>`, the public key
+`~/.ssh/<profile>.pub`, and any per-deployment `known_hosts` a package needs
+(as `~/.ssh/<profile>.known_hosts`). Packages MUST NOT create subdirectories
+under `~/.ssh` or keep SSH state inside the checkout.
 
-- `.ssh/` is **not** generated output. It must survive regeneration of the
-  workdir (`.colors/`); losing it means losing access to the machine. Never
-  write it inside the workdir.
-- Deployment `.gitignore`s are `.*` with narrow negations, so `.ssh/` is
-  invisible to git by construction. Packages MUST NOT negate it.
+The profile is what makes a shared flat directory safe: it is globally unique
+by construction, because it already keys remote state
+(`<profile>/<stage>.tfstate`) in a shared backend. Two deployments cannot
+collide in `~/.ssh` without already colliding in state.
+
+- The keypair is **not** generated output. It must survive regeneration of
+  the workdir (`.colors/`); losing it means losing access to the machine.
+  Never write it inside the workdir.
+- `~/.ssh` is outside every checkout: no `.gitignore` interaction, no way for
+  a commit, tarball, or rsync of the repository to sweep key material along —
+  and one predictable place to copy credentials from when moving between
+  workstations. The corollary: a checkout carries no key material, so cloning
+  a deployment repository on another workstation does not carry access with
+  it. Copy `~/.ssh/<profile>`(`.pub`) deliberately when access should move.
 - The package MUST enforce permissions on every real run, not only at
-  generation time: `700` on `.ssh/`, `600` on the private key. A restored
-  checkout with wrong permissions fails early and clearly.
-- `build` and `--dry-run` MUST NOT read, create, or require `.ssh/`. Builds
-  render from desired state alone and stay byte-deterministic (§6).
+  generation time: `700` on `~/.ssh` (creating it if missing), `600` on the
+  private key. A key restored with wrong permissions fails early and clearly.
+- `build` and `--dry-run` MUST NOT read, create, or require anything under
+  `~/.ssh`. Builds render from desired state alone and stay
+  byte-deterministic (§6).
 
 ## 3. Lifecycle and error conditions
 
@@ -60,10 +72,10 @@ Key lifecycle belongs to `create` and `delete` only. Verbs like `stop`,
 
 On a real `create` in keygen mode, before any provider call:
 
-| Compute state | `.ssh/<profile>` | Meaning | Behaviour |
+| Compute state | `~/.ssh/<profile>` | Meaning | Behaviour |
 |---|---|---|---|
 | readable, non-empty | present | normal converge | reuse the key |
-| readable, non-empty | absent | checkout restored without `.ssh/` | **error**: access to the live machine is lost; do not regenerate |
+| readable, non-empty | absent | this workstation does not hold the key (fresh clone, new machine) | **error**: access to the live machine is lost; do not regenerate |
 | absent / unreadable | present | previous delete incomplete, or interrupted first create | **error**: refuse (§3.2) |
 | absent / unreadable | absent | first create | generate |
 
@@ -76,14 +88,15 @@ loudly instead of replacing the instance.
 
 ### 3.2 Never overwrite, never adopt
 
-An existing `.ssh/<profile>` without state MUST be an error, never silently
+An existing `~/.ssh/<profile>` without state MUST be an error, never silently
 overwritten: the key on disk may be the only remaining credential to a host
 that is still alive. The error message MUST give the recovery path and make
 the human act the authorization boundary:
 
 > verify at the provider that no host for `<profile>` survives; if the
 > previous create was interrupted before creating resources, or the host is
-> confirmed gone, remove `.ssh/<profile>` and `.ssh/<profile>.pub` and retry.
+> confirmed gone, remove `~/.ssh/<profile>` and `~/.ssh/<profile>.pub` and
+> retry.
 
 Symmetrically, a provider-side key resource named `<profile>` that is not in
 the deployment's state MUST be an error, never auto-imported (§5): if state
@@ -96,7 +109,9 @@ In keygen mode, a real `delete` removes the local keypair **last, only after
 the compute destroy succeeded**. A delete that fails or is interrupted leaves
 the key in place — correctly, because it is still needed. This ordering is
 what makes the invariant "key present ⇔ deployment exists" hold, and what
-gives §3.1 its meaning. Dry-run deletes touch nothing.
+gives §3.1 its meaning. The removal touches exactly the profile-named files;
+`~/.ssh` itself is the operator's directory and is never removed. Dry-run
+deletes touch nothing.
 
 ### 3.4 Rotation
 
@@ -112,14 +127,14 @@ three; a package implements the shapes of the providers it supports.
 
 The template reads the public key with `file(<path>)`. In keygen mode the
 package fills the provider's machine-key configuration key with the
-**absolute path** of `.ssh/<profile>.pub` (absolute, because tofu resolves
-relative paths against the stage directory, and the workdir is relocatable
-generated output while `.ssh/` is not).
+**absolute path** of `~/.ssh/<profile>.pub` — `$HOME` expanded by the
+package, because tofu's `file()` does not expand `~` and resolves relative
+paths against the stage directory.
 
 ### 4.2 Content providers (Yandex)
 
 The template interpolates the public key **content** (`compute-pubkey`). In
-keygen mode the package fills it with the content of `.ssh/<profile>.pub` on
+keygen mode the package fills it with the content of `~/.ssh/<profile>.pub` on
 real events, and with the fixed placeholder
 `ssh-ed25519 PLACEHOLDER managed-by-colors` on `build`/`--dry-run` (§6).
 
@@ -133,7 +148,7 @@ a literal id:
 ```hcl
 resource "vultr_ssh_key" "machine" {
   name    = "<profile>"
-  ssh_key = trimspace(file("<abs path to .ssh/<profile>.pub>"))
+  ssh_key = trimspace(file("<abs path to ~/.ssh/<profile>.pub>"))
 }
 ```
 
@@ -162,7 +177,7 @@ account key named `<profile>` before applying:
 - found, and its id is the one in our state → normal converge.
 - found, id not in our state (state absent or different): **error**, and the
   local public key's fingerprint selects the message:
-  - fingerprint matches `.ssh/<profile>.pub` → our leftover; the message
+  - fingerprint matches `~/.ssh/<profile>.pub` → our leftover; the message
     directs the operator to verify no host survives, delete the provider key,
     and retry.
   - fingerprint differs → foreign key; the message MUST explicitly say **do
@@ -180,11 +195,13 @@ error, not a skip.
 
 ## 6. Build determinism and parity
 
-`build` and `--dry-run` MUST render byte-identically with and without
-`.ssh/` present, and identically across colours:
+`build` and `--dry-run` MUST render byte-identically whether or not the
+keypair exists, and identically across colours:
 
-- Path values (§4.1) are derived from the location of `colors.yml`, never
-  read from disk.
+- Path values (§4.1) are derived from the home directory and the profile,
+  never read from disk. A package that commits rendered build output (walter's
+  goldens) substitutes a stable placeholder for the home directory on
+  `build`, so the committed bytes are identical across workstations.
 - Content values (§4.2) use the fixed placeholder on non-real events.
 - Generation, permission enforcement, the state matrix (§3.1), and the
   preflight (§5) run only on real events.
@@ -218,7 +235,7 @@ A package conforms when:
 1. Absent machine-key config ⇒ keygen mode; present ⇒ opt-out, byte-for-byte
    historical rendering.
 2. ed25519, no passphrase, comment `<profile> managed by Colors`, at
-   `.ssh/<profile>`(`.pub`) next to `colors.yml`.
+   `~/.ssh/<profile>`(`.pub`).
 3. `700`/`600` enforced on every real run.
 4. The §3.1 matrix implemented with the §3.2 messages.
 5. Provider resource named `<profile>`, referenced by attribute, living in
@@ -227,6 +244,7 @@ A package conforms when:
    messages.
 7. Delete removes the local key last, after a successful destroy; failed
    deletes leave it.
-8. `build`/`--dry-run` deterministic, credential-free, `.ssh/`-free.
+8. `build`/`--dry-run` deterministic, credential-free, never touching
+   `~/.ssh`.
 9. No extra keys merged in keygen mode.
 10. Goldens/parity updated in the same change.
