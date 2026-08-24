@@ -119,15 +119,28 @@ stanza earlier in the file that sets `User`, `IdentityFile`, or
 connection authenticates as the wrong user with the wrong key while the block
 reads as if it should have worked.
 
-Packages MUST insert the block **above the first `Host` or `Match` line**:
+Packages MUST insert the block at the **top of the file**:
 
 ```yaml
-insertbefore: '^\s*(Host|Match)\s'
-firstmatch: true
+insertbefore: BOF
 ```
 
-A package MAY additionally warn when a preceding wildcard stanza is detected,
-but placement is the requirement; a warning is not a substitute.
+`BOF` rather than a regex, and this is not a stylistic choice. `blockinfile`
+anchors `insertbefore` on the **last** match, which is the wrong end of the
+file, and it has no `firstmatch` parameter — that belongs to `lineinfile`. A
+regex intended to find the first `Host` line therefore finds the last one and
+places the block below every wildcard it was meant to outrank.
+
+A `BOF` insert has one failure of its own. Options standing **above** the first
+`Host` or `Match` line are global, and a block inserted above them would
+capture them into its own stanza, narrowing a global setting to one host
+without saying so. Packages MUST detect that layout on a real `create` and
+refuse, naming the line and offering the recovery: move those options below the
+managed block, or into an explicit `Host *` stanza at the end.
+
+Refusing is the right answer rather than falling back to appending. A file
+written that way is one where correct placement and correct meaning genuinely
+conflict, and the operator is the one who can resolve it.
 
 ## 6. Build determinism
 
@@ -196,6 +209,8 @@ A package conforms when:
 8. `build` and `--dry-run` never touch `~/.ssh/config`, and goldens contain no
    address.
 9. An unmarked `Host <profile>` stanza is an error, never overwritten.
-10. The block is inserted above the first `Host` or `Match` line.
+10. The block is inserted with `insertbefore: BOF`, and a file whose first
+    option stands above the first `Host` line is an error rather than a
+    silently narrowed global.
 11. The play is the package's own copy, not a shared upstream one.
 12. Goldens updated in the same change.
