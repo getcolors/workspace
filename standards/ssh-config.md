@@ -13,8 +13,8 @@ way. `once`, `walter`, `alice`, `k3s`, `k8s`, `postgres-agy`, and `postgres-ha`
 each ship an `ansible-local` stage whose only job is one `blockinfile` task
 against `~/.ssh/config`. Between them they use three different mechanisms to
 decide whether the block names an identity file, two different host-key
-policies, and two marker shapes — one of which cannot distinguish two packages
-that chose the same profile. Ten further packages, `clickstack` included until
+policies, and two marker shapes, one of which repeats the package name the
+profile already carries. Ten further packages, `clickstack` included until
 this document landed, write no block at all.
 
 ## 1. Scope: who writes a block
@@ -38,18 +38,25 @@ that the profile is globally unique by construction, because it keys remote
 state in a shared backend; the same argument makes it safe here. A package
 MUST NOT introduce a separate configuration key for the alias.
 
-The marker MUST carry both the package name and the alias:
+The marker MUST carry the alias, and nothing else:
 
 ```yaml
-marker: "# {mark} <package> {{ host_alias }} ANSIBLE MANAGED BLOCK"
+marker: "# {mark} {{ host_alias }} ANSIBLE MANAGED BLOCK"
 ```
 
-Both halves are load-bearing. The alias separates two deployments of one
-package. The package name separates two packages that were pointed at the same
-profile, which nothing prevents — `once` and `walter` both derive the alias
-from `profile`, and a marker carrying only the alias would let either silently
-rewrite the other's block. `once` currently omits the package name and is the
-outlier; see §7.
+The profile already names the package. Every profile in this workspace is
+`<package>-<suffix>` — `clickstack-vultr`, `walter-oci`, `k3s-hetzner`,
+`once-colors` — so a marker that also carried the package name would repeat it:
+`# BEGIN clickstack clickstack-vultr`.
+
+The collision that a package name would guard against cannot happen anyway.
+Two packages sharing one profile would already be fighting over
+`~/.ssh/<profile>`, because `ssh-keypair.md` §2 puts all SSH state in one flat
+profile-named namespace. A deployment that gets that far is broken before it
+reaches this file, and a longer marker would not save it.
+
+`once` already writes exactly this marker. Four of the seven packages prepend
+their package name and are the ones that need to change; see §8.
 
 ## 3. The block
 
@@ -179,15 +186,19 @@ Three files against that exposure is the right trade.
 - New packages are born conforming; `create-package-skill` references this
   document.
 - The seven packages that already write a block adopt behind their normal pin
-  flow. The changes are small in every case: `once` gains the package name in
-  its marker, `walter` and `once` gain the host-key policy, `k8s` stops
-  hardcoding `User root`, and all seven gain the `insertbefore` placement.
-- **`once`'s marker change needs migration, not just a rename.** A block
-  written under the old marker is invisible to the new one, so a converge would
-  leave the old stanza in place and add a second `Host` block beside it, with
-  the stale one winning under first-match. The adopting change MUST remove the
-  old block before writing the new one, and MUST NOT be shipped as a bare
-  marker edit.
+  flow. `once`'s marker already conforms; `walter`, `alice`, `k3s`, `k8s`,
+  `postgres-agy`, and `postgres-ha` prepend their package name and must drop
+  it. `walter` and `once` gain the host-key policy, `k8s` stops hardcoding
+  `User root`, and all seven gain the `insertbefore: BOF` placement and the
+  leading-option refusal that goes with it.
+- **A marker change is a migration, not a rename.** A block written under the
+  old marker is invisible to the new one, so a converge would leave the old
+  stanza in place and add a second `Host` block above it. First-match then
+  means the new block wins and the stale one sits there misleading whoever
+  reads the file next. The adopting change MUST remove the old block before
+  writing the new one — a second `blockinfile` task carrying the old marker
+  with `state: absent` — and MUST NOT be shipped as a bare marker edit. The
+  removal task stays for one pin cycle and is then dropped.
 - The ten packages that write no block adopt when they next need one. Nothing
   breaks in the meantime; the operator keeps typing the address.
 
@@ -197,7 +208,8 @@ A package conforms when:
 
 1. It writes a block if and only if it provisions an SSH-reachable host.
 2. The alias is the profile, with no separate configuration key.
-3. The marker carries the package name and the alias.
+3. The marker carries the alias alone, because the profile already names the
+   package.
 4. `IdentityFile`/`IdentitiesOnly` appear in keygen mode and are absent in
    opt-out mode.
 5. `StrictHostKeyChecking accept-new` and `ForwardAgent no` are present, or a
