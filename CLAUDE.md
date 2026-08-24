@@ -116,7 +116,7 @@ reconciles), and `k8s-helloworld/` (the public Flux source and application
 **Repository landing pages.** Every tracked root `index.html` carries two
 analytics tags: GA4 measurement ID `G-4VKP1WY4QJ`, and the self-hosted Rybbit
 snippet
-`<script src="https://rybbit.bigconfig.online/api/script.js" data-site-id="9fb9c41a6d49" defer></script>`.
+`<script src="https://rybbit.getcolors.ai/api/script.js" data-site-id="9fb9c41a6d49" defer></script>`.
 The GA4 `page_title` must equal the decoded HTML `<title>` and remain distinct
 and stable, so one Analytics property can separate repositories; Rybbit shares
 one site ID across all pages because `getcolors.github.io/<repo>/` paths
