@@ -7,6 +7,8 @@
   "blue": {"category":"sdk","description":"Python/uv workflow engine for building idempotent DevOps CLIs.","homepage":"https://getcolors.github.io/blue/"},
   "clickhouse": {"category":"package","description":"Provision a private replicated ClickHouse, Keeper, and Metabase stack with Green.","homepage":"https://getcolors.github.io/clickhouse/"},
   "clickhouse-hetzner": {"category":"deployment","description":"Desired state for a private ClickHouse data stack on Hetzner.","homepage":"https://getcolors.github.io/clickhouse-hetzner/"},
+  "clickstack": {"category":"package","description":"Provision a single-server ClickStack observability stack with ClickHouse, MongoDB, the HyperDX OpenTelemetry collector, and the HyperDX UI on Vultr with Green.","homepage":"https://getcolors.github.io/clickstack/"},
+  "clickstack-vultr": {"category":"deployment","description":"Desired state for a ClickStack observability server on Vultr.","homepage":""},
   "colors-redirect": {"category":"application","description":"Caddy container that redirects the Colors apex to www.getcolors.ai while preserving paths and queries.","homepage":"https://getcolors.github.io/colors-redirect/"},
   "colors-website": {"category":"application","description":"Astro website and Package Skills catalog for Colors.","homepage":"https://www.getcolors.ai"},
   "dbos": {"category":"package","description":"Provision a DBOS TypeScript durable-workflow service with private PostgreSQL and R2 backups on DigitalOcean.","homepage":"https://getcolors.github.io/dbos/"},
