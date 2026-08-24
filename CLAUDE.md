@@ -132,7 +132,12 @@ remote-only `airflow-dags` repository. Run `./scripts/github-metadata.py` to
 check GitHub, and add `--apply` to synchronize it. `standards/` holds the
 normative cross-package conventions: `standards/ssh-keypair.md` defines how a
 package generates and owns the profile-named machine SSH keypair in `.ssh/`
-(reference implementation: `once`; packages adopt behind their pin flow).
+(reference implementation: `once`; packages adopt behind their pin flow), and
+`standards/ssh-config.md` defines the `~/.ssh/config` block that makes
+`ssh <profile>` work (reference implementation: `clickstack`). The two are
+siblings and disagree deliberately on two points: the config play is copied per
+package rather than shared, and delete removes the config block *before* the
+compute destroy while the keypair goes *after* it.
 
 **`skills/`** — Agent Skills. `refresh-oci-token` renews the shared OCI session,
 while `create-package-skill` governs the phased workflow for creating a Package
