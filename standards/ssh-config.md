@@ -199,6 +199,13 @@ Three files against that exposure is the right trade.
   writing the new one — a second `blockinfile` task carrying the old marker
   with `state: absent` — and MUST NOT be shipped as a bare marker edit. The
   removal task stays for one pin cycle and is then dropped.
+- **The never-adopt check (§5) MUST recognise the superseded marker for the
+  same window.** A block written under the old marker is still the package's
+  own, and a check that only knows the new one sees a `Host <profile>` stanza
+  it did not write and refuses — blocking the very migration meant to clean it
+  up. The reference implementation hit exactly this on the converge after its
+  marker changed. The old marker is retired from the check and from the removal
+  task together, or not at all.
 - The ten packages that write no block adopt when they next need one. Nothing
   breaks in the meantime; the operator keeps typing the address.
 
