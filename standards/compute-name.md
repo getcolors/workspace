@@ -1,6 +1,7 @@
 # Compute Name Standard for Package Skills
 
-Status: normative. Reference implementation: `alice` (green).
+Status: normative. Reference implementation: `alice` (green); `netbird` is born
+conforming.
 Consumers: every Package Skill that provisions a named compute resource.
 
 This document defines what a Package Skill calls the machines it creates.
@@ -73,8 +74,9 @@ from validation together.
 
 ## 6. Adoption
 
-`alice` implements this standard. Every other package still requires a name key
-and MUST migrate. Migration is a no-op on the wire for a deployment whose name
+`alice` implements this standard, and `netbird` was born conforming: it never
+had a name key to remove, which is what §1 describes as the end state. Every
+other package still requires one and MUST migrate. Migration is a no-op on the wire for a deployment whose name
 key already equals its profile, which is all of them but a handful — those
 render an identical template before and after, and the change is visible only
 as a shorter `colors.yml`. The exceptions named a machine after the package
