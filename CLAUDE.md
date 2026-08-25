@@ -144,8 +144,8 @@ package rather than shared, and delete removes the config block *before* the
 compute destroy while the keypair goes *after* it. `standards/compute-name.md`
 defines what a package calls the machines it creates — the profile, with an
 optional provider-scoped name key as the override, and no required `package`
-key (reference implementation: `alice`; every other package still requires a
-name key and has yet to migrate).
+key (reference implementation: `alice`, with `netbird` born conforming; every
+other package still requires a name key and has yet to migrate).
 
 **`skills/`** — Agent Skills. `refresh-oci-token` renews the shared OCI session,
 while `create-package-skill` governs the phased workflow for creating a Package
