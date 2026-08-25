@@ -137,7 +137,11 @@ package generates and owns the profile-named machine SSH keypair in `.ssh/`
 `ssh <profile>` work (reference implementation: `clickstack`). The two are
 siblings and disagree deliberately on two points: the config play is copied per
 package rather than shared, and delete removes the config block *before* the
-compute destroy while the keypair goes *after* it.
+compute destroy while the keypair goes *after* it. `standards/compute-name.md`
+defines what a package calls the machines it creates — the profile, with an
+optional provider-scoped name key as the override, and no required `package`
+key (reference implementation: `alice`; every other package still requires a
+name key and has yet to migrate).
 
 **`skills/`** — Agent Skills. `refresh-oci-token` renews the shared OCI session,
 while `create-package-skill` governs the phased workflow for creating a Package
