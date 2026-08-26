@@ -1,4 +1,14 @@
 {
+  "agent-network": {
+    "category": "package",
+    "description": "Deploy a minimal NetBird Agent Network demo with the Green Package Skill.",
+    "homepage": "https://getcolors.github.io/agent-network/"
+  },
+  "agent-network-vultr": {
+    "category": "deployment",
+    "description": "Desired state for a NetBird Agent Network demo on Vultr.",
+    "homepage": "https://getcolors.github.io/agent-network-vultr/"
+  },
   "airflow": {
     "category": "package",
     "description": "Deploy one Apache Airflow server with Green, Red, or Blue Package Skills.",

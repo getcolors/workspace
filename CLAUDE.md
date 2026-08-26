@@ -48,6 +48,7 @@ SDK            green ──┬── once ──┬── once-colors          (
                                    ├── github-dwh ── github-dwh-vultr (Vultr GitHub warehouse)
                                    ├── wavehouse ─── wavehouse-vultr (Vultr WaveHouse demo)
                                    ├── netbird   ─── netbird-vultr    (Vultr NetBird control plane)
+                                   ├── agent-network ─ agent-network-vultr (Vultr Agent Network demo)
                                    └── dotfiles  ─┬─ dotfiles-colors    (this machine's home)
                                                   └─ dotfiles-ubuntu    (Ubuntu home)
 ```
@@ -85,6 +86,7 @@ engine namespace (`:green/exit` → `"red/exit"` → `"blue/exit"`).
 | `github-dwh/` | blue only | one GitHub organization warehouse with ClickHouse and PocketBase |
 | `wavehouse/` | green only | one WaveHouse analytics demo: ClickHouse, the WaveHouse gateway, and a live GitHub stats dashboard on Vultr |
 | `netbird/` | green only | one self-hosted NetBird control plane on Vultr — Traefik, the combined `netbird-server` (management, signal, relay, STUN), the dashboard, and Authentik as the identity provider |
+| `agent-network/` | green only | one minimal NetBird Agent Network demo on Vultr: a keyless, policy-gated LLM endpoint (private reverse proxy, model allowlist, budget caps) and a network-isolated agent container running headless Claude Code |
 | `dotfiles/` | green only | Ubuntu or macOS home configuration on the local machine |
 
 `dotfiles/` is the one package that provisions no infrastructure: it renders a
@@ -98,7 +100,7 @@ target, so its verbs are `build`, `diff` and `create` — there is no `delete`.
 `k3s-hetzner/`, `k8s-digitalocean/`, `clickhouse-hetzner/`, `clickstack-vultr/`,
 `dbos-digitalocean/`, `restate-digitalocean/`, `temporal-digitalocean/`,
 `vaultwarden-digitalocean/`, `github-dwh-vultr/`, `wavehouse-vultr/`,
-`netbird-vultr/`,
+`netbird-vultr/`, `agent-network-vultr/`,
 `dotfiles-colors/`, and `dotfiles-ubuntu/`. Each holds a `colors.yml`, one or
 more installed launchers, `.envrc`, and `devenv.nix`; everything else is
 generated (`.colors/`) or secret (`.envrc.private`).
@@ -106,8 +108,8 @@ generated (`.colors/`) or secret (`.envrc.private`).
 Every current deployment tracks an `.agents/skills/package-*/` payload, but
 launcher provenance is **not** uniform. The five ONCE deployments, Airflow,
 Rama, K3s, K8s, DBOS, Restate, Temporal, GitHub DWH, WaveHouse, ClickStack,
-NetBird, Walter Vultr, and both dotfiles deployments also track
-`skills-lock.json`. Alice, the three
+NetBird, Agent Network, Walter Vultr, and both dotfiles deployments also
+track `skills-lock.json`. Alice, the three
 OCI Walter deployments, ClickHouse, and Vaultwarden track hand-copied payloads
 with no lockfile. A lockfile proves an install; never fabricate one for a manual
 copy. In every case the root launcher remains a separate copy and must be
@@ -176,7 +178,7 @@ Each repo, from its own directory:
 | `blue/` | `uv sync && uv run pytest` (one test: `-k <name>`) |
 | `once/` | per-colour suites, then `./scripts/parity.sh` and `./scripts/launcher.sh` |
 | `airflow/` | `cd green && bb test && bb golden` · red/blue suites · `./scripts/parity.sh` · `./scripts/launcher.sh` |
-| `walter/`, `rama/`, `k3s/`, `k8s/`, `clickhouse/`, `clickstack/`, `alice/`, `dbos/`, `restate/`, `temporal/`, `vaultwarden/`, `wavehouse/`, `netbird/`, `dotfiles/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
+| `walter/`, `rama/`, `k3s/`, `k8s/`, `clickhouse/`, `clickstack/`, `alice/`, `dbos/`, `restate/`, `temporal/`, `vaultwarden/`, `wavehouse/`, `netbird/`, `agent-network/`, `dotfiles/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
 | `github-dwh/` | `uv run pytest` · `./scripts/golden.sh` · `./scripts/launcher.sh` |
 | `colors-website/` | `pnpm typecheck` · `pnpm build` · `pnpm dev` |
 | `colors-redirect/` | `caddy validate --config Caddyfile --adapter caddyfile` |
@@ -239,7 +241,7 @@ at a working tree: `GREEN_LIB_ROOT`, `RED_LIB_ROOT`, `BLUE_LIB_ROOT`,
 `ONCE_LIB_ROOT`, `WALTER_LIB_ROOT`, `AIRFLOW_LIB_ROOT`, `K3S_LIB_ROOT`,
 `K8S_LIB_ROOT`, `CLICKHOUSE_LIB_ROOT`, `CLICKSTACK_LIB_ROOT`, `RAMA_LIB_ROOT`, `ALICE_LIB_ROOT`,
 `DBOS_LIB_ROOT`, `RESTATE_LIB_ROOT`, `TEMPORAL_LIB_ROOT`, `VAULTWARDEN_LIB_ROOT`,
-`WAVEHOUSE_LIB_ROOT`, `NETBIRD_LIB_ROOT`. A change that spans two
+`WAVEHOUSE_LIB_ROOT`, `NETBIRD_LIB_ROOT`, `AGENT_NETWORK_LIB_ROOT`. A change that spans two
 repos is two commits in two repos, upstream pushed first.
 
 **Installed launchers are copies, not symlinks.** In a deployment repo, the root
@@ -266,9 +268,11 @@ generated trees byte for byte — a change to shared behaviour lands in green,
 red, and blue in the same commit, and passes here or it is not done. Airflow has
 its own `scripts/parity.sh` for the same three-colour guarantee. `bb golden` in
 `walter`, `airflow`, `rama`, `k3s`, `k8s`, `clickhouse`, `clickstack`, `alice`, `dbos`,
-`restate`, `temporal`, `vaultwarden`, `github-dwh`, `wavehouse`, `netbird`, and `dotfiles` protects provider
+`restate`, `temporal`, `vaultwarden`, `github-dwh`, `wavehouse`, `netbird`,
+`agent-network`, and `dotfiles` protects provider
 templates, state/resource addresses, and any ONCE internals each package reuses.
-`clickstack` and `netbird` render two fixtures rather than one, because the SSH
+`clickstack`, `netbird`, and `agent-network` render two fixtures rather than
+one, because the SSH
 Keypair Standard has two modes and conformance means both keygen and opt-out
 hold. Read a
 golden diff after a pin bump; never `bb golden:accept` merely to make it pass.
