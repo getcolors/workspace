@@ -148,6 +148,12 @@ defines what a package calls the machines it creates — the profile, with an
 optional provider-scoped name key as the override, and no required `package`
 key (reference implementation: `alice`, with `netbird` born conforming; every
 other package still requires a name key and has yet to migrate).
+`standards/context-skill.md` defines the Context Skill — knowledge distilled
+from a verified build, the third skill kind beside Package Skills and generic
+Agent Skills: five required artifacts, a no-second-copy rule, and spec
+validation (reference implementation: `skills/agent-network-single-node`;
+consumed by `skills/create-context-skill`, `skills/submit-context-skill`, and
+the `colors-website` catalog).
 
 **`skills/`** — Agent Skills. `refresh-oci-token` renews the shared OCI session,
 while `create-package-skill` governs the phased workflow for creating a Package
