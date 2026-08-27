@@ -100,9 +100,10 @@ pins imply currency.
 
 `agent-network-single-node` defines the shape and conforms: its routing
 description was trimmed to the 1024-character cap per §2.1 on 2026-08-27, with
-the full symptom index at the top of the body. `posthog-single-node` and
-`rybbit-single-node` carry `assets/` while companion Package Skills now exist
-(`getcolors/posthog`, `getcolors/rybbit`) and MUST migrate per §3 before
-submission. Catalog admission is governed by `submit-context-skill`, which
+the full symptom index at the top of the body. `posthog-single-node`
+migrated per §3 on 2026-08-27 — its assets were byte-identical with the
+`getcolors/posthog` tools tree and were dropped in favour of pointers.
+`rybbit-single-node` still carries `assets/` while its companion
+(`getcolors/rybbit`) exists and MUST migrate per §3 before submission. Catalog admission is governed by `submit-context-skill`, which
 cites this standard; the `colors-website` recipe schema (`type: context`) and
 that skill land together.
