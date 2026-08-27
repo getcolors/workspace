@@ -9,7 +9,7 @@ own; almost every subdirectory is a separate clone of
 `git@github.com:getcolors/<name>`. Nothing here builds as a whole and there is
 no root manifest, task runner, or test command.
 
-The workspace currently contains 65 checkouts, all from the `getcolors` GitHub
+The workspace currently contains 71 checkouts, all from the `getcolors` GitHub
 organisation. Audit the directories rather than relying on a hard-coded count:
 new Package Skills and deployments are added independently.
 
@@ -19,9 +19,10 @@ path therefore belong to the `workspace/` repository and must be committed and
 pushed from there; do not treat the root path as untracked merely because the
 workspace root has no `.git`.
 
-Every checkout has its own `CLAUDE.md` and most have a `README.md`. **Read the
-one for the directory you are working in** — this file only covers what spans
-repositories and what a reader of any single one would not know.
+Every checkout but the DAGs-only `airflow-dags` has its own `CLAUDE.md` and
+most have a `README.md`. **Read the one for the directory you are working
+in** — this file only covers what spans repositories and what a reader of any
+single one would not know.
 
 ## Repository map
 
@@ -47,8 +48,17 @@ SDK            green ──┬── once ──┬── once-colors          (
                                    ├── vaultwarden ─ vaultwarden-digitalocean (DigitalOcean Vaultwarden)
                                    ├── github-dwh ── github-dwh-vultr (Vultr GitHub warehouse)
                                    ├── wavehouse ─── wavehouse-vultr (Vultr WaveHouse demo)
-                                   ├── netbird   ─── netbird-vultr    (Vultr NetBird control plane)
-                                   ├── agent-network ─ agent-network-vultr (Vultr Agent Network demo)
+                                   ├── netbird (3 colours) ─ netbird-vultr (Vultr NetBird control plane)
+                                   ├── agent-network (3 colours) ─ agent-network-vultr (Vultr Agent Network demo)
+                                   ├── mysql-agy ─── mysql-agy-digitalocean (DigitalOcean MySQL HA)
+                                   ├── mysql-ha  ─── mysql-ha-digitalocean  (DigitalOcean MySQL HA)
+                                   ├── postgres-agy ─ postgres-agy-digitalocean (DigitalOcean Postgres HA)
+                                   ├── postgres-ha ── postgres-ha-digitalocean  (DigitalOcean Postgres HA)
+                                   ├── posthog   ─── posthog-digitalocean  (DigitalOcean PostHog)
+                                   ├── rybbit    ─┬─ rybbit-digitalocean   (DigitalOcean Rybbit)
+                                   │              └─ rybbit-vultr          (Vultr Rybbit)
+                                   ├── signoz    ─── signoz-vultr          (Vultr SigNoz)
+                                   ├── umami     ─── umami-digitalocean    (DigitalOcean Umami)
                                    └── dotfiles  ─┬─ dotfiles-colors    (this machine's home)
                                                   └─ dotfiles-ubuntu    (Ubuntu home)
 ```
@@ -85,8 +95,16 @@ engine namespace (`:green/exit` → `"red/exit"` → `"blue/exit"`).
 | `vaultwarden/` | green only | one Vaultwarden service with Litestream replication |
 | `github-dwh/` | blue only | one GitHub organization warehouse with ClickHouse and PocketBase |
 | `wavehouse/` | green only | one WaveHouse analytics demo: ClickHouse, the WaveHouse gateway, and a live GitHub stats dashboard on Vultr |
-| `netbird/` | green only | one self-hosted NetBird control plane on Vultr — Traefik, the combined `netbird-server` (management, signal, relay, STUN), the dashboard, and Authentik as the identity provider |
-| `agent-network/` | green only | one minimal NetBird Agent Network demo on Vultr: a keyless, policy-gated LLM endpoint (private reverse proxy, model allowlist, budget caps) and a network-isolated agent container running headless Claude Code |
+| `netbird/` | green, red, blue | one self-hosted NetBird control plane on Vultr — Traefik, the combined `netbird-server` (management, signal, relay, STUN), the dashboard, and Authentik as the identity provider |
+| `agent-network/` | green, red, blue | one minimal NetBird Agent Network demo on Vultr: a keyless, policy-gated LLM endpoint (private reverse proxy, model allowlist, budget caps) and a network-isolated agent container running headless Claude Code |
+| `mysql-agy/` | green only | three-node MySQL Group Replication cluster on DigitalOcean with a reserved-IP endpoint, binary-log archiving to R2, and an automated restore-verification drill |
+| `mysql-ha/` | green only | three-member MySQL Group Replication cluster on DigitalOcean with daily snapshots, continuous binary-log archiving to R2, and a scheduled verified restore |
+| `postgres-agy/` | green only | three-node PostgreSQL 17 Patroni failover cluster on DigitalOcean with colocated etcd, HAProxy routing, and pgBackRest backups to R2 |
+| `postgres-ha/` | green only | three-node Patroni PostgreSQL failover cluster on DigitalOcean with quorum synchronous replication, an HAProxy endpoint, and pgBackRest point-in-time recovery to R2 |
+| `posthog/` | green only | one single-node PostHog product analytics suite on DigitalOcean (a ten-container Compose stack, none optional) |
+| `rybbit/` | green only | one single-node Rybbit analytics service (PostgreSQL + ClickHouse) on DigitalOcean or Vultr |
+| `signoz/` | green only | one single-node SigNoz observability stack on Vultr: ClickHouse/Keeper, a Postgres metastore, the SigNoz app, and the OTel collector behind Caddy |
+| `umami/` | green only | one single-node Umami web analytics service with colocated PostgreSQL on DigitalOcean |
 | `dotfiles/` | green only | Ubuntu or macOS home configuration on the local machine |
 
 `dotfiles/` is the one package that provisions no infrastructure: it renders a
@@ -100,7 +118,10 @@ target, so its verbs are `build`, `diff` and `create` — there is no `delete`.
 `k3s-hetzner/`, `k8s-digitalocean/`, `clickhouse-hetzner/`, `clickstack-vultr/`,
 `dbos-digitalocean/`, `restate-digitalocean/`, `temporal-digitalocean/`,
 `vaultwarden-digitalocean/`, `github-dwh-vultr/`, `wavehouse-vultr/`,
-`netbird-vultr/`, `agent-network-vultr/`,
+`netbird-vultr/`, `agent-network-vultr/`, `mysql-agy-digitalocean/`,
+`mysql-ha-digitalocean/`, `postgres-agy-digitalocean/`,
+`postgres-ha-digitalocean/`, `posthog-digitalocean/`, `rybbit-digitalocean/`,
+`rybbit-vultr/`, `signoz-vultr/`, `umami-digitalocean/`,
 `dotfiles-colors/`, and `dotfiles-ubuntu/`. Each holds a `colors.yml`, one or
 more installed launchers, `.envrc`, and `devenv.nix`; everything else is
 generated (`.colors/`) or secret (`.envrc.private`).
@@ -108,16 +129,18 @@ generated (`.colors/`) or secret (`.envrc.private`).
 Every current deployment tracks an `.agents/skills/package-*/` payload, but
 launcher provenance is **not** uniform. The five ONCE deployments, Airflow,
 Rama, K3s, K8s, DBOS, Restate, Temporal, GitHub DWH, WaveHouse, ClickStack,
-NetBird, Agent Network, Walter Vultr, and both dotfiles deployments also
-track `skills-lock.json`. Alice, the three
-OCI Walter deployments, ClickHouse, and Vaultwarden track hand-copied payloads
-with no lockfile. A lockfile proves an install; never fabricate one for a manual
-copy. In every case the root launcher remains a separate copy and must be
-compared with the payload after an update.
+NetBird, Agent Network, Walter Vultr, both MySQL and both Postgres
+deployments, Rybbit Vultr, SigNoz, and both dotfiles deployments also track
+`skills-lock.json`. Alice, the three OCI Walter deployments, ClickHouse,
+Vaultwarden, PostHog, Rybbit DigitalOcean, and Umami track hand-copied
+payloads with no lockfile. A lockfile proves an install; never fabricate one
+for a manual copy. In every case the root launcher remains a separate copy and
+must be compared with the payload after an update.
 
 **Applications — container images and GitOps sources the deployments run.**
 `colors-website/` (Astro landing page for www.getcolors.ai), `colors-redirect/`
-(Caddy 301 for the apex), `k3s-helloworld/` (the public fixture `k3s-hetzner`
+(Caddy 301 for the apex), `airflow-dags/` (the DAG sources its CI rsyncs to
+the Airflow server), `k3s-helloworld/` (the public fixture `k3s-hetzner`
 reconciles), and `k8s-helloworld/` (the public Flux source and application
 `k8s-digitalocean` reconciles).
 
@@ -133,9 +156,9 @@ add an `index.html` merely to satisfy this convention.
 
 **`workspace/`** — cross-repository documentation for this multi-repository
 workspace; it is documentation, not a build root. `repositories.json` is the
-canonical organization-wide description/homepage inventory, including the
-remote-only `airflow-dags` repository. Run `./scripts/github-metadata.py` to
-check GitHub, and add `--apply` to synchronize it. `standards/` holds the
+canonical organization-wide description/homepage inventory. Run
+`./scripts/github-metadata.py` to check GitHub, and add `--apply` to
+synchronize it. `standards/` holds the
 normative cross-package conventions: `standards/ssh-keypair.md` defines how a
 package generates and owns the profile-named machine SSH keypair in `.ssh/`
 (reference implementation: `once`; packages adopt behind their pin flow), and
@@ -183,8 +206,8 @@ Each repo, from its own directory:
 | `red/` | `bun test` · `bun run typecheck` |
 | `blue/` | `uv sync && uv run pytest` (one test: `-k <name>`) |
 | `once/` | per-colour suites, then `./scripts/parity.sh` and `./scripts/launcher.sh` |
-| `airflow/` | `cd green && bb test && bb golden` · red/blue suites · `./scripts/parity.sh` · `./scripts/launcher.sh` |
-| `walter/`, `rama/`, `k3s/`, `k8s/`, `clickhouse/`, `clickstack/`, `alice/`, `dbos/`, `restate/`, `temporal/`, `vaultwarden/`, `wavehouse/`, `netbird/`, `agent-network/`, `dotfiles/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
+| `airflow/`, `netbird/`, `agent-network/` | `cd green && bb test && bb golden` · red/blue suites · `./scripts/parity.sh` · `./scripts/launcher.sh` |
+| `walter/`, `rama/`, `k3s/`, `k8s/`, `clickhouse/`, `clickstack/`, `alice/`, `dbos/`, `restate/`, `temporal/`, `vaultwarden/`, `wavehouse/`, `mysql-agy/`, `mysql-ha/`, `postgres-agy/`, `postgres-ha/`, `posthog/`, `rybbit/`, `signoz/`, `umami/`, `dotfiles/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
 | `github-dwh/` | `uv run pytest` · `./scripts/golden.sh` · `./scripts/launcher.sh` |
 | `colors-website/` | `pnpm typecheck` · `pnpm build` · `pnpm dev` |
 | `colors-redirect/` | `caddy validate --config Caddyfile --adapter caddyfile` |
@@ -247,7 +270,10 @@ at a working tree: `GREEN_LIB_ROOT`, `RED_LIB_ROOT`, `BLUE_LIB_ROOT`,
 `ONCE_LIB_ROOT`, `WALTER_LIB_ROOT`, `AIRFLOW_LIB_ROOT`, `K3S_LIB_ROOT`,
 `K8S_LIB_ROOT`, `CLICKHOUSE_LIB_ROOT`, `CLICKSTACK_LIB_ROOT`, `RAMA_LIB_ROOT`, `ALICE_LIB_ROOT`,
 `DBOS_LIB_ROOT`, `RESTATE_LIB_ROOT`, `TEMPORAL_LIB_ROOT`, `VAULTWARDEN_LIB_ROOT`,
-`WAVEHOUSE_LIB_ROOT`, `NETBIRD_LIB_ROOT`, `AGENT_NETWORK_LIB_ROOT`. A change that spans two
+`WAVEHOUSE_LIB_ROOT`, `NETBIRD_LIB_ROOT`, `AGENT_NETWORK_LIB_ROOT`,
+`MYSQL_AGY_LIB_ROOT`, `MYSQL_HA_LIB_ROOT`, `POSTGRES_AGY_LIB_ROOT`,
+`POSTGRES_HA_LIB_ROOT`, `POSTHOG_LIB_ROOT`, `RYBBIT_LIB_ROOT`,
+`SIGNOZ_LIB_ROOT`, `UMAMI_LIB_ROOT`. A change that spans two
 repos is two commits in two repos, upstream pushed first.
 
 **Installed launchers are copies, not symlinks.** In a deployment repo, the root
@@ -271,16 +297,19 @@ launcher copy. Manually installed script-bearing Agent Skills such as
 **Three regression nets guard what dependencies do not promise.**
 `once/scripts/parity.sh` feeds one fixture through all three colours and diffs
 generated trees byte for byte — a change to shared behaviour lands in green,
-red, and blue in the same commit, and passes here or it is not done. Airflow has
-its own `scripts/parity.sh` for the same three-colour guarantee. `bb golden` in
+red, and blue in the same commit, and passes here or it is not done. Airflow,
+NetBird, and Agent Network each have their own `scripts/parity.sh` for the same
+three-colour guarantee (the latter two feed both their fixtures through every
+colour). `bb golden` in
 `walter`, `airflow`, `rama`, `k3s`, `k8s`, `clickhouse`, `clickstack`, `alice`, `dbos`,
 `restate`, `temporal`, `vaultwarden`, `github-dwh`, `wavehouse`, `netbird`,
-`agent-network`, and `dotfiles` protects provider
+`agent-network`, `mysql-agy`, `mysql-ha`, `postgres-agy`, `postgres-ha`,
+`posthog`, `rybbit`, `signoz`, `umami`, and `dotfiles` protects provider
 templates, state/resource addresses, and any ONCE internals each package reuses.
-`clickstack`, `netbird`, and `agent-network` render two fixtures rather than
-one, because the SSH
+`clickstack`, `signoz`, `netbird`, and `agent-network` render two fixtures
+rather than one, because the SSH
 Keypair Standard has two modes and conformance means both keygen and opt-out
-hold. Read a
+hold; `rybbit` also renders two, one per compute provider. Read a
 golden diff after a pin bump; never `bb golden:accept` merely to make it pass.
 
 ## Git
