@@ -86,28 +86,28 @@ engine namespace (`:green/exit` → `"red/exit"` → `"blue/exit"`).
 | `walter/` | green only | one remote development machine (+`stop`/`start`) |
 | `airflow/` | green, red, blue | one Apache Airflow server |
 | `rama/` | green only | one private single-node Rama cluster |
-| `k3s/` | green only | one Hetzner K3s + Flux node |
-| `k8s/` | green only | two-node kubeadm Kubernetes on DigitalOcean |
-| `clickhouse/` | green only | three ClickHouse/Keeper nodes + Metabase on Hetzner |
-| `clickstack/` | green only | one ClickStack observability server on Vultr: ClickHouse, MongoDB, the HyperDX OTel collector and UI |
+| `k3s/` | green, red, blue | one Hetzner K3s + Flux node |
+| `k8s/` | green, red, blue | two-node kubeadm Kubernetes on DigitalOcean |
+| `clickhouse/` | green, red, blue | three ClickHouse/Keeper nodes + Metabase on Hetzner |
+| `clickstack/` | green, red, blue | one ClickStack observability server on Vultr: ClickHouse, MongoDB, the HyperDX OTel collector and UI |
 | `alice/` | green only | ephemeral Transmission server on DigitalOcean (+`sync`/`tunnel`) |
-| `dbos/` | green only | one DBOS TypeScript service with colocated PostgreSQL |
-| `restate/` | green only | one Restate server and TypeScript workflow application |
-| `temporal/` | green only | one Temporal stack and TypeScript worker/application |
-| `vaultwarden/` | green only | one Vaultwarden service with Litestream replication |
+| `dbos/` | green, red, blue | one DBOS TypeScript service with colocated PostgreSQL |
+| `restate/` | green, red, blue | one Restate server and TypeScript workflow application |
+| `temporal/` | green, red, blue | one Temporal stack and TypeScript worker/application |
+| `vaultwarden/` | green, red, blue | one Vaultwarden service with Litestream replication |
 | `github-dwh/` | blue only | one GitHub organization warehouse with ClickHouse and PocketBase |
-| `wavehouse/` | green only | one WaveHouse analytics demo: ClickHouse, the WaveHouse gateway, and a live GitHub stats dashboard on Vultr |
+| `wavehouse/` | green, red, blue | one WaveHouse analytics demo: ClickHouse, the WaveHouse gateway, and a live GitHub stats dashboard on Vultr |
 | `netbird/` | green, red, blue | one self-hosted NetBird control plane on Vultr — Traefik, the combined `netbird-server` (management, signal, relay, STUN), the dashboard, and Authentik as the identity provider |
 | `agent-network/` | green, red, blue | one minimal NetBird Agent Network demo on Vultr: a keyless, policy-gated LLM endpoint (private reverse proxy, model allowlist, budget caps) and a network-isolated agent container running headless Claude Code |
 | `agent-network-k8s/` | green, red, blue | one NetBird Agent Network demo on Vultr Kubernetes Engine: the gateway on VKE behind a TCP-mode load balancer, an in-cluster kaniko image build, and a two-pod application — the NetBird client in netstack/SOCKS5 mode and a network-isolated agent pod running headless Claude Code |
-| `mysql-agy/` | green only | three-node MySQL Group Replication cluster on DigitalOcean with a reserved-IP endpoint, binary-log archiving to R2, and an automated restore-verification drill |
-| `mysql-ha/` | green only | three-member MySQL Group Replication cluster on DigitalOcean with daily snapshots, continuous binary-log archiving to R2, and a scheduled verified restore |
-| `postgres-agy/` | green only | three-node PostgreSQL 17 Patroni failover cluster on DigitalOcean with colocated etcd, HAProxy routing, and pgBackRest backups to R2 |
-| `postgres-ha/` | green only | three-node Patroni PostgreSQL failover cluster on DigitalOcean with quorum synchronous replication, an HAProxy endpoint, and pgBackRest point-in-time recovery to R2 |
-| `posthog/` | green only | one single-node PostHog product analytics suite on DigitalOcean (a ten-container Compose stack, none optional) |
-| `rybbit/` | green only | one single-node Rybbit analytics service (PostgreSQL + ClickHouse) on DigitalOcean or Vultr |
-| `signoz/` | green only | one single-node SigNoz observability stack on Vultr: ClickHouse/Keeper, a Postgres metastore, the SigNoz app, and the OTel collector behind Caddy |
-| `umami/` | green only | one single-node Umami web analytics service with colocated PostgreSQL on DigitalOcean |
+| `mysql-agy/` | green, red, blue | three-node MySQL Group Replication cluster on DigitalOcean with a reserved-IP endpoint, binary-log archiving to R2, and an automated restore-verification drill |
+| `mysql-ha/` | green, red, blue | three-member MySQL Group Replication cluster on DigitalOcean with daily snapshots, continuous binary-log archiving to R2, and a scheduled verified restore |
+| `postgres-agy/` | green, red, blue | three-node PostgreSQL 17 Patroni failover cluster on DigitalOcean with colocated etcd, HAProxy routing, and pgBackRest backups to R2 |
+| `postgres-ha/` | green, red, blue | three-node Patroni PostgreSQL failover cluster on DigitalOcean with quorum synchronous replication, an HAProxy endpoint, and pgBackRest point-in-time recovery to R2 |
+| `posthog/` | green, red, blue | one single-node PostHog product analytics suite on DigitalOcean (a ten-container Compose stack, none optional) |
+| `rybbit/` | green, red, blue | one single-node Rybbit analytics service (PostgreSQL + ClickHouse) on DigitalOcean or Vultr |
+| `signoz/` | green, red, blue | one single-node SigNoz observability stack on Vultr: ClickHouse/Keeper, a Postgres metastore, the SigNoz app, and the OTel collector behind Caddy |
+| `umami/` | green, red, blue | one single-node Umami web analytics service with colocated PostgreSQL on DigitalOcean |
 | `dotfiles/` | green only | Ubuntu or macOS home configuration on the local machine |
 
 `dotfiles/` is the one package that provisions no infrastructure: it renders a
@@ -211,8 +211,8 @@ Each repo, from its own directory:
 | `red/` | `bun test` · `bun run typecheck` |
 | `blue/` | `uv sync && uv run pytest` (one test: `-k <name>`) |
 | `once/` | per-colour suites, then `./scripts/parity.sh` and `./scripts/launcher.sh` |
-| `airflow/`, `netbird/`, `agent-network/`, `agent-network-k8s/` | `cd green && bb test && bb golden` · red/blue suites · `./scripts/parity.sh` · `./scripts/launcher.sh` |
-| `walter/`, `rama/`, `k3s/`, `k8s/`, `clickhouse/`, `clickstack/`, `alice/`, `dbos/`, `restate/`, `temporal/`, `vaultwarden/`, `wavehouse/`, `mysql-agy/`, `mysql-ha/`, `postgres-agy/`, `postgres-ha/`, `posthog/`, `rybbit/`, `signoz/`, `umami/`, `dotfiles/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
+| `airflow/`, `netbird/`, `agent-network/`, `agent-network-k8s/`, `k3s/`, `k8s/`, `clickhouse/`, `clickstack/`, `dbos/`, `restate/`, `temporal/`, `vaultwarden/`, `wavehouse/`, `mysql-agy/`, `mysql-ha/`, `postgres-agy/`, `postgres-ha/`, `posthog/`, `rybbit/`, `signoz/`, `umami/` | `cd green && bb test && bb golden` · red/blue suites · `./scripts/parity.sh` · `./scripts/launcher.sh` |
+| `walter/`, `rama/`, `alice/`, `dotfiles/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
 | `github-dwh/` | `uv run pytest` · `./scripts/golden.sh` · `./scripts/launcher.sh` |
 | `colors-website/` | `pnpm typecheck` · `pnpm build` · `pnpm dev` |
 | `colors-redirect/` | `caddy validate --config Caddyfile --adapter caddyfile` |
@@ -303,11 +303,11 @@ launcher copy. Manually installed script-bearing Agent Skills such as
 **Three regression nets guard what dependencies do not promise.**
 `once/scripts/parity.sh` feeds one fixture through all three colours and diffs
 generated trees byte for byte — a change to shared behaviour lands in green,
-red, and blue in the same commit, and passes here or it is not done. Airflow,
-NetBird, Agent Network, and Agent Network K8s each have their own
-`scripts/parity.sh` for the same three-colour guarantee (NetBird and Agent
-Network feed both their fixtures through every colour; Agent Network K8s
-renders its one fixture under both state backends). `bb golden` in
+red, and blue in the same commit, and passes here or it is not done. Every
+other tri-colour package carries its own `scripts/parity.sh` for the same
+three-colour guarantee, diffing that package's own fixture axes (two fixtures
+for NetBird and Agent Network; state backends, compute providers, or
+SSH-keypair modes elsewhere). `bb golden` in
 `walter`, `airflow`, `rama`, `k3s`, `k8s`, `clickhouse`, `clickstack`, `alice`, `dbos`,
 `restate`, `temporal`, `vaultwarden`, `github-dwh`, `wavehouse`, `netbird`,
 `agent-network`, `agent-network-k8s`, `mysql-agy`, `mysql-ha`, `postgres-agy`, `postgres-ha`,
