@@ -4,14 +4,24 @@
     "description": "Deploy a minimal NetBird Agent Network demo with the Green Package Skill.",
     "homepage": "https://getcolors.github.io/agent-network/"
   },
+  "agent-network-doks": {
+    "category": "package",
+    "description": "NetBird Agent Network demo on DigitalOcean Kubernetes \u2014 keyless LLM endpoint, netstack SOCKS5 leg, isolated Claude Code agent (Colors Package Skill, green only)",
+    "homepage": "https://getcolors.github.io/agent-network-doks/"
+  },
+  "agent-network-doks-digitalocean": {
+    "category": "deployment",
+    "description": "Desired state: NetBird Agent Network demo on DigitalOcean Kubernetes \u2014 keyless LLM endpoint, two-pod isolated agent application",
+    "homepage": "https://getcolors.github.io/agent-network-doks-digitalocean/"
+  },
   "agent-network-k8s": {
     "category": "package",
-    "description": "NetBird Agent Network demo on Vultr Kubernetes Engine — keyless LLM endpoint, netstack SOCKS5 leg, isolated Claude Code agent (Colors Package Skill)",
+    "description": "NetBird Agent Network demo on Vultr Kubernetes Engine \u2014 keyless LLM endpoint, netstack SOCKS5 leg, isolated Claude Code agent (Colors Package Skill)",
     "homepage": "https://getcolors.github.io/agent-network-k8s/"
   },
   "agent-network-k8s-vultr": {
     "category": "deployment",
-    "description": "Desired state: NetBird Agent Network demo on Vultr Kubernetes Engine — keyless LLM endpoint, two-pod isolated agent application",
+    "description": "Desired state: NetBird Agent Network demo on Vultr Kubernetes Engine \u2014 keyless LLM endpoint, two-pod isolated agent application",
     "homepage": "https://getcolors.github.io/agent-network-k8s-vultr/"
   },
   "agent-network-vultr": {

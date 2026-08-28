@@ -52,6 +52,7 @@ SDK            green ──┬── once ──┬── once-colors          (
                                    ├── netbird (3 colours) ─ netbird-vultr (Vultr NetBird control plane)
                                    ├── agent-network (3 colours) ─ agent-network-vultr (Vultr Agent Network demo)
                                    ├── agent-network-k8s (3 colours) ─ agent-network-k8s-vultr (Vultr VKE Agent Network demo)
+                                   ├── agent-network-doks ─ agent-network-doks-digitalocean (DigitalOcean DOKS Agent Network demo)
                                    ├── mysql-agy ─── mysql-agy-digitalocean (DigitalOcean MySQL HA)
                                    ├── mysql-ha  ─── mysql-ha-digitalocean  (DigitalOcean MySQL HA)
                                    ├── postgres-agy ─ postgres-agy-digitalocean (DigitalOcean Postgres HA)
@@ -100,6 +101,7 @@ engine namespace (`:green/exit` → `"red/exit"` → `"blue/exit"`).
 | `netbird/` | green, red, blue | one self-hosted NetBird control plane on Vultr — Traefik, the combined `netbird-server` (management, signal, relay, STUN), the dashboard, and Authentik as the identity provider |
 | `agent-network/` | green, red, blue | one minimal NetBird Agent Network demo on Vultr: a keyless, policy-gated LLM endpoint (private reverse proxy, model allowlist, budget caps) and a network-isolated agent container running headless Claude Code |
 | `agent-network-k8s/` | green, red, blue | one NetBird Agent Network demo on Vultr Kubernetes Engine: the gateway on VKE behind a TCP-mode load balancer, an in-cluster kaniko image build, and a two-pod application — the NetBird client in netstack/SOCKS5 mode and a network-isolated agent pod running headless Claude Code |
+| `agent-network-doks/` | green only | one NetBird Agent Network demo on DigitalOcean Kubernetes (DOKS): the gateway behind a TCP-mode regional load balancer, an in-cluster kaniko build pushed to a created-or-adopted DigitalOcean Container Registry, and the two-pod application — the NetBird client in netstack/SOCKS5 mode and a network-isolated agent pod running headless Claude Code |
 | `mysql-agy/` | green, red, blue | three-node MySQL Group Replication cluster on DigitalOcean with a reserved-IP endpoint, binary-log archiving to R2, and an automated restore-verification drill |
 | `mysql-ha/` | green, red, blue | three-member MySQL Group Replication cluster on DigitalOcean with daily snapshots, continuous binary-log archiving to R2, and a scheduled verified restore |
 | `postgres-agy/` | green, red, blue | three-node PostgreSQL 17 Patroni failover cluster on DigitalOcean with colocated etcd, HAProxy routing, and pgBackRest backups to R2 |
@@ -122,6 +124,7 @@ target, so its verbs are `build`, `diff` and `create` — there is no `delete`.
 `dbos-digitalocean/`, `restate-digitalocean/`, `temporal-digitalocean/`,
 `vaultwarden-digitalocean/`, `github-dwh-vultr/`, `wavehouse-vultr/`,
 `netbird-vultr/`, `agent-network-vultr/`, `agent-network-k8s-vultr/`,
+`agent-network-doks-digitalocean/`,
 `mysql-agy-digitalocean/`,
 `mysql-ha-digitalocean/`, `postgres-agy-digitalocean/`,
 `postgres-ha-digitalocean/`, `posthog-digitalocean/`, `rybbit-digitalocean/`,
@@ -133,7 +136,7 @@ generated (`.colors/`) or secret (`.envrc.private`).
 Every current deployment tracks an `.agents/skills/package-*/` payload, but
 launcher provenance is **not** uniform. The five ONCE deployments, Airflow,
 Rama, K3s, K8s, DBOS, Restate, Temporal, GitHub DWH, WaveHouse, ClickStack,
-NetBird, Agent Network, Agent Network K8s, Walter Vultr, Walter Many, both MySQL and both
+NetBird, Agent Network, Agent Network K8s, Agent Network DOKS, Walter Vultr, Walter Many, both MySQL and both
 Postgres deployments, Rybbit Vultr, SigNoz, and both dotfiles deployments
 also track `skills-lock.json`. Alice, the three OCI Walter deployments, ClickHouse,
 Vaultwarden, PostHog, Rybbit DigitalOcean, and Umami track hand-copied
@@ -212,6 +215,7 @@ Each repo, from its own directory:
 | `blue/` | `uv sync && uv run pytest` (one test: `-k <name>`) |
 | `once/` | per-colour suites, then `./scripts/parity.sh` and `./scripts/launcher.sh` |
 | `airflow/`, `netbird/`, `agent-network/`, `agent-network-k8s/`, `k3s/`, `k8s/`, `clickhouse/`, `clickstack/`, `dbos/`, `restate/`, `temporal/`, `vaultwarden/`, `wavehouse/`, `mysql-agy/`, `mysql-ha/`, `postgres-agy/`, `postgres-ha/`, `posthog/`, `rybbit/`, `signoz/`, `umami/` | `cd green && bb test && bb golden` · red/blue suites · `./scripts/parity.sh` · `./scripts/launcher.sh` |
+| `agent-network-doks/` | `cd green && bb test && bb golden` · `./scripts/launcher.sh` |
 | `walter/`, `rama/`, `alice/`, `dotfiles/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
 | `github-dwh/` | `uv run pytest` · `./scripts/golden.sh` · `./scripts/launcher.sh` |
 | `colors-website/` | `pnpm typecheck` · `pnpm build` · `pnpm dev` |
@@ -276,7 +280,7 @@ at a working tree: `GREEN_LIB_ROOT`, `RED_LIB_ROOT`, `BLUE_LIB_ROOT`,
 `K8S_LIB_ROOT`, `CLICKHOUSE_LIB_ROOT`, `CLICKSTACK_LIB_ROOT`, `RAMA_LIB_ROOT`, `ALICE_LIB_ROOT`,
 `DBOS_LIB_ROOT`, `RESTATE_LIB_ROOT`, `TEMPORAL_LIB_ROOT`, `VAULTWARDEN_LIB_ROOT`,
 `WAVEHOUSE_LIB_ROOT`, `NETBIRD_LIB_ROOT`, `AGENT_NETWORK_LIB_ROOT`,
-`AGENT_NETWORK_K8S_LIB_ROOT`,
+`AGENT_NETWORK_K8S_LIB_ROOT`, `AGENT_NETWORK_DOKS_LIB_ROOT`,
 `MYSQL_AGY_LIB_ROOT`, `MYSQL_HA_LIB_ROOT`, `POSTGRES_AGY_LIB_ROOT`,
 `POSTGRES_HA_LIB_ROOT`, `POSTHOG_LIB_ROOT`, `RYBBIT_LIB_ROOT`,
 `SIGNOZ_LIB_ROOT`, `UMAMI_LIB_ROOT`. A change that spans two
@@ -310,7 +314,7 @@ for NetBird and Agent Network; state backends, compute providers, or
 SSH-keypair modes elsewhere). `bb golden` in
 `walter`, `airflow`, `rama`, `k3s`, `k8s`, `clickhouse`, `clickstack`, `alice`, `dbos`,
 `restate`, `temporal`, `vaultwarden`, `github-dwh`, `wavehouse`, `netbird`,
-`agent-network`, `agent-network-k8s`, `mysql-agy`, `mysql-ha`, `postgres-agy`, `postgres-ha`,
+`agent-network`, `agent-network-k8s`, `agent-network-doks`, `mysql-agy`, `mysql-ha`, `postgres-agy`, `postgres-ha`,
 `posthog`, `rybbit`, `signoz`, `umami`, and `dotfiles` protects provider
 templates, state/resource addresses, and any ONCE internals each package reuses.
 `clickstack`, `signoz`, `netbird`, and `agent-network` render two fixtures
