@@ -4,6 +4,16 @@
     "description": "Deploy a minimal NetBird Agent Network demo with the Green Package Skill.",
     "homepage": "https://getcolors.github.io/agent-network/"
   },
+  "agent-network-k8s": {
+    "category": "package",
+    "description": "NetBird Agent Network demo on Vultr Kubernetes Engine — keyless LLM endpoint, netstack SOCKS5 leg, isolated Claude Code agent (Colors Package Skill)",
+    "homepage": "https://getcolors.github.io/agent-network-k8s/"
+  },
+  "agent-network-k8s-vultr": {
+    "category": "deployment",
+    "description": "Desired state: NetBird Agent Network demo on Vultr Kubernetes Engine — keyless LLM endpoint, two-pod isolated agent application",
+    "homepage": "https://getcolors.github.io/agent-network-k8s-vultr/"
+  },
   "agent-network-vultr": {
     "category": "deployment",
     "description": "Desired state for a NetBird Agent Network demo on Vultr.",
@@ -328,6 +338,11 @@
     "category": "deployment",
     "description": "Desired state for the Walter Liliana development machine on Oracle Cloud.",
     "homepage": "https://getcolors.github.io/walter-liliana/"
+  },
+  "walter-many": {
+    "category": "deployment",
+    "description": "Desired state for a Walter development machine with seats on Vultr.",
+    "homepage": "https://getcolors.github.io/walter-many/"
   },
   "walter-oci": {
     "category": "deployment",
