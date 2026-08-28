@@ -1,11 +1,29 @@
 {
   "version": 1,
   "skills": {
+    "agent-network-single-node": {
+      "source": "getcolors/skills",
+      "sourceType": "github",
+      "skillPath": "agent-network-single-node/SKILL.md",
+      "computedHash": "528e06e268ae80563e32d1761dee2c47df8ff66f431c20aa598b89339a64c5d6"
+    },
+    "claudex-loop": {
+      "source": "amiorin/claudex-loop",
+      "sourceType": "github",
+      "skillPath": "skills/claudex-loop/SKILL.md",
+      "computedHash": "86516a68f05abcea24808c34ae5f185559932fbfb69a94c0405559f5d0ee43b3"
+    },
     "clipboard-screenshot": {
       "source": "getcolors/skills",
       "sourceType": "github",
       "skillPath": "clipboard-screenshot/SKILL.md",
       "computedHash": "2211973d43a5725f13775e96aa1d2cff3e920ba98e793d2fc596b89614e1cb67"
+    },
+    "create-context-skill": {
+      "source": "getcolors/skills",
+      "sourceType": "github",
+      "skillPath": "create-context-skill/SKILL.md",
+      "computedHash": "ee7613efdc7785019c0dd9bdc38d2bf4625a5a264b3be65efe07cb4475be3d09"
     },
     "create-package-skill": {
       "source": "getcolors/skills",
