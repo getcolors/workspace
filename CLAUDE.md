@@ -181,7 +181,8 @@ the `colors-website` catalog).
 **`skills/`** — Agent Skills. `refresh-oci-token` renews the shared OCI session,
 while `create-package-skill` governs the phased workflow for creating a Package
 Skill and its deployment. Use the latter directly with
-`npx skills use getcolors/skills@create-package-skill`; only skills that need
+`npx skills use "https://github.com/getcolors/skills" --skill
+"create-package-skill"`; only skills that need
 persistent local files are copied into `~/.claude/skills/`. They are not Package
 Skills themselves. See that repo's `CLAUDE.md` and each skill's `SKILL.md`.
 
