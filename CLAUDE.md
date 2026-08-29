@@ -52,7 +52,7 @@ SDK            green ──┬── once ──┬── once-colors          (
                                    ├── netbird (3 colours) ─ netbird-vultr (Vultr NetBird control plane)
                                    ├── agent-network (3 colours) ─ agent-network-vultr (Vultr Agent Network demo)
                                    ├── agent-network-k8s (3 colours) ─ agent-network-k8s-vultr (Vultr VKE Agent Network demo)
-                                   ├── agent-network-doks ─ agent-network-doks-digitalocean (DigitalOcean DOKS Agent Network demo)
+                                   ├── agent-network-doks (3 colours) ─ agent-network-doks-digitalocean (DigitalOcean DOKS Agent Network demo)
                                    ├── mysql-agy ─── mysql-agy-digitalocean (DigitalOcean MySQL HA)
                                    ├── mysql-ha  ─── mysql-ha-digitalocean  (DigitalOcean MySQL HA)
                                    ├── postgres-agy ─ postgres-agy-digitalocean (DigitalOcean Postgres HA)
@@ -101,7 +101,7 @@ engine namespace (`:green/exit` → `"red/exit"` → `"blue/exit"`).
 | `netbird/` | green, red, blue | one self-hosted NetBird control plane on Vultr — Traefik, the combined `netbird-server` (management, signal, relay, STUN), the dashboard, and Authentik as the identity provider |
 | `agent-network/` | green, red, blue | one minimal NetBird Agent Network demo on Vultr: a keyless, policy-gated LLM endpoint (private reverse proxy, model allowlist, budget caps) and a network-isolated agent container running headless Claude Code |
 | `agent-network-k8s/` | green, red, blue | one NetBird Agent Network demo on Vultr Kubernetes Engine: the gateway on VKE behind a TCP-mode load balancer, an in-cluster kaniko image build, and a two-pod application — the NetBird client in netstack/SOCKS5 mode and a network-isolated agent pod running headless Claude Code |
-| `agent-network-doks/` | green only | one NetBird Agent Network demo on DigitalOcean Kubernetes (DOKS): the gateway behind a TCP-mode regional load balancer, an in-cluster kaniko build pushed to a created-or-adopted DigitalOcean Container Registry, and the two-pod application — the NetBird client in netstack/SOCKS5 mode and a network-isolated agent pod running headless Claude Code |
+| `agent-network-doks/` | green, red, blue | one NetBird Agent Network demo on DigitalOcean Kubernetes (DOKS): the gateway behind a TCP-mode regional load balancer, an in-cluster kaniko build pushed to a created-or-adopted DigitalOcean Container Registry, and the two-pod application — the NetBird client in netstack/SOCKS5 mode and a network-isolated agent pod running headless Claude Code |
 | `mysql-agy/` | green, red, blue | three-node MySQL Group Replication cluster on DigitalOcean with a reserved-IP endpoint, binary-log archiving to R2, and an automated restore-verification drill |
 | `mysql-ha/` | green, red, blue | three-member MySQL Group Replication cluster on DigitalOcean with daily snapshots, continuous binary-log archiving to R2, and a scheduled verified restore |
 | `postgres-agy/` | green, red, blue | three-node PostgreSQL 17 Patroni failover cluster on DigitalOcean with colocated etcd, HAProxy routing, and pgBackRest backups to R2 |
@@ -214,8 +214,7 @@ Each repo, from its own directory:
 | `red/` | `bun test` · `bun run typecheck` |
 | `blue/` | `uv sync && uv run pytest` (one test: `-k <name>`) |
 | `once/` | per-colour suites, then `./scripts/parity.sh` and `./scripts/launcher.sh` |
-| `airflow/`, `netbird/`, `agent-network/`, `agent-network-k8s/`, `k3s/`, `k8s/`, `clickhouse/`, `clickstack/`, `dbos/`, `restate/`, `temporal/`, `vaultwarden/`, `wavehouse/`, `mysql-agy/`, `mysql-ha/`, `postgres-agy/`, `postgres-ha/`, `posthog/`, `rybbit/`, `signoz/`, `umami/` | `cd green && bb test && bb golden` · red/blue suites · `./scripts/parity.sh` · `./scripts/launcher.sh` |
-| `agent-network-doks/` | `cd green && bb test && bb golden` · `./scripts/launcher.sh` |
+| `airflow/`, `netbird/`, `agent-network/`, `agent-network-k8s/`, `agent-network-doks/`, `k3s/`, `k8s/`, `clickhouse/`, `clickstack/`, `dbos/`, `restate/`, `temporal/`, `vaultwarden/`, `wavehouse/`, `mysql-agy/`, `mysql-ha/`, `postgres-agy/`, `postgres-ha/`, `posthog/`, `rybbit/`, `signoz/`, `umami/` | `cd green && bb test && bb golden` · red/blue suites · `./scripts/parity.sh` · `./scripts/launcher.sh` |
 | `walter/`, `rama/`, `alice/`, `dotfiles/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
 | `github-dwh/` | `uv run pytest` · `./scripts/golden.sh` · `./scripts/launcher.sh` |
 | `colors-website/` | `pnpm typecheck` · `pnpm build` · `pnpm dev` |
