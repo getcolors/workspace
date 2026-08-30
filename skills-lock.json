@@ -17,7 +17,7 @@
       "source": "getcolors/skills",
       "sourceType": "github",
       "skillPath": "clipboard-screenshot/SKILL.md",
-      "computedHash": "2211973d43a5725f13775e96aa1d2cff3e920ba98e793d2fc596b89614e1cb67"
+      "computedHash": "fe562ed7605b756f22c69cdb9b94d9606cd4c272f9e6652a8dd18ee5ae2561bf"
     },
     "create-context-skill": {
       "source": "getcolors/skills",
@@ -29,7 +29,7 @@
       "source": "getcolors/skills",
       "sourceType": "github",
       "skillPath": "create-package-skill/SKILL.md",
-      "computedHash": "b720bd8df77ceef5025774c0e2ff0a980142411b857dd9926ba694a99d21428b"
+      "computedHash": "c5b278de0bfc9a874db8c11aac720b04f57a188d315b96677d7a1ea10d5338c1"
     },
     "refresh-oci-token": {
       "source": "getcolors/skills",
@@ -41,7 +41,7 @@
       "source": "getcolors/skills",
       "sourceType": "github",
       "skillPath": "submit-package-skill/SKILL.md",
-      "computedHash": "886986541358e8534dcb9888ac983dcce421be156cc7d4240065de5e75857400"
+      "computedHash": "a17c372ecfc28765b04268aa8d190aa97583ce1bbbabda648072a678ec6e2a6a"
     }
   }
 }
