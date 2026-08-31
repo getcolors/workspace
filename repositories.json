@@ -179,6 +179,16 @@
     "description": "Desired state for a three-member MySQL Group Replication cluster on DigitalOcean.",
     "homepage": ""
   },
+  "neon": {
+    "category": "package",
+    "description": "Self-hosted Neon serverless Postgres on one Vultr instance \u2014 storage/compute separation with layers and WAL in Cloudflare R2. Green, red, and blue Package Skills.",
+    "homepage": "https://getcolors.github.io/neon/"
+  },
+  "neon-vultr": {
+    "category": "deployment",
+    "description": "Desired state for self-hosted Neon serverless Postgres on Vultr.",
+    "homepage": "https://getcolors.github.io/neon-vultr/"
+  },
   "netbird": {
     "category": "package",
     "description": "Deploy a self-hosted NetBird control plane with Authentik as its identity provider on one Vultr instance, with a Green Package Skill.",
