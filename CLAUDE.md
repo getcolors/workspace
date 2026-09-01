@@ -37,6 +37,7 @@ SDK            green ──┬── once ──┬── once-colors          (
                                    │              ├─ walter-liliana    (OCI dev machine)
                                    │              ├─ walter-vultr      (Vultr dev machine)
                                    │              └─ walter-many       (Vultr dev machine, seats)
+                                   ├── automq    ─── automq-vultr        (Vultr AutoMQ cluster)
                                    ├── alice     ─── alice-digitalocean (ephemeral Transmission)
                                    ├── rama      ─── rama-digitalocean  (DigitalOcean Rama)
                                    ├── k3s       ─── k3s-hetzner        (Hetzner K3s)
@@ -92,6 +93,7 @@ engine namespace (`:green/exit` → `"red/exit"` → `"blue/exit"`).
 | `clickhouse/` | green, red, blue | three ClickHouse/Keeper nodes + Metabase on Hetzner |
 | `clickstack/` | green, red, blue | one ClickStack observability server on Vultr: ClickHouse, MongoDB, the HyperDX OTel collector and UI |
 | `alice/` | green only | ephemeral Transmission server on DigitalOcean (+`sync`/`tunnel`) |
+| `automq/` | green only | three AutoMQ nodes on Vultr: Kafka 3.9.1 wire protocol with Cloudflare R2 as the storage tier, a public SASL_SSL endpoint, and the KRaft quorum confined to a VPC |
 | `dbos/` | green, red, blue | one DBOS TypeScript service with colocated PostgreSQL |
 | `restate/` | green, red, blue | one Restate server and TypeScript workflow application |
 | `temporal/` | green, red, blue | one Temporal stack and TypeScript worker/application |
@@ -119,7 +121,8 @@ target, so its verbs are `build`, `diff` and `create` — there is no `delete`.
 **Deployments — desired state only, no source code.** `once-colors/`,
 `once-aws/`, `once-azure/`, `once-google/`, `once-vultr/`, `walter-oci/`,
 `walter-ada/`, `walter-liliana/`, `walter-vultr/`, `walter-many/`,
-`airflow-digitalocean/`, `alice-digitalocean/`, `rama-digitalocean/`,
+`airflow-digitalocean/`, `alice-digitalocean/`, `automq-vultr/`,
+`rama-digitalocean/`,
 `k3s-hetzner/`, `k8s-digitalocean/`, `clickhouse-hetzner/`, `clickstack-vultr/`,
 `dbos-digitalocean/`, `restate-digitalocean/`, `temporal-digitalocean/`,
 `vaultwarden-digitalocean/`, `github-dwh-vultr/`, `wavehouse-vultr/`,
@@ -215,7 +218,7 @@ Each repo, from its own directory:
 | `blue/` | `uv sync && uv run pytest` (one test: `-k <name>`) |
 | `once/` | per-colour suites, then `./scripts/parity.sh` and `./scripts/launcher.sh` |
 | `airflow/`, `netbird/`, `agent-network/`, `agent-network-k8s/`, `agent-network-doks/`, `k3s/`, `k8s/`, `clickhouse/`, `clickstack/`, `dbos/`, `restate/`, `temporal/`, `vaultwarden/`, `wavehouse/`, `mysql-agy/`, `mysql-ha/`, `postgres-agy/`, `postgres-ha/`, `posthog/`, `rybbit/`, `signoz/`, `umami/` | `cd green && bb test && bb golden` · red/blue suites · `./scripts/parity.sh` · `./scripts/launcher.sh` |
-| `walter/`, `rama/`, `alice/`, `dotfiles/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
+| `walter/`, `rama/`, `alice/`, `automq/`, `dotfiles/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
 | `github-dwh/` | `uv run pytest` · `./scripts/golden.sh` · `./scripts/launcher.sh` |
 | `colors-website/` | `pnpm typecheck` · `pnpm build` · `pnpm dev` |
 | `colors-redirect/` | `caddy validate --config Caddyfile --adapter caddyfile` |
@@ -280,6 +283,7 @@ at a working tree: `GREEN_LIB_ROOT`, `RED_LIB_ROOT`, `BLUE_LIB_ROOT`,
 `DBOS_LIB_ROOT`, `RESTATE_LIB_ROOT`, `TEMPORAL_LIB_ROOT`, `VAULTWARDEN_LIB_ROOT`,
 `WAVEHOUSE_LIB_ROOT`, `NETBIRD_LIB_ROOT`, `AGENT_NETWORK_LIB_ROOT`,
 `AGENT_NETWORK_K8S_LIB_ROOT`, `AGENT_NETWORK_DOKS_LIB_ROOT`,
+`AUTOMQ_LIB_ROOT`,
 `MYSQL_AGY_LIB_ROOT`, `MYSQL_HA_LIB_ROOT`, `POSTGRES_AGY_LIB_ROOT`,
 `POSTGRES_HA_LIB_ROOT`, `POSTHOG_LIB_ROOT`, `RYBBIT_LIB_ROOT`,
 `SIGNOZ_LIB_ROOT`, `UMAMI_LIB_ROOT`. A change that spans two
@@ -313,6 +317,7 @@ for NetBird and Agent Network; state backends, compute providers, or
 SSH-keypair modes elsewhere). `bb golden` in
 `walter`, `airflow`, `rama`, `k3s`, `k8s`, `clickhouse`, `clickstack`, `alice`, `dbos`,
 `restate`, `temporal`, `vaultwarden`, `github-dwh`, `wavehouse`, `netbird`,
+`automq`,
 `agent-network`, `agent-network-k8s`, `agent-network-doks`, `mysql-agy`, `mysql-ha`, `postgres-agy`, `postgres-ha`,
 `posthog`, `rybbit`, `signoz`, `umami`, and `dotfiles` protects provider
 templates, state/resource addresses, and any ONCE internals each package reuses.

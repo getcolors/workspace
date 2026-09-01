@@ -54,6 +54,16 @@
     "description": "Desired state for the ephemeral Alice deployment on DigitalOcean.",
     "homepage": "https://getcolors.github.io/alice-digitalocean/"
   },
+  "automq": {
+    "category": "package",
+    "description": "Three-node AutoMQ cluster on Vultr \u2014 Kafka-compatible brokers whose storage tier is Cloudflare R2, behind a SASL_SSL endpoint with SCRAM and ACLs (Colors Package Skill, green only)",
+    "homepage": "https://getcolors.github.io/automq/"
+  },
+  "automq-vultr": {
+    "category": "deployment",
+    "description": "Desired state for a three-node AutoMQ cluster on Vultr, run by the automq Package Skill",
+    "homepage": "https://getcolors.github.io/automq-vultr/"
+  },
   "blue": {
     "category": "sdk",
     "description": "Python/uv workflow engine for building idempotent DevOps CLIs.",
