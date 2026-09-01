@@ -38,6 +38,7 @@ SDK            green ──┬── once ──┬── once-colors          (
                                    │              ├─ walter-vultr      (Vultr dev machine)
                                    │              └─ walter-many       (Vultr dev machine, seats)
                                    ├── automq    ─── automq-vultr        (Vultr AutoMQ cluster)
+                                   ├── n8n       ─── n8n-vultr           (Vultr n8n on colocated Neon)
                                    ├── alice     ─── alice-digitalocean (ephemeral Transmission)
                                    ├── rama      ─── rama-digitalocean  (DigitalOcean Rama)
                                    ├── k3s       ─── k3s-hetzner        (Hetzner K3s)
@@ -100,6 +101,7 @@ engine namespace (`:green/exit` → `"red/exit"` → `"blue/exit"`).
 | `vaultwarden/` | green, red, blue | one Vaultwarden service with Litestream replication |
 | `github-dwh/` | blue only | one GitHub organization warehouse with ClickHouse and PocketBase |
 | `wavehouse/` | green, red, blue | one WaveHouse analytics demo: ClickHouse, the WaveHouse gateway, and a live GitHub stats dashboard on Vultr |
+| `n8n/` | green only | one n8n workflow automation server on Vultr, backed by a colocated self-hosted Neon (storage/compute-separated Postgres with layers and WAL in R2), behind Caddy with an external task runner |
 | `netbird/` | green, red, blue | one self-hosted NetBird control plane on Vultr — Traefik, the combined `netbird-server` (management, signal, relay, STUN), the dashboard, and Authentik as the identity provider |
 | `agent-network/` | green, red, blue | one minimal NetBird Agent Network demo on Vultr: a keyless, policy-gated LLM endpoint (private reverse proxy, model allowlist, budget caps) and a network-isolated agent container running headless Claude Code |
 | `agent-network-k8s/` | green, red, blue | one NetBird Agent Network demo on Vultr Kubernetes Engine: the gateway on VKE behind a TCP-mode load balancer, an in-cluster kaniko image build, and a two-pod application — the NetBird client in netstack/SOCKS5 mode and a network-isolated agent pod running headless Claude Code |
@@ -126,7 +128,7 @@ target, so its verbs are `build`, `diff` and `create` — there is no `delete`.
 `k3s-hetzner/`, `k8s-digitalocean/`, `clickhouse-hetzner/`, `clickstack-vultr/`,
 `dbos-digitalocean/`, `restate-digitalocean/`, `temporal-digitalocean/`,
 `vaultwarden-digitalocean/`, `github-dwh-vultr/`, `wavehouse-vultr/`,
-`netbird-vultr/`, `agent-network-vultr/`, `agent-network-k8s-vultr/`,
+`n8n-vultr/`, `netbird-vultr/`, `agent-network-vultr/`, `agent-network-k8s-vultr/`,
 `agent-network-doks-digitalocean/`,
 `mysql-agy-digitalocean/`,
 `mysql-ha-digitalocean/`, `postgres-agy-digitalocean/`,
@@ -283,7 +285,7 @@ at a working tree: `GREEN_LIB_ROOT`, `RED_LIB_ROOT`, `BLUE_LIB_ROOT`,
 `DBOS_LIB_ROOT`, `RESTATE_LIB_ROOT`, `TEMPORAL_LIB_ROOT`, `VAULTWARDEN_LIB_ROOT`,
 `WAVEHOUSE_LIB_ROOT`, `NETBIRD_LIB_ROOT`, `AGENT_NETWORK_LIB_ROOT`,
 `AGENT_NETWORK_K8S_LIB_ROOT`, `AGENT_NETWORK_DOKS_LIB_ROOT`,
-`AUTOMQ_LIB_ROOT`,
+`AUTOMQ_LIB_ROOT`, `N8N_LIB_ROOT`, `NEON_LIB_ROOT`,
 `MYSQL_AGY_LIB_ROOT`, `MYSQL_HA_LIB_ROOT`, `POSTGRES_AGY_LIB_ROOT`,
 `POSTGRES_HA_LIB_ROOT`, `POSTHOG_LIB_ROOT`, `RYBBIT_LIB_ROOT`,
 `SIGNOZ_LIB_ROOT`, `UMAMI_LIB_ROOT`. A change that spans two
@@ -317,7 +319,7 @@ for NetBird and Agent Network; state backends, compute providers, or
 SSH-keypair modes elsewhere). `bb golden` in
 `walter`, `airflow`, `rama`, `k3s`, `k8s`, `clickhouse`, `clickstack`, `alice`, `dbos`,
 `restate`, `temporal`, `vaultwarden`, `github-dwh`, `wavehouse`, `netbird`,
-`automq`,
+`automq`, `n8n`,
 `agent-network`, `agent-network-k8s`, `agent-network-doks`, `mysql-agy`, `mysql-ha`, `postgres-agy`, `postgres-ha`,
 `posthog`, `rybbit`, `signoz`, `umami`, and `dotfiles` protects provider
 templates, state/resource addresses, and any ONCE internals each package reuses.

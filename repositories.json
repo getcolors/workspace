@@ -6,22 +6,22 @@
   },
   "agent-network-doks": {
     "category": "package",
-    "description": "NetBird Agent Network demo on DigitalOcean Kubernetes \u2014 keyless LLM endpoint, netstack SOCKS5 leg, isolated Claude Code agent (Colors Package Skill, green only)",
+    "description": "NetBird Agent Network demo on DigitalOcean Kubernetes — keyless LLM endpoint, netstack SOCKS5 leg, isolated Claude Code agent (Colors Package Skill, green only)",
     "homepage": "https://getcolors.github.io/agent-network-doks/"
   },
   "agent-network-doks-digitalocean": {
     "category": "deployment",
-    "description": "Desired state: NetBird Agent Network demo on DigitalOcean Kubernetes \u2014 keyless LLM endpoint, two-pod isolated agent application",
+    "description": "Desired state: NetBird Agent Network demo on DigitalOcean Kubernetes — keyless LLM endpoint, two-pod isolated agent application",
     "homepage": "https://getcolors.github.io/agent-network-doks-digitalocean/"
   },
   "agent-network-k8s": {
     "category": "package",
-    "description": "NetBird Agent Network demo on Vultr Kubernetes Engine \u2014 keyless LLM endpoint, netstack SOCKS5 leg, isolated Claude Code agent (Colors Package Skill)",
+    "description": "NetBird Agent Network demo on Vultr Kubernetes Engine — keyless LLM endpoint, netstack SOCKS5 leg, isolated Claude Code agent (Colors Package Skill)",
     "homepage": "https://getcolors.github.io/agent-network-k8s/"
   },
   "agent-network-k8s-vultr": {
     "category": "deployment",
-    "description": "Desired state: NetBird Agent Network demo on Vultr Kubernetes Engine \u2014 keyless LLM endpoint, two-pod isolated agent application",
+    "description": "Desired state: NetBird Agent Network demo on Vultr Kubernetes Engine — keyless LLM endpoint, two-pod isolated agent application",
     "homepage": "https://getcolors.github.io/agent-network-k8s-vultr/"
   },
   "agent-network-vultr": {
@@ -56,7 +56,7 @@
   },
   "automq": {
     "category": "package",
-    "description": "Three-node AutoMQ cluster on Vultr \u2014 Kafka-compatible brokers whose storage tier is Cloudflare R2, behind a SASL_SSL endpoint with SCRAM and ACLs (Colors Package Skill, green only)",
+    "description": "Three-node AutoMQ cluster on Vultr — Kafka-compatible brokers whose storage tier is Cloudflare R2, behind a SASL_SSL endpoint with SCRAM and ACLs (Colors Package Skill, green only)",
     "homepage": "https://getcolors.github.io/automq/"
   },
   "automq-vultr": {
@@ -189,9 +189,19 @@
     "description": "Desired state for a three-member MySQL Group Replication cluster on DigitalOcean.",
     "homepage": ""
   },
+  "n8n": {
+    "category": "package",
+    "description": "n8n workflow automation on one Vultr instance, backed by a colocated self-hosted Neon — storage/compute-separated Postgres with layers and WAL in Cloudflare R2. Green Package Skill.",
+    "homepage": "https://getcolors.github.io/n8n/"
+  },
+  "n8n-vultr": {
+    "category": "deployment",
+    "description": "n8n on one Vultr instance backed by a colocated self-hosted Neon — desired state for n8n.bigconfig.online.",
+    "homepage": "https://getcolors.github.io/n8n-vultr/"
+  },
   "neon": {
     "category": "package",
-    "description": "Self-hosted Neon serverless Postgres on one Vultr instance \u2014 storage/compute separation with layers and WAL in Cloudflare R2. Green, red, and blue Package Skills.",
+    "description": "Self-hosted Neon serverless Postgres on one Vultr instance — storage/compute separation with layers and WAL in Cloudflare R2. Green, red, and blue Package Skills.",
     "homepage": "https://getcolors.github.io/neon/"
   },
   "neon-vultr": {
