@@ -9,7 +9,7 @@ own; almost every subdirectory is a separate clone of
 `git@github.com:getcolors/<name>`. Nothing here builds as a whole and there is
 no root manifest, task runner, or test command.
 
-The workspace currently contains 71 checkouts, all from the `getcolors` GitHub
+The workspace currently contains 82 checkouts, all from the `getcolors` GitHub
 organisation. Audit the directories rather than relying on a hard-coded count:
 new Package Skills and deployments are added independently.
 
@@ -38,7 +38,8 @@ SDK            green ──┬── once ──┬── once-colors          (
                                    │              ├─ walter-vultr      (Vultr dev machine)
                                    │              └─ walter-many       (Vultr dev machine, seats)
                                    ├── automq    ─── automq-vultr        (Vultr AutoMQ cluster)
-                                   ├── n8n       ─── n8n-vultr           (Vultr n8n on colocated Neon)
+                                   ├── neon (3 colours) ─┬─ neon-vultr    (Vultr self-hosted Neon)
+                                   │                     └─ n8n (3 colours) ─ n8n-vultr (Vultr n8n on that tier)
                                    ├── alice     ─── alice-digitalocean (ephemeral Transmission)
                                    ├── rama      ─── rama-digitalocean  (DigitalOcean Rama)
                                    ├── k3s       ─── k3s-hetzner        (Hetzner K3s)
@@ -101,7 +102,8 @@ engine namespace (`:green/exit` → `"red/exit"` → `"blue/exit"`).
 | `vaultwarden/` | green, red, blue | one Vaultwarden service with Litestream replication |
 | `github-dwh/` | blue only | one GitHub organization warehouse with ClickHouse and PocketBase |
 | `wavehouse/` | green, red, blue | one WaveHouse analytics demo: ClickHouse, the WaveHouse gateway, and a live GitHub stats dashboard on Vultr |
-| `n8n/` | green only | one n8n workflow automation server on Vultr, backed by a colocated self-hosted Neon (storage/compute-separated Postgres with layers and WAL in R2), behind Caddy with an external task runner |
+| `neon/` | green, red, blue | one self-hosted Neon on Vultr — storage broker, pageserver, one safekeeper, and a Postgres 17 compute node under `compute_ctl`, with layers and WAL in Cloudflare R2; no DNS and no public port, reached over an SSH tunnel |
+| `n8n/` | green, red, blue | one n8n workflow automation server on Vultr behind Caddy, with Code nodes in an external task runner, on a colocated self-hosted Neon storage tier — the one package that renders **another package's** templates rather than owning them |
 | `netbird/` | green, red, blue | one self-hosted NetBird control plane on Vultr — Traefik, the combined `netbird-server` (management, signal, relay, STUN), the dashboard, and Authentik as the identity provider |
 | `agent-network/` | green, red, blue | one minimal NetBird Agent Network demo on Vultr: a keyless, policy-gated LLM endpoint (private reverse proxy, model allowlist, budget caps) and a network-isolated agent container running headless Claude Code |
 | `agent-network-k8s/` | green, red, blue | one NetBird Agent Network demo on Vultr Kubernetes Engine: the gateway on VKE behind a TCP-mode load balancer, an in-cluster kaniko image build, and a two-pod application — the NetBird client in netstack/SOCKS5 mode and a network-isolated agent pod running headless Claude Code |
@@ -128,7 +130,7 @@ target, so its verbs are `build`, `diff` and `create` — there is no `delete`.
 `k3s-hetzner/`, `k8s-digitalocean/`, `clickhouse-hetzner/`, `clickstack-vultr/`,
 `dbos-digitalocean/`, `restate-digitalocean/`, `temporal-digitalocean/`,
 `vaultwarden-digitalocean/`, `github-dwh-vultr/`, `wavehouse-vultr/`,
-`n8n-vultr/`, `netbird-vultr/`, `agent-network-vultr/`, `agent-network-k8s-vultr/`,
+`neon-vultr/`, `n8n-vultr/`, `netbird-vultr/`, `agent-network-vultr/`, `agent-network-k8s-vultr/`,
 `agent-network-doks-digitalocean/`,
 `mysql-agy-digitalocean/`,
 `mysql-ha-digitalocean/`, `postgres-agy-digitalocean/`,
@@ -219,7 +221,7 @@ Each repo, from its own directory:
 | `red/` | `bun test` · `bun run typecheck` |
 | `blue/` | `uv sync && uv run pytest` (one test: `-k <name>`) |
 | `once/` | per-colour suites, then `./scripts/parity.sh` and `./scripts/launcher.sh` |
-| `airflow/`, `netbird/`, `agent-network/`, `agent-network-k8s/`, `agent-network-doks/`, `k3s/`, `k8s/`, `clickhouse/`, `clickstack/`, `dbos/`, `restate/`, `temporal/`, `vaultwarden/`, `wavehouse/`, `mysql-agy/`, `mysql-ha/`, `postgres-agy/`, `postgres-ha/`, `posthog/`, `rybbit/`, `signoz/`, `umami/` | `cd green && bb test && bb golden` · red/blue suites · `./scripts/parity.sh` · `./scripts/launcher.sh` |
+| `airflow/`, `neon/`, `n8n/`, `netbird/`, `agent-network/`, `agent-network-k8s/`, `agent-network-doks/`, `k3s/`, `k8s/`, `clickhouse/`, `clickstack/`, `dbos/`, `restate/`, `temporal/`, `vaultwarden/`, `wavehouse/`, `mysql-agy/`, `mysql-ha/`, `postgres-agy/`, `postgres-ha/`, `posthog/`, `rybbit/`, `signoz/`, `umami/` | `cd green && bb test && bb golden` · red/blue suites · `./scripts/parity.sh` · `./scripts/launcher.sh` |
 | `walter/`, `rama/`, `alice/`, `automq/`, `dotfiles/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
 | `github-dwh/` | `uv run pytest` · `./scripts/golden.sh` · `./scripts/launcher.sh` |
 | `colors-website/` | `pnpm typecheck` · `pnpm build` · `pnpm dev` |
@@ -323,8 +325,8 @@ SSH-keypair modes elsewhere). `bb golden` in
 `agent-network`, `agent-network-k8s`, `agent-network-doks`, `mysql-agy`, `mysql-ha`, `postgres-agy`, `postgres-ha`,
 `posthog`, `rybbit`, `signoz`, `umami`, and `dotfiles` protects provider
 templates, state/resource addresses, and any ONCE internals each package reuses.
-`clickstack`, `signoz`, `netbird`, and `agent-network` render two fixtures
-rather than one, because the SSH
+`clickstack`, `signoz`, `netbird`, `agent-network`, `neon`, and `n8n` render
+two fixtures rather than one, because the SSH
 Keypair Standard has two modes and conformance means both keygen and opt-out
 hold; `rybbit` also renders two, one per compute provider. Read a
 golden diff after a pin bump; never `bb golden:accept` merely to make it pass.

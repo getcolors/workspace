@@ -191,7 +191,7 @@
   },
   "n8n": {
     "category": "package",
-    "description": "n8n workflow automation on one Vultr instance, backed by a colocated self-hosted Neon — storage/compute-separated Postgres with layers and WAL in Cloudflare R2. Green Package Skill.",
+    "description": "n8n workflow automation on one Vultr instance, backed by a colocated self-hosted Neon — storage/compute-separated Postgres with layers and WAL in Cloudflare R2. Green, red, and blue Package Skills.",
     "homepage": "https://getcolors.github.io/n8n/"
   },
   "n8n-vultr": {
