@@ -304,6 +304,16 @@
     "description": "TypeScript/Bun workflow engine for building idempotent DevOps CLIs.",
     "homepage": "https://getcolors.github.io/red/"
   },
+  "redis": {
+    "category": "package",
+    "description": "One Redis 7.2 server on one Vultr instance — loopback and VPC only, SSH tunnel client path, AOF persistence, RDB backup sets in Cloudflare R2 with a rehearsed restore. Green Package Skill.",
+    "homepage": "https://getcolors.github.io/redis/"
+  },
+  "redis-vultr": {
+    "category": "deployment",
+    "description": "Desired state for one Redis 7.2 server on Vultr — loopback and VPC only, reached over an SSH tunnel, RDB backup sets in Cloudflare R2.",
+    "homepage": "https://getcolors.github.io/redis-vultr/"
+  },
   "restate": {
     "category": "package",
     "description": "Provision a production-oriented single-node Restate service on DigitalOcean with Green.",
