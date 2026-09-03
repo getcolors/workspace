@@ -40,7 +40,7 @@ SDK            green ──┬── once ──┬── once-colors          (
                                    ├── automq    ─── automq-vultr        (Vultr AutoMQ cluster)
                                    ├── neon (3 colours) ─┬─ neon-vultr    (Vultr self-hosted Neon)
                                    │                     └─ n8n (3 colours) ─ n8n-vultr (Vultr n8n on that tier)
-                                   ├── langfuse (green) ─ langfuse-vultr (Vultr Langfuse on Neon, Redis, ClickHouse ×3)
+                                   ├── langfuse (3 colours) ─ langfuse-vultr (Vultr Langfuse on Neon, Redis, ClickHouse ×3)
                                    ├── redis (green) ─── redis-vultr        (Vultr Redis, loopback + VPC, SSH tunnel)
                                    ├── alice     ─── alice-digitalocean (ephemeral Transmission)
                                    ├── rama      ─── rama-digitalocean  (DigitalOcean Rama)
@@ -106,7 +106,7 @@ engine namespace (`:green/exit` → `"red/exit"` → `"blue/exit"`).
 | `wavehouse/` | green, red, blue | one WaveHouse analytics demo: ClickHouse, the WaveHouse gateway, and a live GitHub stats dashboard on Vultr |
 | `neon/` | green, red, blue | one self-hosted Neon on Vultr — storage broker, pageserver, one safekeeper, and a Postgres 17 compute node under `compute_ctl`, with layers and WAL in Cloudflare R2; no DNS and no public port, reached over an SSH tunnel |
 | `n8n/` | green, red, blue | one n8n workflow automation server on Vultr behind Caddy, with Code nodes in an external task runner, on a colocated self-hosted Neon storage tier — the one package that renders **another package's** templates rather than owning them |
-| `langfuse/` | green only | self-hosted Langfuse v4 on **six** Vultr machines in one VPC — a `neon`-rendered storage tier, a Redis host, three ClickHouse replicas with Keeper (templates derived from `clickhouse`, owned here), and the app host behind Caddy and Cloudflare; Cloudflare R2 for events, media, Neon layers/WAL and backups; the second package that renders `neon`'s templates rather than owning them |
+| `langfuse/` | green, red, blue | self-hosted Langfuse v4 on **six** Vultr machines in one VPC — a `neon`-rendered storage tier, a Redis host, three ClickHouse replicas with Keeper (templates derived from `clickhouse`, owned here), and the app host behind Caddy and Cloudflare; Cloudflare R2 for events, media, Neon layers/WAL and backups; the second package that renders `neon`'s templates rather than owning them |
 | `redis/` | green only | one Redis 7.2 server on one Vultr instance in its own VPC — published on loopback and the VPC address only, reached over an SSH tunnel, an append-only file for persistence, and RDB backup sets in Cloudflare R2 with a completion protocol and a `rehearse` verb that restores one into a scratch instance of the pinned image |
 | `netbird/` | green, red, blue | one self-hosted NetBird control plane on Vultr — Traefik, the combined `netbird-server` (management, signal, relay, STUN), the dashboard, and Authentik as the identity provider |
 | `agent-network/` | green, red, blue | one minimal NetBird Agent Network demo on Vultr: a keyless, policy-gated LLM endpoint (private reverse proxy, model allowlist, budget caps) and a network-isolated agent container running headless Claude Code |
@@ -225,7 +225,7 @@ Each repo, from its own directory:
 | `red/` | `bun test` · `bun run typecheck` |
 | `blue/` | `uv sync && uv run pytest` (one test: `-k <name>`) |
 | `once/` | per-colour suites, then `./scripts/parity.sh` and `./scripts/launcher.sh` |
-| `airflow/`, `neon/`, `n8n/`, `netbird/`, `agent-network/`, `agent-network-k8s/`, `agent-network-doks/`, `k3s/`, `k8s/`, `clickhouse/`, `clickstack/`, `dbos/`, `restate/`, `temporal/`, `vaultwarden/`, `wavehouse/`, `mysql-agy/`, `mysql-ha/`, `postgres-agy/`, `postgres-ha/`, `posthog/`, `rybbit/`, `signoz/`, `umami/` | `cd green && bb test && bb golden` · red/blue suites · `./scripts/parity.sh` · `./scripts/launcher.sh` |
+| `airflow/`, `neon/`, `n8n/`, `langfuse/`, `netbird/`, `agent-network/`, `agent-network-k8s/`, `agent-network-doks/`, `k3s/`, `k8s/`, `clickhouse/`, `clickstack/`, `dbos/`, `restate/`, `temporal/`, `vaultwarden/`, `wavehouse/`, `mysql-agy/`, `mysql-ha/`, `postgres-agy/`, `postgres-ha/`, `posthog/`, `rybbit/`, `signoz/`, `umami/` | `cd green && bb test && bb golden` · red/blue suites · `./scripts/parity.sh` · `./scripts/launcher.sh` |
 | `walter/`, `rama/`, `alice/`, `automq/`, `dotfiles/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
 | `github-dwh/` | `uv run pytest` · `./scripts/golden.sh` · `./scripts/launcher.sh` |
 | `redis/` | `bb test` · `bb golden` · `bb syntax` · `./scripts/launcher.sh` |
@@ -330,7 +330,7 @@ SSH-keypair modes elsewhere). `bb golden` in
 `agent-network`, `agent-network-k8s`, `agent-network-doks`, `mysql-agy`, `mysql-ha`, `postgres-agy`, `postgres-ha`,
 `posthog`, `rybbit`, `signoz`, `umami`, and `dotfiles` protects provider
 templates, state/resource addresses, and any ONCE internals each package reuses.
-`clickstack`, `signoz`, `netbird`, `agent-network`, `neon`, and `n8n` render
+`clickstack`, `signoz`, `netbird`, `agent-network`, `neon`, `n8n`, and `langfuse` render
 two fixtures rather than one, because the SSH
 Keypair Standard has two modes and conformance means both keygen and opt-out
 hold; `rybbit` also renders two, one per compute provider. Read a
