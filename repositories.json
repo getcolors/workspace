@@ -169,6 +169,16 @@
     "description": "Flux-managed hello-world application for the kubeadm DigitalOcean cluster.",
     "homepage": ""
   },
+  "langfuse": {
+    "category": "package",
+    "description": "Self-hosted Langfuse v4 on six Vultr machines in one VPC — a self-hosted Neon storage tier, Redis, three ClickHouse replicas with Keeper, and the app host behind Cloudflare, with Cloudflare R2 for events, media and backups. Green Package Skill.",
+    "homepage": "https://getcolors.github.io/langfuse/"
+  },
+  "langfuse-vultr": {
+    "category": "deployment",
+    "description": "Langfuse v4 on six Vultr machines — desired state for langfuse.bigconfig.online.",
+    "homepage": "https://getcolors.github.io/langfuse-vultr/"
+  },
   "mysql-agy": {
     "category": "package",
     "description": "Provision a three-node MySQL 8.4 Group Replication cluster with floating-VIP failover and binary-log point-in-time recovery to R2 on DigitalOcean.",

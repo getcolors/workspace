@@ -40,6 +40,7 @@ SDK            green ──┬── once ──┬── once-colors          (
                                    ├── automq    ─── automq-vultr        (Vultr AutoMQ cluster)
                                    ├── neon (3 colours) ─┬─ neon-vultr    (Vultr self-hosted Neon)
                                    │                     └─ n8n (3 colours) ─ n8n-vultr (Vultr n8n on that tier)
+                                   ├── langfuse (green) ─ langfuse-vultr (Vultr Langfuse on Neon, Redis, ClickHouse ×3)
                                    ├── alice     ─── alice-digitalocean (ephemeral Transmission)
                                    ├── rama      ─── rama-digitalocean  (DigitalOcean Rama)
                                    ├── k3s       ─── k3s-hetzner        (Hetzner K3s)
@@ -104,6 +105,7 @@ engine namespace (`:green/exit` → `"red/exit"` → `"blue/exit"`).
 | `wavehouse/` | green, red, blue | one WaveHouse analytics demo: ClickHouse, the WaveHouse gateway, and a live GitHub stats dashboard on Vultr |
 | `neon/` | green, red, blue | one self-hosted Neon on Vultr — storage broker, pageserver, one safekeeper, and a Postgres 17 compute node under `compute_ctl`, with layers and WAL in Cloudflare R2; no DNS and no public port, reached over an SSH tunnel |
 | `n8n/` | green, red, blue | one n8n workflow automation server on Vultr behind Caddy, with Code nodes in an external task runner, on a colocated self-hosted Neon storage tier — the one package that renders **another package's** templates rather than owning them |
+| `langfuse/` | green only | self-hosted Langfuse v4 on **six** Vultr machines in one VPC — a `neon`-rendered storage tier, a Redis host, three ClickHouse replicas with Keeper (templates derived from `clickhouse`, owned here), and the app host behind Caddy and Cloudflare; Cloudflare R2 for events, media, Neon layers/WAL and backups; the second package that renders `neon`'s templates rather than owning them |
 | `netbird/` | green, red, blue | one self-hosted NetBird control plane on Vultr — Traefik, the combined `netbird-server` (management, signal, relay, STUN), the dashboard, and Authentik as the identity provider |
 | `agent-network/` | green, red, blue | one minimal NetBird Agent Network demo on Vultr: a keyless, policy-gated LLM endpoint (private reverse proxy, model allowlist, budget caps) and a network-isolated agent container running headless Claude Code |
 | `agent-network-k8s/` | green, red, blue | one NetBird Agent Network demo on Vultr Kubernetes Engine: the gateway on VKE behind a TCP-mode load balancer, an in-cluster kaniko image build, and a two-pod application — the NetBird client in netstack/SOCKS5 mode and a network-isolated agent pod running headless Claude Code |
@@ -130,7 +132,7 @@ target, so its verbs are `build`, `diff` and `create` — there is no `delete`.
 `k3s-hetzner/`, `k8s-digitalocean/`, `clickhouse-hetzner/`, `clickstack-vultr/`,
 `dbos-digitalocean/`, `restate-digitalocean/`, `temporal-digitalocean/`,
 `vaultwarden-digitalocean/`, `github-dwh-vultr/`, `wavehouse-vultr/`,
-`neon-vultr/`, `n8n-vultr/`, `netbird-vultr/`, `agent-network-vultr/`, `agent-network-k8s-vultr/`,
+`neon-vultr/`, `n8n-vultr/`, `langfuse-vultr/`, `netbird-vultr/`, `agent-network-vultr/`, `agent-network-k8s-vultr/`,
 `agent-network-doks-digitalocean/`,
 `mysql-agy-digitalocean/`,
 `mysql-ha-digitalocean/`, `postgres-agy-digitalocean/`,
