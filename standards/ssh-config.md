@@ -231,3 +231,14 @@ A package conforms when:
     silently narrowed global.
 11. The play is the package's own copy, not a shared upstream one.
 12. Goldens updated in the same change.
+
+## Note added 2026-09-04
+
+The preflight MUST resolve `~/.ssh/config` the way the local play's `~` does:
+from `$HOME` first, falling back to the runtime's notion of the home
+directory. A green copy that reads only the JVM's `user.home` can approve
+one file while Ansible edits another when the two differ. `rybbit` resolves
+it from `$HOME`; the other green copies (`clickstack`, `signoz`,
+`agent-network`, `posthog`, `redis`) still read `user.home` alone and owe
+the same one-line change.
+

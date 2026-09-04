@@ -328,7 +328,8 @@ in one colour and not another is a parity failure that no script catches.
   is what the default is for. Its adoption kept every Vultr resource address
   and the generated per-CIDR rules, and changed the DigitalOcean golden by
   the empty-HTTP guard as well as the provider line, with no live droplet to
-  move. It still lacks the `~/.ssh/config` stage of `ssh-config.md`.
+  move. It adopted the `~/.ssh/config` stage of `ssh-config.md` the same
+  day, additively: four new local-play trees, no existing golden byte.
   `walter`, `airflow`, and `vaultwarden` advertise ONCE's
   providers and MUST either commit a fixture and golden per advertised
   provider or narrow the advertised set to the providers they render.
