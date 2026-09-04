@@ -232,6 +232,15 @@ A package conforms when:
 11. The play is the package's own copy, not a shared upstream one.
 12. Goldens updated in the same change.
 
+## The copies are checked as one
+
+`workspace/scripts/package-copies.py` clusters every package's copy of the
+module and the play by content, with the package name normalised out, and
+fails on any cluster it cannot name: the multi-node packages' per-node
+aliases and the §8 migrations still owed are named variants, anything else
+is drift. A change to the reference implementation is finished when that
+script is green again, not when clickstack's tests pass.
+
 ## Note added 2026-09-04
 
 The preflight MUST resolve `~/.ssh/config` the way the local play's `~` does:

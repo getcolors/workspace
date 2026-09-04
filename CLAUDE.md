@@ -183,7 +183,14 @@ add an `index.html` merely to satisfy this convention.
 workspace; it is documentation, not a build root. `repositories.json` is the
 canonical organization-wide description/homepage inventory. Run
 `./scripts/github-metadata.py` to check GitHub, and add `--apply` to
-synchronize it. `standards/` holds the
+synchronize it. `./scripts/package-copies.py` is the net for what the
+standards share by copy rather than by pin — every package's `ssh_config`
+module, its `ansible-local` play, its ONCE ssh wrapper and the red `once.ts`
+shim: it name-normalises each copy, clusters them, and fails on drift a
+gated family does not name as a deliberate variant (multi-node aliases, a
+§8 migration still owed). Run it after touching any of those files; a copy
+that drifts in one package is invisible to every package's own tests.
+`standards/` holds the
 normative cross-package conventions: `standards/ssh-keypair.md` defines how a
 package generates and owns the profile-named machine SSH keypair in `.ssh/`
 (reference implementation: `once`; packages adopt behind their pin flow), and
