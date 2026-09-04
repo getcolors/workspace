@@ -231,7 +231,7 @@
   },
   "netbird": {
     "category": "package",
-    "description": "Deploy a self-hosted NetBird control plane with Authentik as its identity provider on one Vultr instance, with a Green Package Skill.",
+    "description": "Deploy a self-hosted NetBird control plane with Authentik as its identity provider on one Vultr instance, with Green, Red and Blue.",
     "homepage": "https://getcolors.github.io/netbird/"
   },
   "netbird-vultr": {
@@ -331,7 +331,7 @@
   },
   "restate": {
     "category": "package",
-    "description": "Provision a production-oriented single-node Restate service on DigitalOcean with Green.",
+    "description": "Provision a production-oriented single-node Restate service on DigitalOcean with Green, Red and Blue, Red and Blue.",
     "homepage": "https://getcolors.github.io/restate/"
   },
   "restate-digitalocean": {
@@ -376,7 +376,7 @@
   },
   "temporal": {
     "category": "package",
-    "description": "Provision a production-oriented single-machine Temporal stack on DigitalOcean with Green.",
+    "description": "Provision a production-oriented single-machine Temporal stack on DigitalOcean with Green, Red and Blue, Red and Blue.",
     "homepage": "https://getcolors.github.io/temporal/"
   },
   "temporal-digitalocean": {
@@ -386,7 +386,7 @@
   },
   "umami": {
     "category": "package",
-    "description": "Provision a production-oriented single-node Umami analytics service on DigitalOcean with Green.",
+    "description": "Provision a production-oriented single-node Umami analytics service on DigitalOcean with Green, Red and Blue, Red and Blue.",
     "homepage": "https://getcolors.github.io/umami/"
   },
   "umami-digitalocean": {

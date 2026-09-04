@@ -322,6 +322,14 @@ in one colour and not another is a parity failure that no script catches.
   Its Vultr golden changed by more than the `params.provider` line — the
   VPC resource and attachment left with it — which §3 permits only because
   no live deployment existed to move.
+- `umami`, `restate` and `temporal` adopted the four standards together on
+  DigitalOcean, delegating to ONCE, with no live droplet to move. Each
+  protected golden changed by the provider field and by the 80/443 rules
+  becoming a dynamic block guarded on a non-empty `http-sources` list —
+  §5's empty list has to render no rule, because an empty DigitalOcean rule
+  is an API error, not a closed port. temporal also lost a ufw task from its
+  converge play and a fingerprint data source that looked an operator key
+  up by md5, both retired by name in its configuration reference.
 - `netbird` adopted the standard by delegation with every sibling standard
   already in place; both goldens changed by the provider line alone. Its
   firewall admits UDP 3478 from a third source list, `vultr-stun-sources`,
