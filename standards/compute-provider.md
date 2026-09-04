@@ -322,9 +322,14 @@ in one colour and not another is a parity failure that no script catches.
   Its Vultr golden changed by more than the `params.provider` line — the
   VPC resource and attachment left with it — which §3 permits only because
   no live deployment existed to move.
-- `rybbit` has the registry and the directory dispatch and lacks keygen mode
-  on both providers, an optional name key, and Vultr in every SKILL payload
-  and reference. `walter`, `airflow`, and `vaultwarden` advertise ONCE's
+- `rybbit` adopted the standard last, delegating to ONCE, and is the one
+  package whose spec default is not its documented first provider: its only
+  legacy state is the live Vultr deployment, so `:default` is `vultr`, which
+  is what the default is for. Its adoption kept every Vultr resource address
+  and the generated per-CIDR rules, and changed the DigitalOcean golden by
+  the empty-HTTP guard as well as the provider line, with no live droplet to
+  move. It still lacks the `~/.ssh/config` stage of `ssh-config.md`.
+  `walter`, `airflow`, and `vaultwarden` advertise ONCE's
   providers and MUST either commit a fixture and golden per advertised
   provider or narrow the advertised set to the providers they render.
 - Deployments created before adoption carry no `params.provider`. They keep
