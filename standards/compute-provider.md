@@ -322,6 +322,15 @@ in one colour and not another is a parity failure that no script catches.
   Its Vultr golden changed by more than the `params.provider` line — the
   VPC resource and attachment left with it — which §3 permits only because
   no live deployment existed to move.
+- `dbos`, composed from ONCE's own tools, adopted the four standards last:
+  its stage directories keep ONCE's names because `tofu-compute` keys the
+  state, it bridges ONCE compute's resolved params into
+  `:once/compute-params` for ONCE's remote step, and its pin bump changed
+  ONCE's shared local play underneath it — the case `ssh-config.md` §7
+  exists for — so the play became the package's own copy. Two gaps stay
+  documented there: no `prevent_destroy` on its firewall, and a red/blue
+  remote-stage shim owed to ONCE rendering null SMTP keys where green omits
+  them.
 - `umami`, `restate` and `temporal` adopted the four standards together on
   DigitalOcean, delegating to ONCE, with no live droplet to move. Each
   protected golden changed by the provider field and by the 80/443 rules
