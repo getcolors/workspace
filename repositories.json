@@ -81,8 +81,13 @@
   },
   "clickstack": {
     "category": "package",
-    "description": "Provision a single-server ClickStack observability stack with ClickHouse, MongoDB, the HyperDX OpenTelemetry collector, and the HyperDX UI on Vultr with Green.",
+    "description": "Provision a single-server ClickStack observability stack with ClickHouse, MongoDB, the HyperDX OpenTelemetry collector, and the HyperDX UI on Vultr or DigitalOcean with Green, Red and Blue.",
     "homepage": "https://getcolors.github.io/clickstack/"
+  },
+  "clickstack-digitalocean": {
+    "category": "deployment",
+    "description": "Desired state for a ClickStack observability server on DigitalOcean with Green, Red and Blue — the clickstack package's second-provider pilot.",
+    "homepage": "https://getcolors.github.io/clickstack-digitalocean/"
   },
   "clickstack-vultr": {
     "category": "deployment",
@@ -281,13 +286,18 @@
   },
   "posthog": {
     "category": "package",
-    "description": "Provision a production-oriented single-node PostHog product analytics suite on DigitalOcean with Green.",
+    "description": "Provision a production-oriented single-node PostHog product analytics suite on DigitalOcean or Vultr with Green, Red and Blue.",
     "homepage": "https://getcolors.github.io/posthog/"
   },
   "posthog-digitalocean": {
     "category": "deployment",
     "description": "Desired state for a production-oriented single-node PostHog product analytics suite on DigitalOcean.",
     "homepage": "https://getcolors.github.io/posthog-digitalocean/"
+  },
+  "posthog-vultr": {
+    "category": "deployment",
+    "description": "Desired state for a single-node PostHog product analytics suite on Vultr with Green, Red and Blue — the posthog package's second-provider pilot.",
+    "homepage": "https://getcolors.github.io/posthog-vultr/"
   },
   "rama": {
     "category": "package",
@@ -326,7 +336,7 @@
   },
   "rybbit": {
     "category": "package",
-    "description": "Provision a production-oriented single-node Rybbit analytics service on DigitalOcean with Green.",
+    "description": "Provision a production-oriented single-node Rybbit analytics service on DigitalOcean or Vultr with Green, Red and Blue.",
     "homepage": "https://getcolors.github.io/rybbit/"
   },
   "rybbit-digitalocean": {

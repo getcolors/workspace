@@ -47,7 +47,8 @@ SDK            green ──┬── once ──┬── once-colors          (
                                    ├── k3s       ─── k3s-hetzner        (Hetzner K3s)
                                    ├── k8s       ─── k8s-digitalocean   (DigitalOcean Kubernetes)
                                    ├── clickhouse ─ clickhouse-hetzner  (Hetzner data stack)
-                                   ├── clickstack ─ clickstack-vultr   (Vultr observability stack)
+                                   ├── clickstack ─┬─ clickstack-vultr        (Vultr observability stack)
+                                   │              └─ clickstack-digitalocean (DigitalOcean observability stack)
                                    ├── dbos      ─── dbos-digitalocean  (DigitalOcean DBOS)
                                    ├── restate   ─── restate-digitalocean (DigitalOcean Restate)
                                    ├── temporal  ─── temporal-digitalocean (DigitalOcean Temporal)
@@ -62,7 +63,8 @@ SDK            green ──┬── once ──┬── once-colors          (
                                    ├── mysql-ha  ─── mysql-ha-digitalocean  (DigitalOcean MySQL HA)
                                    ├── postgres-agy ─ postgres-agy-digitalocean (DigitalOcean Postgres HA)
                                    ├── postgres-ha ── postgres-ha-digitalocean  (DigitalOcean Postgres HA)
-                                   ├── posthog   ─── posthog-digitalocean  (DigitalOcean PostHog)
+                                   ├── posthog   ─┬─ posthog-digitalocean  (DigitalOcean PostHog)
+                                   │              └─ posthog-vultr         (Vultr PostHog)
                                    ├── rybbit    ─┬─ rybbit-digitalocean   (DigitalOcean Rybbit)
                                    │              └─ rybbit-vultr          (Vultr Rybbit)
                                    ├── signoz    ─── signoz-vultr          (Vultr SigNoz)
@@ -95,7 +97,7 @@ engine namespace (`:green/exit` → `"red/exit"` → `"blue/exit"`).
 | `k3s/` | green, red, blue | one Hetzner K3s + Flux node |
 | `k8s/` | green, red, blue | two-node kubeadm Kubernetes on DigitalOcean |
 | `clickhouse/` | green, red, blue | three ClickHouse/Keeper nodes + Metabase on Hetzner |
-| `clickstack/` | green, red, blue | one ClickStack observability server on Vultr: ClickHouse, MongoDB, the HyperDX OTel collector and UI |
+| `clickstack/` | green, red, blue | one ClickStack observability server on Vultr or DigitalOcean: ClickHouse, MongoDB, the HyperDX OTel collector and UI — reference implementation of `standards/compute-provider.md` |
 | `alice/` | green only | ephemeral Transmission server on DigitalOcean (+`sync`/`tunnel`) |
 | `automq/` | green only | three AutoMQ nodes on Vultr: Kafka 3.9.1 wire protocol with Cloudflare R2 as the storage tier, a public SASL_SSL endpoint, and the KRaft quorum confined to a VPC |
 | `dbos/` | green, red, blue | one DBOS TypeScript service with colocated PostgreSQL |
@@ -116,7 +118,7 @@ engine namespace (`:green/exit` → `"red/exit"` → `"blue/exit"`).
 | `mysql-ha/` | green, red, blue | three-member MySQL Group Replication cluster on DigitalOcean with daily snapshots, continuous binary-log archiving to R2, and a scheduled verified restore |
 | `postgres-agy/` | green, red, blue | three-node PostgreSQL 17 Patroni failover cluster on DigitalOcean with colocated etcd, HAProxy routing, and pgBackRest backups to R2 |
 | `postgres-ha/` | green, red, blue | three-node Patroni PostgreSQL failover cluster on DigitalOcean with quorum synchronous replication, an HAProxy endpoint, and pgBackRest point-in-time recovery to R2 |
-| `posthog/` | green, red, blue | one single-node PostHog product analytics suite on DigitalOcean (a ten-container Compose stack, none optional) |
+| `posthog/` | green, red, blue | one single-node PostHog product analytics suite on DigitalOcean or Vultr (a ten-container Compose stack, none optional) |
 | `rybbit/` | green, red, blue | one single-node Rybbit analytics service (PostgreSQL + ClickHouse) on DigitalOcean or Vultr |
 | `signoz/` | green, red, blue | one single-node SigNoz observability stack on Vultr: ClickHouse/Keeper, a Postgres metastore, the SigNoz app, and the OTel collector behind Caddy |
 | `umami/` | green, red, blue | one single-node Umami web analytics service with colocated PostgreSQL on DigitalOcean |
@@ -132,13 +134,14 @@ target, so its verbs are `build`, `diff` and `create` — there is no `delete`.
 `airflow-digitalocean/`, `alice-digitalocean/`, `automq-vultr/`,
 `rama-digitalocean/`,
 `k3s-hetzner/`, `k8s-digitalocean/`, `clickhouse-hetzner/`, `clickstack-vultr/`,
+`clickstack-digitalocean/`,
 `dbos-digitalocean/`, `restate-digitalocean/`, `temporal-digitalocean/`,
 `vaultwarden-digitalocean/`, `github-dwh-vultr/`, `wavehouse-vultr/`,
 `neon-vultr/`, `n8n-vultr/`, `langfuse-vultr/`, `redis-vultr/`, `netbird-vultr/`, `agent-network-vultr/`, `agent-network-k8s-vultr/`,
 `agent-network-doks-digitalocean/`,
 `mysql-agy-digitalocean/`,
 `mysql-ha-digitalocean/`, `postgres-agy-digitalocean/`,
-`postgres-ha-digitalocean/`, `posthog-digitalocean/`, `rybbit-digitalocean/`,
+`postgres-ha-digitalocean/`, `posthog-digitalocean/`, `posthog-vultr/`, `rybbit-digitalocean/`,
 `rybbit-vultr/`, `signoz-vultr/`, `umami-digitalocean/`,
 `dotfiles-colors/`, and `dotfiles-ubuntu/`. Each holds a `colors.yml`, one or
 more installed launchers, `.envrc`, and `devenv.nix`; everything else is
@@ -148,8 +151,8 @@ Every current deployment tracks an `.agents/skills/package-*/` payload, but
 launcher provenance is **not** uniform. The five ONCE deployments, Airflow,
 Rama, K3s, K8s, DBOS, Restate, Temporal, GitHub DWH, WaveHouse, ClickStack,
 NetBird, Agent Network, Agent Network K8s, Agent Network DOKS, Walter Vultr, Walter Many, both MySQL and both
-Postgres deployments, Rybbit Vultr, Redis Vultr, SigNoz, and both dotfiles deployments
-also track `skills-lock.json`. Alice, the three OCI Walter deployments, ClickHouse,
+Postgres deployments, Rybbit Vultr, Redis Vultr, SigNoz, ClickStack DigitalOcean, PostHog
+Vultr, and both dotfiles deployments also track `skills-lock.json`. Alice, the three OCI Walter deployments, ClickHouse,
 Vaultwarden, PostHog, Rybbit DigitalOcean, and Umami track hand-copied
 payloads with no lockfile. A lockfile proves an install; never fabricate one
 for a manual copy. In every case the root launcher remains a separate copy and
@@ -194,7 +197,13 @@ from a verified build, the third skill kind beside Package Skills and generic
 Agent Skills: five required artifacts, a no-second-copy rule, and spec
 validation (reference implementation: `skills/agent-network-single-node`;
 consumed by `skills/create-context-skill`, `skills/submit-context-skill`, and
-the `colors-website` catalog).
+the `colors-website` catalog). `standards/compute-provider.md` defines how a
+package supports more than one compute provider — a package-owned registry of
+advertised providers, template selection by directory, one `params` contract
+that records the provider, a rebuild-only rule for switching it, and a fixture
+and golden per advertised provider per keypair mode (reference implementation:
+`clickstack`, with `posthog` born conforming on its second provider; `rybbit`,
+`walter`, `airflow` and `vaultwarden` are named as the adoption backlog).
 
 **`skills/`** — Agent Skills. `refresh-oci-token` renews the shared OCI session,
 while `create-package-skill` governs the phased workflow for creating a Package
