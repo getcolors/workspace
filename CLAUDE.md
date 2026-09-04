@@ -41,7 +41,7 @@ SDK            green ──┬── once ──┬── once-colors          (
                                    ├── neon (3 colours) ─┬─ neon-vultr    (Vultr self-hosted Neon)
                                    │                     └─ n8n (3 colours) ─ n8n-vultr (Vultr n8n on that tier)
                                    ├── langfuse (3 colours) ─ langfuse-vultr (Vultr Langfuse on Neon, Redis, ClickHouse ×3)
-                                   ├── redis (green) ─── redis-vultr        (Vultr Redis, loopback + VPC, SSH tunnel)
+                                   ├── redis (green) ─── redis-vultr        (Vultr Redis, loopback only, SSH tunnel)
                                    ├── alice     ─── alice-digitalocean (ephemeral Transmission)
                                    ├── rama      ─── rama-digitalocean  (DigitalOcean Rama)
                                    ├── k3s       ─── k3s-hetzner        (Hetzner K3s)
@@ -111,7 +111,7 @@ engine namespace (`:green/exit` → `"red/exit"` → `"blue/exit"`).
 | `neon/` | green, red, blue | one self-hosted Neon on Vultr — storage broker, pageserver, one safekeeper, and a Postgres 17 compute node under `compute_ctl`, with layers and WAL in Cloudflare R2; no DNS and no public port, reached over an SSH tunnel |
 | `n8n/` | green, red, blue | one n8n workflow automation server on Vultr behind Caddy, with Code nodes in an external task runner, on a colocated self-hosted Neon storage tier — the one package that renders **another package's** templates rather than owning them |
 | `langfuse/` | green, red, blue | self-hosted Langfuse v4 on **six** Vultr machines in one VPC — a `neon`-rendered storage tier, a Redis host, three ClickHouse replicas with Keeper (templates derived from `clickhouse`, owned here), and the app host behind Caddy and Cloudflare; Cloudflare R2 for events, media, Neon layers/WAL and backups; the second package that renders `neon`'s templates rather than owning them |
-| `redis/` | green only | one Redis 7.2 server on one Vultr instance in its own VPC — published on loopback and the VPC address only, reached over an SSH tunnel, an append-only file for persistence, and RDB backup sets in Cloudflare R2 with a completion protocol and a `rehearse` verb that restores one into a scratch instance of the pinned image |
+| `redis/` | green only | one Redis 7.2 server on one Vultr instance or DigitalOcean droplet — published on loopback only, reached over an SSH tunnel, an append-only file for persistence, and RDB backup sets in Cloudflare R2 with a completion protocol and a `rehearse` verb that restores one into a scratch instance of the pinned image |
 | `netbird/` | green, red, blue | one self-hosted NetBird control plane on Vultr — Traefik, the combined `netbird-server` (management, signal, relay, STUN), the dashboard, and Authentik as the identity provider |
 | `agent-network/` | green, red, blue | one minimal NetBird Agent Network demo on Vultr or DigitalOcean: a keyless, policy-gated LLM endpoint (private reverse proxy, model allowlist, budget caps) and a network-isolated agent container running headless Claude Code |
 | `agent-network-k8s/` | green, red, blue | one NetBird Agent Network demo on Vultr Kubernetes Engine: the gateway on VKE behind a TCP-mode load balancer, an in-cluster kaniko image build, and a two-pod application — the NetBird client in netstack/SOCKS5 mode and a network-isolated agent pod running headless Claude Code |
@@ -205,10 +205,14 @@ the `colors-website` catalog). `standards/compute-provider.md` defines how a
 package supports more than one compute provider — a package-owned registry of
 advertised providers, template selection by directory, one `params` contract
 that records the provider, a rebuild-only rule for switching it, and a fixture
-and golden per advertised provider per keypair mode (reference implementation:
-`clickstack`, with `posthog` born conforming on its second provider; `signoz`
-and `agent-network` adopted it next; `rybbit`, `walter`, `airflow` and
-`vaultwarden` are named as the adoption backlog).
+and golden per advertised provider per keypair mode. The operations over
+that registry — the switch refusal, the state read, the CIDR checks, the
+per-provider checks — have one implementation, ONCE's `compute` namespace in
+all three colours, which a package calls with a spec value; packages own
+their registry and their wiring, never a copy of the functions (reference
+consumer: `clickstack`; `posthog`, `signoz`, `agent-network` and `redis`
+delegate too; `rybbit`, `walter`, `airflow` and `vaultwarden` are named as
+the adoption backlog).
 
 **`skills/`** — Agent Skills. `refresh-oci-token` renews the shared OCI session,
 while `create-package-skill` governs the phased workflow for creating a Package

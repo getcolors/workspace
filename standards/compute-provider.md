@@ -1,7 +1,11 @@
 # Compute Provider Standard for Package Skills
 
-Status: normative. Reference implementation: `clickstack` (green, red, blue);
-`posthog` is born conforming on its second provider.
+Status: normative. The operations of §2, §4 and §5 have one implementation:
+ONCE's `compute` namespace (`io.github.getcolors.once.compute`,
+`package-once-red`'s `compute` export, `package_once_blue.compute`), which a
+package calls with a spec value carrying its own registry. Reference
+consumer: `clickstack` (green, red, blue); `posthog` is born conforming on
+its second provider.
 Consumers: every Package Skill that fills the `provider-compute` slot.
 Sibling of `ssh-keypair.md`, `ssh-config.md`, and `compute-name.md`, which
 govern the keys a provider template interpolates; this document governs how a
@@ -31,7 +35,7 @@ This revision defines the **single-node** contract: one machine with a public
 IPv4 address, a provider firewall in front of it, and no private network. A
 package whose machines bind a service to a VPC address, build per-peer
 east-west rules, or number more than one node is out of scope until a
-multi-node contract exists. Today that is `langfuse`, `automq`, `redis`,
+multi-node contract exists. Today that is `langfuse`, `automq`,
 `mysql-agy`, `mysql-ha`, `postgres-agy`, `postgres-ha`, `k8s`, `clickhouse`,
 and `k3s`. The managed-Kubernetes packages provision a control plane rather
 than a machine and are never in scope. `dotfiles` provisions nothing.
@@ -83,6 +87,17 @@ one `colors.yml` can carry both blocks and switch providers by editing one
 line. Validation that is specific to one provider — Vultr's numeric `os-id`,
 DigitalOcean's refusal of a configured VPC — runs only when that provider is
 selected.
+
+The registry is the package's; the operations over it are not. A package
+MUST hand its registry, its default provider and its source keys to ONCE's
+`compute` namespace as one spec value —
+`{:registry … :default … :sources {:non-empty [...] :may-be-empty [...]}}` —
+and call ONCE for the refusal above, for the required keys, secrets and
+OpenTofu environment of the selected entry, for the per-provider checks,
+and for everything §4 and §5 name. A package that copies those functions
+instead of calling them is how six packages came to hold four IPv6 parsers.
+ONCE proves the three colours agree through its `compute` parity drivers;
+the package's own tests cover its wiring, not the matrix.
 
 The backend slot is not this document's. Packages keep reading ONCE's
 `:provider-backend` registry for it.
@@ -181,7 +196,13 @@ backend credentials only — and:
 
 The check runs before provider-secret validation so that a mistaken edit
 reports the actionable error and not a missing token for the provider that
-was never meant.
+was never meant. In ONCE these are `read-state` (one read, `opts` first, the
+reader passed in, a step error from the reader reported as `{:error …}` and
+anything else propagated), `provider-state-errors`, `provider-validator`
+(which takes the package's secret-errors thunk so ONCE never learns about
+application secrets), `adopt-state` (fail-closed, no address override; a
+package that wants one wraps it) and `resolved-compute`. The message
+strings are ONCE's contract and MUST NOT be reworded by a consumer.
 
 **An unreadable backend is not an empty state.** On a real `create` an
 unreadable backend counts as no state, because a fresh clone has none. On a
@@ -208,6 +229,9 @@ The validator MUST refuse, before any provider call:
   provider.
 
 An empty `<provider>-http-sources` is allowed and means no public HTTP.
+Which keys must be non-empty and which may be empty is the spec's `:sources`
+map, by name, never by position; ONCE's `source-errors` and `cidr?` do the
+checking.
 `airflow` defaults an empty list to the whole internet; this standard refuses
 instead, because a silent default-open in front of a database is worse than
 a validation error. Both DigitalOcean and Vultr accept both address families;
@@ -286,13 +310,18 @@ in one colour and not another is a parity failure that no script catches.
 
 ## 9. Adoption
 
-- New packages are born conforming. `create-package-skill` references this
-  document.
+- New packages are born conforming and born delegating to ONCE's `compute`
+  namespace. `create-package-skill` references this document.
 - Existing packages adopt behind their normal pin flow. Adoption on a
   package with one provider is a one-entry registry, a directory move that
   preserves every rendered byte but the `params.provider` line, the two
   refusals of §4, and the CIDR validation of §5; it obliges no second
   provider.
+- `redis` was listed here as multi-node for a VPC binding nothing used; it
+  dropped the binding and adopted the standard on both providers instead.
+  Its Vultr golden changed by more than the `params.provider` line — the
+  VPC resource and attachment left with it — which §3 permits only because
+  no live deployment existed to move.
 - `rybbit` has the registry and the directory dispatch and lacks keygen mode
   on both providers, an optional name key, and Vultr in every SKILL payload
   and reference. `walter`, `airflow`, and `vaultwarden` advertise ONCE's
@@ -340,3 +369,7 @@ A package conforms when:
 15. Adoption leaves an existing provider's golden unchanged but for the
     `params.provider` line.
 16. Goldens and parity fixtures are updated in the same change.
+17. It delegates the operations of §2, §4 and §5 to ONCE's `compute`
+    namespace rather than copying them; its own tests keep one wiring test
+    per safety boundary and one spec-content test per colour, and drop the
+    pure-function matrices ONCE tests.
