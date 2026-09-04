@@ -56,7 +56,8 @@ SDK            green ──┬── once ──┬── once-colors          (
                                    ├── github-dwh ── github-dwh-vultr (Vultr GitHub warehouse)
                                    ├── wavehouse ─── wavehouse-vultr (Vultr WaveHouse demo)
                                    ├── netbird (3 colours) ─ netbird-vultr (Vultr NetBird control plane)
-                                   ├── agent-network (3 colours) ─ agent-network-vultr (Vultr Agent Network demo)
+                                   ├── agent-network (3 colours) ─┬─ agent-network-vultr        (Vultr Agent Network demo)
+                                   │                             └─ agent-network-digitalocean (DigitalOcean Agent Network demo)
                                    ├── agent-network-k8s (3 colours) ─ agent-network-k8s-vultr (Vultr VKE Agent Network demo)
                                    ├── agent-network-doks (3 colours) ─ agent-network-doks-digitalocean (DigitalOcean DOKS Agent Network demo)
                                    ├── mysql-agy ─── mysql-agy-digitalocean (DigitalOcean MySQL HA)
@@ -67,7 +68,8 @@ SDK            green ──┬── once ──┬── once-colors          (
                                    │              └─ posthog-vultr         (Vultr PostHog)
                                    ├── rybbit    ─┬─ rybbit-digitalocean   (DigitalOcean Rybbit)
                                    │              └─ rybbit-vultr          (Vultr Rybbit)
-                                   ├── signoz    ─── signoz-vultr          (Vultr SigNoz)
+                                   ├── signoz    ─┬─ signoz-vultr          (Vultr SigNoz)
+                                   │              └─ signoz-digitalocean   (DigitalOcean SigNoz)
                                    ├── umami     ─── umami-digitalocean    (DigitalOcean Umami)
                                    └── dotfiles  ─┬─ dotfiles-colors    (this machine's home)
                                                   └─ dotfiles-ubuntu    (Ubuntu home)
@@ -111,7 +113,7 @@ engine namespace (`:green/exit` → `"red/exit"` → `"blue/exit"`).
 | `langfuse/` | green, red, blue | self-hosted Langfuse v4 on **six** Vultr machines in one VPC — a `neon`-rendered storage tier, a Redis host, three ClickHouse replicas with Keeper (templates derived from `clickhouse`, owned here), and the app host behind Caddy and Cloudflare; Cloudflare R2 for events, media, Neon layers/WAL and backups; the second package that renders `neon`'s templates rather than owning them |
 | `redis/` | green only | one Redis 7.2 server on one Vultr instance in its own VPC — published on loopback and the VPC address only, reached over an SSH tunnel, an append-only file for persistence, and RDB backup sets in Cloudflare R2 with a completion protocol and a `rehearse` verb that restores one into a scratch instance of the pinned image |
 | `netbird/` | green, red, blue | one self-hosted NetBird control plane on Vultr — Traefik, the combined `netbird-server` (management, signal, relay, STUN), the dashboard, and Authentik as the identity provider |
-| `agent-network/` | green, red, blue | one minimal NetBird Agent Network demo on Vultr: a keyless, policy-gated LLM endpoint (private reverse proxy, model allowlist, budget caps) and a network-isolated agent container running headless Claude Code |
+| `agent-network/` | green, red, blue | one minimal NetBird Agent Network demo on Vultr or DigitalOcean: a keyless, policy-gated LLM endpoint (private reverse proxy, model allowlist, budget caps) and a network-isolated agent container running headless Claude Code |
 | `agent-network-k8s/` | green, red, blue | one NetBird Agent Network demo on Vultr Kubernetes Engine: the gateway on VKE behind a TCP-mode load balancer, an in-cluster kaniko image build, and a two-pod application — the NetBird client in netstack/SOCKS5 mode and a network-isolated agent pod running headless Claude Code |
 | `agent-network-doks/` | green, red, blue | one NetBird Agent Network demo on DigitalOcean Kubernetes (DOKS): the gateway behind a TCP-mode regional load balancer, an in-cluster kaniko build pushed to a created-or-adopted DigitalOcean Container Registry, and the two-pod application — the NetBird client in netstack/SOCKS5 mode and a network-isolated agent pod running headless Claude Code |
 | `mysql-agy/` | green, red, blue | three-node MySQL Group Replication cluster on DigitalOcean with a reserved-IP endpoint, binary-log archiving to R2, and an automated restore-verification drill |
@@ -120,7 +122,7 @@ engine namespace (`:green/exit` → `"red/exit"` → `"blue/exit"`).
 | `postgres-ha/` | green, red, blue | three-node Patroni PostgreSQL failover cluster on DigitalOcean with quorum synchronous replication, an HAProxy endpoint, and pgBackRest point-in-time recovery to R2 |
 | `posthog/` | green, red, blue | one single-node PostHog product analytics suite on DigitalOcean or Vultr (a ten-container Compose stack, none optional) |
 | `rybbit/` | green, red, blue | one single-node Rybbit analytics service (PostgreSQL + ClickHouse) on DigitalOcean or Vultr |
-| `signoz/` | green, red, blue | one single-node SigNoz observability stack on Vultr: ClickHouse/Keeper, a Postgres metastore, the SigNoz app, and the OTel collector behind Caddy |
+| `signoz/` | green, red, blue | one single-node SigNoz observability stack on Vultr or DigitalOcean: ClickHouse/Keeper, a Postgres metastore, the SigNoz app, and the OTel collector behind Caddy |
 | `umami/` | green, red, blue | one single-node Umami web analytics service with colocated PostgreSQL on DigitalOcean |
 | `dotfiles/` | green only | Ubuntu or macOS home configuration on the local machine |
 
@@ -137,12 +139,13 @@ target, so its verbs are `build`, `diff` and `create` — there is no `delete`.
 `clickstack-digitalocean/`,
 `dbos-digitalocean/`, `restate-digitalocean/`, `temporal-digitalocean/`,
 `vaultwarden-digitalocean/`, `github-dwh-vultr/`, `wavehouse-vultr/`,
-`neon-vultr/`, `n8n-vultr/`, `langfuse-vultr/`, `redis-vultr/`, `netbird-vultr/`, `agent-network-vultr/`, `agent-network-k8s-vultr/`,
+`neon-vultr/`, `n8n-vultr/`, `langfuse-vultr/`, `redis-vultr/`, `netbird-vultr/`, `agent-network-vultr/`,
+`agent-network-digitalocean/`, `agent-network-k8s-vultr/`,
 `agent-network-doks-digitalocean/`,
 `mysql-agy-digitalocean/`,
 `mysql-ha-digitalocean/`, `postgres-agy-digitalocean/`,
 `postgres-ha-digitalocean/`, `posthog-digitalocean/`, `posthog-vultr/`, `rybbit-digitalocean/`,
-`rybbit-vultr/`, `signoz-vultr/`, `umami-digitalocean/`,
+`rybbit-vultr/`, `signoz-vultr/`, `signoz-digitalocean/`, `umami-digitalocean/`,
 `dotfiles-colors/`, and `dotfiles-ubuntu/`. Each holds a `colors.yml`, one or
 more installed launchers, `.envrc`, and `devenv.nix`; everything else is
 generated (`.colors/`) or secret (`.envrc.private`).
@@ -151,8 +154,9 @@ Every current deployment tracks an `.agents/skills/package-*/` payload, but
 launcher provenance is **not** uniform. The five ONCE deployments, Airflow,
 Rama, K3s, K8s, DBOS, Restate, Temporal, GitHub DWH, WaveHouse, ClickStack,
 NetBird, Agent Network, Agent Network K8s, Agent Network DOKS, Walter Vultr, Walter Many, both MySQL and both
-Postgres deployments, Rybbit Vultr, Redis Vultr, SigNoz, ClickStack DigitalOcean, PostHog
-Vultr, and both dotfiles deployments also track `skills-lock.json`. Alice, the three OCI Walter deployments, ClickHouse,
+Postgres deployments, Rybbit Vultr, Redis Vultr, both SigNoz deployments, both Agent
+Network deployments, ClickStack DigitalOcean, PostHog Vultr, and both dotfiles
+deployments also track `skills-lock.json`. Alice, the three OCI Walter deployments, ClickHouse,
 Vaultwarden, PostHog, Rybbit DigitalOcean, and Umami track hand-copied
 payloads with no lockfile. A lockfile proves an install; never fabricate one
 for a manual copy. In every case the root launcher remains a separate copy and
@@ -202,8 +206,9 @@ package supports more than one compute provider — a package-owned registry of
 advertised providers, template selection by directory, one `params` contract
 that records the provider, a rebuild-only rule for switching it, and a fixture
 and golden per advertised provider per keypair mode (reference implementation:
-`clickstack`, with `posthog` born conforming on its second provider; `rybbit`,
-`walter`, `airflow` and `vaultwarden` are named as the adoption backlog).
+`clickstack`, with `posthog` born conforming on its second provider; `signoz`
+and `agent-network` adopted it next; `rybbit`, `walter`, `airflow` and
+`vaultwarden` are named as the adoption backlog).
 
 **`skills/`** — Agent Skills. `refresh-oci-token` renews the shared OCI session,
 while `create-package-skill` governs the phased workflow for creating a Package
