@@ -322,7 +322,13 @@ in one colour and not another is a parity failure that no script catches.
   Its Vultr golden changed by more than the `params.provider` line — the
   VPC resource and attachment left with it — which §3 permits only because
   no live deployment existed to move.
-- `rybbit` adopted the standard last, delegating to ONCE, and is the one
+- `netbird` adopted the standard by delegation with every sibling standard
+  already in place; both goldens changed by the provider line alone. Its
+  firewall admits UDP 3478 from a third source list, `vultr-stun-sources`,
+  beside §5's 22, 80 and 443: an extension a package MAY make when the
+  service needs it, named in its documentation and carried by the spec as
+  another `:may-be-empty` suffix, never a reason to manage a guest firewall.
+- `rybbit` adopted the standard, delegating to ONCE, and is the one
   package whose spec default is not its documented first provider: its only
   legacy state is the live Vultr deployment, so `:default` is `vultr`, which
   is what the default is for. Its adoption kept every Vultr resource address
