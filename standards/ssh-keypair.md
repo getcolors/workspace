@@ -153,9 +153,22 @@ attribute, never by a literal id:
 ```hcl
 resource "vultr_ssh_key" "machine" {
   name    = "<profile>"
-  ssh_key = trimspace(file("<abs path to ~/.ssh/<profile>.pub>"))
+  ssh_key = fileexists("<abs path>") ? trimspace(file("<abs path>")) : ""
 }
 ```
+
+The `fileexists` guard is not decoration. A delete after a completed delete
+renders this stack with the key files already removed — §3.3 removes them
+last — and tofu evaluates `file()` while planning the destroy of an empty
+state, so an unguarded read turns the second delete into a template error.
+A real create has generated the file in preflight (§3) before the stack
+renders, so the empty branch is never applied; a build renders the
+placeholder path and never reads it. (Found live on 2026-09-05 by the
+multi-node adopters' second-delete gate; their templates carry the guard.
+ONCE's DigitalOcean, Hetzner and Vultr templates, and the single-node
+packages that render them or copy the line — `signoz`, `clickstack`,
+`posthog`, `redis`, `agent-network`, `netbird` and the rest — still read
+the file unguarded and owe the same one-line change.)
 
 The resource lives in the deployment's state, which is what makes ownership
 decidable (§5). In opt-out mode the template keeps today's literal references
@@ -267,3 +280,6 @@ A package conforms when:
    touch `~/.ssh`.
 9. No extra keys are merged in keygen mode.
 10. Goldens and parity fixtures are updated in the same change.
+11. A second `delete` after a completed one exits 0 and changes nothing: the
+    key resource's template read is guarded with `fileexists` (§4.3) and the
+    delete tolerates an empty state.
