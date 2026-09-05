@@ -166,7 +166,14 @@ renders, so the fallback is never applied; a build renders the placeholder
 path and never reads it. The fallback is the §4.2 placeholder line rather
 than an empty string because the provider validates the attribute at plan
 time (DigitalOcean refuses an empty `public_key` even while destroying
-nothing), and it is not key material the provider would accept at apply. (Found live on 2026-09-05 by the
+nothing), and it is not key material the provider would accept at apply.
+The same guard applies to every other read of the key files the template
+makes — a provisioner `connection { private_key = file(<private key>) }`
+that waits for ssh is evaluated by the same destroy plan (found on the
+Vultr second-delete gate the same day; `automq` and `langfuse` guard it as
+`fileexists(p) ? file(p) : ""`, the connection being dialled only by the
+create). `once`, `signoz`, `clickstack`, `posthog`, `agent-network`,
+`netbird`, `neon` and `n8n` carry that connection block unguarded too. (Found live on 2026-09-05 by the
 multi-node adopters' second-delete gate; their templates carry the guard.
 ONCE's DigitalOcean, Hetzner and Vultr templates, and the single-node
 packages that render them or copy the line — `signoz`, `clickstack`,
