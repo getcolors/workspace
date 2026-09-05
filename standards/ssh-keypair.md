@@ -153,7 +153,7 @@ attribute, never by a literal id:
 ```hcl
 resource "vultr_ssh_key" "machine" {
   name    = "<profile>"
-  ssh_key = fileexists("<abs path>") ? trimspace(file("<abs path>")) : ""
+  ssh_key = fileexists("<abs path>") ? trimspace(file("<abs path>")) : "ssh-ed25519 PLACEHOLDER managed-by-colors"
 }
 ```
 
@@ -162,8 +162,11 @@ renders this stack with the key files already removed — §3.3 removes them
 last — and tofu evaluates `file()` while planning the destroy of an empty
 state, so an unguarded read turns the second delete into a template error.
 A real create has generated the file in preflight (§3) before the stack
-renders, so the empty branch is never applied; a build renders the
-placeholder path and never reads it. (Found live on 2026-09-05 by the
+renders, so the fallback is never applied; a build renders the placeholder
+path and never reads it. The fallback is the §4.2 placeholder line rather
+than an empty string because the provider validates the attribute at plan
+time (DigitalOcean refuses an empty `public_key` even while destroying
+nothing), and it is not key material the provider would accept at apply. (Found live on 2026-09-05 by the
 multi-node adopters' second-delete gate; their templates carry the guard.
 ONCE's DigitalOcean, Hetzner and Vultr templates, and the single-node
 packages that render them or copy the line — `signoz`, `clickstack`,
