@@ -155,7 +155,8 @@ launcher provenance is **not** uniform. The five ONCE deployments, Airflow,
 Rama, K3s, K8s, DBOS, Restate, Temporal, GitHub DWH, WaveHouse, ClickStack,
 NetBird, Agent Network, Agent Network K8s, Agent Network DOKS, Walter Vultr, Walter Many, both MySQL and both
 Postgres deployments, Rybbit Vultr, Redis Vultr, both SigNoz deployments, both Agent
-Network deployments, ClickStack DigitalOcean, PostHog Vultr, and both dotfiles
+Network deployments, ClickStack DigitalOcean, PostHog Vultr, AutoMQ Vultr,
+Neon Vultr, n8n Vultr, Langfuse Vultr, and both dotfiles
 deployments also track `skills-lock.json`. Alice, the three OCI Walter deployments, ClickHouse,
 Vaultwarden, PostHog, Rybbit DigitalOcean, and Umami track hand-copied
 payloads with no lockfile. A lockfile proves an install; never fabricate one
