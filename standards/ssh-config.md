@@ -207,6 +207,13 @@ Three duplicated files cost less than that.
   together, or not at all.
 - The ten packages that write no block adopt when they next need one. Nothing
   breaks meanwhile; the operator keeps typing the address.
+- Where this stands on 2026-09-05: `postgres-agy` and `postgres-ha` have
+  completed their marker migration (the one-cycle task has run and is gone);
+  `mysql-agy` and `mysql-ha`, which wrote no block before, were born with the
+  profile marker; `k8s`'s migration is in flight — the removal task for
+  `# BEGIN k8s <alias>` and the superseded marker in its `owned-markers`
+  retire together at its next pin cycle — as is `alice`'s; `walter` and
+  `k3s` still owe theirs.
 
 ## 9. Conformance checklist
 
@@ -253,18 +260,21 @@ package's own stanzas as foreign and refuse its own block.
 `workspace/scripts/package-copies.py` clusters every package's copy of the
 module and the play by content, with the package name normalised out, and
 fails on any cluster it cannot name. The single-node copies are one gated
-cluster. The multi-node plays of `automq`, `langfuse`, `postgres-agy` and
-`postgres-ha` follow `compute-cluster.md` §6 for the block, the marker and
-the aliases, but they do not yet agree with one another on the stanza
-lines (`langfuse` adds `Port 22` and `ForwardAgent no`; the postgres pair
-renders `IdentityFile` because it has not adopted `ssh-keypair.md`, and
-carries the §8 one-cycle removal task), so each is a named variant with
-that reason rather than a second gated cluster; unifying them is owed, and
-moving `langfuse`'s local-play golden was outside what its live deployment
-allowed in the adoption change. `n8n` stays a named variant, with its
-reason: a single alias and its own play. The §8 migrations still owed are
-named variants; anything else is drift. A change to the reference implementation is finished when that
-script is green again, not when clickstack's tests pass.
+cluster. The multi-node plays of `automq`, `langfuse`, `mysql-agy`,
+`mysql-ha`, `postgres-agy` and `postgres-ha` are a second gated cluster,
+unified on 2026-09-05: one block marked with the profile, one stanza per
+alias from ONCE's `ssh-config-hosts`, `User root`, `Port 22`,
+`StrictHostKeyChecking accept-new`, `ForwardAgent no`, and the
+`IdentityFile` pair under the one Selmer conditional (`ssh-keygen`), so a
+stanza-line change lands in all six or in none. The multi-node `ssh_config`
+modules of the four DB packages are a third gated cluster, one copy
+derived from `automq`'s that differs from it only in where the spec lives.
+`n8n` stays a
+named variant, with its reason: a single alias and its own play. The §8
+migrations in flight (`alice`, `k8s`) and still owed (`walter`, `k3s`,
+`airflow`) are named variants; anything else is drift. A change to the
+reference implementation is finished when that script is green again, not
+when clickstack's tests pass.
 
 ## Note added 2026-09-04
 

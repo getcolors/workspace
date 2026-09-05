@@ -6,7 +6,10 @@ ONCE's `compute-cluster` namespace (`io.github.getcolors.once.compute-cluster`,
 `package_once_blue.compute_cluster`), a sibling of the single-node `compute`
 namespace that re-exports what is agnostic to the node count and adds what
 is not. The single-node namespace is not modified by it.
-ONCE commit b1628b7 (the namespace landed in f8815a4).
+ONCE commit 10e525a (the namespace landed in f8815a4 and shipped at
+b1628b7; 31d3758 made `ssh/cleanup-step` fail the delete when a key file
+survives, which every consumer below relies on since it adopted
+`ssh-keypair.md`).
 Reference consumer: `automq` (green, red, blue).
 Consumers: `automq`, `mysql-agy`, `mysql-ha`, `postgres-agy`, `postgres-ha`,
 `k8s`, `langfuse`.
@@ -283,9 +286,15 @@ entry alias alone; `k8s` does.
 ## 7. Fixtures, goldens, parity
 
 `compute-provider.md` §7 applies per advertised provider. The keypair-mode
-axis applies once the package adopts `ssh-keypair.md`, which this document
-does not require: five of the seven packages keep literal key ids, and the
-sibling standard's adoption is a separate change.
+axis applies to all seven consumers: `automq` and `langfuse` adopted
+`ssh-keypair.md` at birth and the other five on 2026-09-05, so every
+consumer renders two fixtures, `colors.yml` (keygen) and `optout.yml`
+(opt-out), under each state backend. The opt-out golden is byte-for-byte
+the package's pre-standard rendering under its own profile, which the
+adoption proved by rendering the opt-out fixture, substituting the profile
+and diffing against the old committed golden; the one permitted exception
+is the `ansible-local` play where a `ssh-config.md` §8 marker migration ran
+in the same change.
 
 **Adoption changes only the enumerated paths and hunks.** Only code and
 tests move. Every golden diff is empty except for the files and hunks §8
@@ -360,6 +369,23 @@ block (`provider`, `reserved_ip`, `vpc_id`, `vpc_ip_range`, `nodes` with
 the same block in `test/resources/golden/r2/<pkg>-fixture/<pkg>-infrastructure/main.tf`.
 No other golden file.
 
+Keypair and ssh-config adoption (2026-09-05, tri-colour, pin at or past
+the commit above): `digitalocean-ssh-keys` leaves `:required` and its
+absence is keygen mode; `digitalocean-ssh-private-key` is required in
+opt-out mode only. The template declares `resource "digitalocean_ssh_key"
+"machine"` named after the profile, references it by attribute in
+`ssh_keys`, and records `ssh_key_id` in `params`, all under the
+`ssh-keygen` conditional. The pair gains an `ssh` wrapper over ONCE's
+namespace, the multi-node `ssh_config` module and the unified play (§6;
+`ssh-config.md` "The copies are checked as one"), the block written after
+the infrastructure stage and withdrawn before the destroy, and the keypair
+removed last. Permitted golden change: the `digitalocean_ssh_key` resource,
+the attribute reference and `ssh_key_id` in the keygen `main.tf`; the
+`IdentityFile` pair in the keygen play and `ansible_ssh_private_key_file` on
+every node of the keygen inventory; the new `ansible-local` stage in every
+golden; and the new `<pkg>-optout` trees, byte-identical to the previous
+`<pkg>-fixture` trees under the substituted profile apart from that stage.
+
 ### postgres-ha and postgres-agy
 
 As the MySQL pair, with `:fallback-subnet "10.114.0.0/20"`; the explicit
@@ -380,6 +406,17 @@ that removes the old package-prefixed per-node blocks); and the alias list in
 `acceptance.sh`, which reaches the nodes through the aliases the block writes
 and therefore follows them from `<name>-1..3` to `<profile>-0..2`. Nothing
 else.
+
+Keypair adoption (2026-09-05): as the MySQL pair's, with the `ssh_keys`
+list rendered from an `:ssh-keys-hcl` value that is `[]` in keygen mode and
+the quoted literal list in opt-out mode, the key resource declared before
+the droplet, and the §8 one-cycle removal task retired (its cycle ran with
+the cluster adoption above). Permitted golden change: the key resource, the
+attribute reference and `ssh_key_id` in the keygen `main.tf`; the
+`IdentityFile` pair in the keygen play and the key file in the keygen
+inventory; the play's removal task gone in every golden; and the new
+`<pkg>-optout` trees, byte-identical to the previous `<pkg>-fixture` trees
+under the substituted profile apart from the local stage.
 
 ### k8s
 
@@ -403,6 +440,21 @@ and the fallback public addresses `192.168.0.10` and `192.168.0.11` becoming
 the only golden files that carry them. The private fallbacks `10.20.0.10`
 and `10.20.0.11` are unchanged: offsets 10 and 11 in the
 `digitalocean-vpc-cidr` network. Nothing else.
+
+Keypair and ssh-config adoption (2026-09-05): `digitalocean-ssh-key-fingerprint`
+becomes `digitalocean-ssh-keys` — the same value, an id or a fingerprint —
+and the old name is refused by name (`ssh-keypair.md` §8). One
+`digitalocean_ssh_key` for the cluster, referenced by attribute on both
+droplets, `ssh_key_id` in `params`. The `ssh_config` module and the play are
+the single-node copies (the block writes the entry alias alone, §6), with
+the play's marker migrated from `# BEGIN k8s <alias>` to the alias alone
+behind a `ssh-config.md` §8 one-cycle removal task, `User` taken as an
+extra-var, and `insertbefore: BOF`; the inventory names the generated key
+in keygen mode. Permitted golden change: the key resource, the two
+attribute references and `ssh_key_id` in the keygen `main.tf`; the key
+file on both nodes of the keygen inventory; the play in every golden; and
+the new `k8s-optout` trees, byte-identical to the previous `k8s-fixture`
+trees under the substituted profile apart from the play.
 
 ### langfuse
 

@@ -187,13 +187,21 @@ synchronize it. `./scripts/package-copies.py` is the net for what the
 standards share by copy rather than by pin — every package's `ssh_config`
 module, its `ansible-local` play, its ONCE ssh wrapper and the red `once.ts`
 shim: it name-normalises each copy, clusters them, and fails on drift a
-gated family does not name as a deliberate variant (multi-node aliases, a
-§8 migration still owed). Run it after touching any of those files; a copy
-that drifts in one package is invisible to every package's own tests.
+gated family does not name as a deliberate variant (`n8n`'s single-alias
+play, a §8 marker migration in flight or still owed). The single-node
+copies are one gated cluster and, since 2026-09-05, the six multi-node
+plays (`automq`, `langfuse`, `mysql-agy`, `mysql-ha`, `postgres-agy`,
+`postgres-ha`) and the four DB packages' multi-node `ssh_config` modules
+are gated clusters of their own. Run it after touching any of those files;
+a copy that drifts in one package is invisible to every package's own
+tests.
 `standards/` holds the
 normative cross-package conventions: `standards/ssh-keypair.md` defines how a
 package generates and owns the profile-named machine SSH keypair in `.ssh/`
-(reference implementation: `once`; packages adopt behind their pin flow), and
+(reference implementation: `once`; packages adopt behind their pin flow —
+every multi-node consumer of `compute-cluster.md` delegates to ONCE's `ssh`
+namespace since 2026-09-05, the MySQL and PostgreSQL pairs and `k8s` in
+that day's tri-colour adoptions), and
 `standards/ssh-config.md` defines the `~/.ssh/config` block that makes
 `ssh <profile>` work (reference implementation: `clickstack`). The two are
 siblings and disagree deliberately on two points: the config play is copied per

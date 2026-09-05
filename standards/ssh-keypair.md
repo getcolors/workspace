@@ -3,7 +3,10 @@
 Status: normative. Reference implementation: `once` (green, red, blue).
 Consumers: every Package Skill that provisions compute. `dotfiles`, which
 provisions no infrastructure, and `no-infra` compute are out of scope. No
-machine, no key.
+machine, no key. Every consumer of `compute-cluster.md` — `automq`,
+`langfuse`, `mysql-agy`, `mysql-ha`, `postgres-agy`, `postgres-ha`, `k8s` —
+delegates to ONCE's `ssh` namespace rather than carrying a copy (the last
+five adopted on 2026-09-05, tri-colour).
 
 This document defines how a Package Skill creates, uses, protects, and
 destroys the SSH keypair that gives a deployment access to the machines it
@@ -230,6 +233,19 @@ explicit list through untouched, as it does today.
 - This standard supersedes walter's `compute-keygen` flag, which goes when
   walter adopts. Walter's per-provider machine-key keys then follow the
   opt-out rule like everyone else's.
+- A package that used to take a private-key path beside the account key
+  (`digitalocean-ssh-private-key` in the MySQL and PostgreSQL pairs) keeps
+  it as an opt-out-only key: required when `digitalocean-ssh-keys` is
+  supplied and unused otherwise, because in keygen mode the identity file
+  is `~/.ssh/<profile>` by §2 and nothing else names it.
+- A package whose historical key was not the §4 machine-key key (`k8s` took
+  `digitalocean-ssh-key-fingerprint`) renames it to the §4 key and refuses
+  the old name by name in `state-errors`: an operator sees the rename,
+  rather than an unchanged `colors.yml` silently selecting keygen mode.
+- Delete removes the key files after the compute destroy and MUST fail the
+  run when one survives the removal: a `delete` that reports success with
+  `~/.ssh/<profile>` still on disk turns the next create's §3.2 refusal into
+  a puzzle. ONCE's `cleanup-step` does so since 31d3758.
 
 ## 9. Conformance checklist
 

@@ -35,19 +35,19 @@ WORKSPACE = Path(__file__).resolve().parent.parent.parent
 # a green-only package with its source at the repository root — redis — is
 # found too), whether the family is a GATE (unexpected drift fails the run)
 # or a WATCH (drift is reported, never fatal, because the file legitimately
-# varies per package), and the variants a gate tolerates, each with the
-# reason it is allowed to differ. A variant with no reason is drift.
+# varies per package), the variants a gate tolerates, each with the reason
+# it is allowed to differ, and the CLUSTERS a family gates beside the
+# majority: a named set of packages whose copies must agree with one another
+# (the multi-node packages share one play and one module that a single-node
+# package does not) — a member that differs from its cluster is drift, and
+# the cluster is compared with itself, never with the majority. A variant
+# with no reason is drift.
 MULTI_NODE = "multi-node: the block carries one Host stanza per node (a deliberate extension of the standard)"
-# The three multi-node plays follow compute-cluster.md §6 (one block, the
-# profile as marker, one stanza per ONCE alias) but do not agree with one
-# another on the stanza lines — langfuse adds `Port 22` and `ForwardAgent no`,
-# the postgres pair renders `IdentityFile {{ ssh_private_key }}` (it has not
-# adopted ssh-keypair.md) and carries the §8 one-cycle removal task — so each
-# is a named variant rather than one gated cluster. Unifying them is owed and
-# would move langfuse's local-play golden, which its live deployment forbade
-# in the adoption change.
-MULTI_NODE_PLAY = "multi-node play (compute-cluster.md §6): one stanza per ONCE alias; the stanza lines differ per package and their unification is owed"
-POSTGRES_CFG = "postgres pair: its own ansible.cfg copy, untouched by the compute-cluster adoption; alignment owed with its ssh-keypair adoption"
+# The multi-node play is one copy (compute-cluster.md §6: one block, the
+# profile as marker, one stanza per ONCE alias, ssh-config.md §3's stanza
+# lines, the IdentityFile pair in keygen mode). The packages that carry it
+# form the gated cluster below.
+MULTI_NODE_MODULE = "multi-node ssh_config module (compute-cluster.md §6): one block, the aliases from ONCE; the DB packages share one copy"
 MIGRATING = "ssh-config.md §8: still writes the pre-standard package-prefixed marker; the migration is owed"
 IN_FLIGHT = "ssh-config.md §8: holds the superseded marker while its migration is in flight"
 
@@ -56,32 +56,34 @@ ARTIFACTS: dict[str, dict] = {
         "globs": ["{pkg}/green/src/clj/io/github/getcolors/*/ssh_config.clj",
                   "{pkg}/src/clj/io/github/getcolors/*/ssh_config.clj"],
         "gate": True,
-        "variants": {"automq": MULTI_NODE, "langfuse": MULTI_NODE, "n8n": MULTI_NODE, "alice": IN_FLIGHT},
+        "variants": {"automq": MULTI_NODE, "langfuse": MULTI_NODE, "n8n": MULTI_NODE, "alice": IN_FLIGHT, "k8s": IN_FLIGHT},
+        "clusters": {"multi-node module": ({"mysql-agy", "mysql-ha", "postgres-agy", "postgres-ha"}, MULTI_NODE_MODULE)},
     },
     "ssh-config red": {
         "globs": ["{pkg}/red/src/ssh-config.ts"],
         "gate": True,
-        "variants": {"automq": MULTI_NODE, "langfuse": MULTI_NODE, "n8n": MULTI_NODE},
+        "variants": {"automq": MULTI_NODE, "langfuse": MULTI_NODE, "n8n": MULTI_NODE, "k8s": IN_FLIGHT},
+        "clusters": {"multi-node module": ({"mysql-agy", "mysql-ha", "postgres-agy", "postgres-ha"}, MULTI_NODE_MODULE)},
     },
     "ssh-config blue": {
         "globs": ["{pkg}/blue/src/package_*_blue/ssh_config.py"],
         "gate": True,
-        "variants": {"automq": MULTI_NODE, "langfuse": MULTI_NODE, "n8n": MULTI_NODE},
+        "variants": {"automq": MULTI_NODE, "langfuse": MULTI_NODE, "n8n": MULTI_NODE, "k8s": IN_FLIGHT},
+        "clusters": {"multi-node module": ({"mysql-agy", "mysql-ha", "postgres-agy", "postgres-ha"}, MULTI_NODE_MODULE)},
     },
     "ssh-config play main.yml": {
         "globs": ["{pkg}/green/src/resources/io/github/getcolors/*/tools/ansible-local/main.yml",
                   "{pkg}/src/resources/io/github/getcolors/*/tools/ansible-local/main.yml"],
         "gate": True,
-        "variants": {"automq": MULTI_NODE_PLAY, "langfuse": MULTI_NODE_PLAY,
-                     "postgres-agy": MULTI_NODE_PLAY, "postgres-ha": MULTI_NODE_PLAY,
-                     "alice": IN_FLIGHT,
-                     "airflow": MIGRATING, "k3s": MIGRATING, "k8s": MIGRATING, "walter": MIGRATING},
+        "variants": {"alice": IN_FLIGHT, "k8s": IN_FLIGHT,
+                     "airflow": MIGRATING, "k3s": MIGRATING, "walter": MIGRATING},
+        "clusters": {"multi-node play": ({"automq", "langfuse", "mysql-agy", "mysql-ha", "postgres-agy", "postgres-ha"}, MULTI_NODE)},
     },
     "ssh-config play ansible.cfg": {
         "globs": ["{pkg}/green/src/resources/io/github/getcolors/*/tools/ansible-local/ansible.cfg",
                   "{pkg}/src/resources/io/github/getcolors/*/tools/ansible-local/ansible.cfg"],
         "gate": True,
-        "variants": {"automq": MULTI_NODE, "postgres-agy": POSTGRES_CFG, "postgres-ha": POSTGRES_CFG},
+        "variants": {"automq": MULTI_NODE},
     },
     "ssh-config play inventory.ini": {
         "globs": ["{pkg}/green/src/resources/io/github/getcolors/*/tools/ansible-local/inventory.ini",
@@ -188,6 +190,35 @@ def main() -> int:
             if path is None:
                 continue
             copies[pkg] = (path, normalise(path.read_text(), pkg, not args.strict))
+        # A gated cluster is compared with itself: every member present must
+        # carry one content, and the members leave the majority comparison.
+        for name, (members, reason) in spec.get("clusters", {}).items():
+            present = sorted(p for p in members if p in copies)
+            if len(present) < 2:
+                for p in present:
+                    copies.pop(p)
+                continue
+            texts: dict[str, list[str]] = defaultdict(list)
+            for p in present:
+                texts[copies[p][1]].append(p)
+            groups = sorted(texts.values(), key=lambda ps: (-len(ps), ps))
+            if len(groups) == 1:
+                print(f"ok    {artifact} [{name}]: {len(present)} copies agree ({', '.join(present)}) — {reason}")
+            else:
+                if gate:
+                    drift += 1
+                print(f"{'DRIFT' if gate else 'watch'} {artifact} [{name}]: {len(present)} copies in {len(groups)} clusters; "
+                      f"base = {', '.join(groups[0])}")
+                for ps in groups[1:]:
+                    print(f"      differs: {', '.join(ps)}")
+                    if not args.quiet:
+                        a = copies[groups[0][0]][1].splitlines(keepends=True)
+                        b = copies[ps[0]][1].splitlines(keepends=True)
+                        sys.stdout.writelines(difflib.unified_diff(
+                            a, b, fromfile=f"{groups[0][0]} ({artifact})", tofile=f"{ps[0]} ({artifact})", n=1))
+                        print()
+            for p in present:
+                copies.pop(p)
         if len(copies) < 2:
             continue
         clusters: dict[str, list[str]] = defaultdict(list)
