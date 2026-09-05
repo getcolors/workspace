@@ -34,8 +34,9 @@ The port is the same design every time. This writes it down.
 This revision defines the **single-node** contract: one machine with a public
 IPv4 address, a provider firewall in front of it, and no private network. A
 package whose machines bind a service to a VPC address, build per-peer
-east-west rules, or number more than one node is out of scope until a
-multi-node contract exists. Today that is `langfuse`, `automq`,
+east-west rules, or number more than one node is out of scope here and
+governed by `compute-cluster.md`, the multi-node contract that extends this
+one. Today that is `langfuse`, `automq`,
 `mysql-agy`, `mysql-ha`, `postgres-agy`, `postgres-ha`, `k8s`, `clickhouse`,
 and `k3s`. The managed-Kubernetes packages provision a control plane rather
 than a machine and are never in scope. `dotfiles` provisions nothing.
@@ -67,6 +68,10 @@ selecting it implies:
 the subset OpenTofu reads from the process environment itself. The same map,
 in each colour's idiom, lives in `validate.ts` and `validate.py`; the three
 MUST agree, and `scripts/parity.sh` is where they are proven to.
+
+An entry MAY carry a fourth key, `:network`, naming the private network
+selecting that provider implies. Absent means none. `compute-cluster.md` §2
+defines its values; the single-node `compute` namespace ignores it.
 
 The keys of the registry are the **advertised** providers. A selection outside
 it is refused with
@@ -243,7 +248,7 @@ No VPC is created. DigitalOcean discovers the region's default VPC
 validator refuses `digitalocean-vpc-uuid` and `digitalocean-vpc-cidr`, as
 `umami`, `posthog`, `rybbit`, and `alice` already do; a Vultr single-node
 instance attaches no VPC. A package that needs a private network is a
-multi-node package and outside §1.
+multi-node package, governed by `compute-cluster.md` §4.
 
 ### 5.1 Provider facts
 
@@ -360,9 +365,10 @@ in one colour and not another is a parity failure that no script catches.
   working unchanged on the package's default provider, and the §4 legacy
   rule refuses them any other provider until they are deleted and
   re-created, which is the same rebuild a switch would need anyway.
-- The multi-node packages of §1 wait for the multi-node contract. Nothing
-  here applies to them, and nothing here should be copied into them by
-  analogy: their firewall is a different design.
+- The multi-node packages of §1 adopt `compute-cluster.md`, which cites
+  this document for everything shared and owns the network, node and alias
+  rules that differ. Nothing here should be copied into them by analogy:
+  their firewall is a different design.
 
 ## 10. Conformance checklist
 

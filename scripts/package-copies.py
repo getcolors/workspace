@@ -38,6 +38,16 @@ WORKSPACE = Path(__file__).resolve().parent.parent.parent
 # varies per package), and the variants a gate tolerates, each with the
 # reason it is allowed to differ. A variant with no reason is drift.
 MULTI_NODE = "multi-node: the block carries one Host stanza per node (a deliberate extension of the standard)"
+# The three multi-node plays follow compute-cluster.md §6 (one block, the
+# profile as marker, one stanza per ONCE alias) but do not agree with one
+# another on the stanza lines — langfuse adds `Port 22` and `ForwardAgent no`,
+# the postgres pair renders `IdentityFile {{ ssh_private_key }}` (it has not
+# adopted ssh-keypair.md) and carries the §8 one-cycle removal task — so each
+# is a named variant rather than one gated cluster. Unifying them is owed and
+# would move langfuse's local-play golden, which its live deployment forbade
+# in the adoption change.
+MULTI_NODE_PLAY = "multi-node play (compute-cluster.md §6): one stanza per ONCE alias; the stanza lines differ per package and their unification is owed"
+POSTGRES_CFG = "postgres pair: its own ansible.cfg copy, untouched by the compute-cluster adoption; alignment owed with its ssh-keypair adoption"
 MIGRATING = "ssh-config.md §8: still writes the pre-standard package-prefixed marker; the migration is owed"
 IN_FLIGHT = "ssh-config.md §8: holds the superseded marker while its migration is in flight"
 
@@ -62,15 +72,16 @@ ARTIFACTS: dict[str, dict] = {
         "globs": ["{pkg}/green/src/resources/io/github/getcolors/*/tools/ansible-local/main.yml",
                   "{pkg}/src/resources/io/github/getcolors/*/tools/ansible-local/main.yml"],
         "gate": True,
-        "variants": {"automq": MULTI_NODE, "langfuse": MULTI_NODE, "alice": IN_FLIGHT,
-                     "airflow": MIGRATING, "k3s": MIGRATING, "k8s": MIGRATING, "walter": MIGRATING,
-                     "postgres-agy": MIGRATING, "postgres-ha": MIGRATING},
+        "variants": {"automq": MULTI_NODE_PLAY, "langfuse": MULTI_NODE_PLAY,
+                     "postgres-agy": MULTI_NODE_PLAY, "postgres-ha": MULTI_NODE_PLAY,
+                     "alice": IN_FLIGHT,
+                     "airflow": MIGRATING, "k3s": MIGRATING, "k8s": MIGRATING, "walter": MIGRATING},
     },
     "ssh-config play ansible.cfg": {
         "globs": ["{pkg}/green/src/resources/io/github/getcolors/*/tools/ansible-local/ansible.cfg",
                   "{pkg}/src/resources/io/github/getcolors/*/tools/ansible-local/ansible.cfg"],
         "gate": True,
-        "variants": {"automq": MULTI_NODE, "postgres-agy": MIGRATING, "postgres-ha": MIGRATING},
+        "variants": {"automq": MULTI_NODE, "postgres-agy": POSTGRES_CFG, "postgres-ha": POSTGRES_CFG},
     },
     "ssh-config play inventory.ini": {
         "globs": ["{pkg}/green/src/resources/io/github/getcolors/*/tools/ansible-local/inventory.ini",

@@ -86,7 +86,8 @@ Host <profile>
   to it, and stating it stops a later `Host *` block turning it on for a
   machine that has no use for it.
 
-Multi-node packages write one block per node, aliased `<profile>-<node>`.
+Multi-node packages write one block holding one stanza per node; see
+"Multi-node blocks" below.
 
 ## 4. Lifecycle
 
@@ -232,13 +233,37 @@ A package conforms when:
 11. The play is the package's own copy, not a shared upstream one.
 12. Goldens updated in the same change.
 
+## Multi-node blocks
+
+A multi-node deployment writes **one** block, not one per node. The marker
+carries the profile, as §2 requires, and the block holds one stanza per
+alias: `Host <profile>` first, pointing at the entry node, then one stanza
+per machine. `compute-cluster.md` §6 owns the alias derivation
+(`<profile>-<index>`, `<profile>-<role>`, `<profile>-<role>-<index>`) and the
+choice of entry node; nothing here adds a second rule.
+
+The never-adopt check of §5 runs once per alias, with a two-arity
+`foreign-stanza-line`: the marker comes from the profile and the stanza
+search takes the alias, skipping the lines between the package's own
+markers. A check that used each alias as its own marker would read the
+package's own stanzas as foreign and refuse its own block.
+
 ## The copies are checked as one
 
 `workspace/scripts/package-copies.py` clusters every package's copy of the
 module and the play by content, with the package name normalised out, and
-fails on any cluster it cannot name: the multi-node packages' per-node
-aliases and the §8 migrations still owed are named variants, anything else
-is drift. A change to the reference implementation is finished when that
+fails on any cluster it cannot name. The single-node copies are one gated
+cluster. The multi-node plays of `automq`, `langfuse`, `postgres-agy` and
+`postgres-ha` follow `compute-cluster.md` §6 for the block, the marker and
+the aliases, but they do not yet agree with one another on the stanza
+lines (`langfuse` adds `Port 22` and `ForwardAgent no`; the postgres pair
+renders `IdentityFile` because it has not adopted `ssh-keypair.md`, and
+carries the §8 one-cycle removal task), so each is a named variant with
+that reason rather than a second gated cluster; unifying them is owed, and
+moving `langfuse`'s local-play golden was outside what its live deployment
+allowed in the adoption change. `n8n` stays a named variant, with its
+reason: a single alias and its own play. The §8 migrations still owed are
+named variants; anything else is drift. A change to the reference implementation is finished when that
 script is green again, not when clickstack's tests pass.
 
 ## Note added 2026-09-04

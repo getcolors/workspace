@@ -219,7 +219,13 @@ all three colours, which a package calls with a spec value; packages own
 their registry and their wiring, never a copy of the functions (reference
 consumer: `clickstack`; `posthog`, `signoz`, `agent-network` and `redis`
 delegate too; `rybbit`, `walter`, `airflow` and `vaultwarden` are named as
-the adoption backlog).
+the adoption backlog). `standards/compute-cluster.md` is the multi-node
+contract that document defers: the `:roles` spec, the `params.nodes` list,
+the owned-or-discovered private network, fallback names and per-node
+aliases, and an enumerated golden allowance per adopting package. It too has
+one implementation, ONCE's `compute-cluster` namespace in all three colours
+(reference consumer: `automq`; `mysql-agy`, `mysql-ha`, `postgres-agy`,
+`postgres-ha`, `k8s` and `langfuse` delegate too).
 
 **`skills/`** — Agent Skills. `refresh-oci-token` renews the shared OCI session,
 while `create-package-skill` governs the phased workflow for creating a Package
