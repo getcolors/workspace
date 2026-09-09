@@ -87,3 +87,46 @@ S3's ambient credential chain and private backend-only R2 credentials. An
 HTTPS loopback probe will test actual conditional writes. A transport result
 must not dispatch provider work until the coordinator establishes ownership.
 No package or live deployment has migrated; cluster packages still go first.
+
+## Conditional transport checkpoint
+
+Library `5ffa2a17b36e7f5113b20efd34a53cf6f222985c` is pushed to main. It adds
+journal get and conditional put in all three colors, with private AWS CLI
+backend sessions and strict write identity/condition validation. S3 uses the
+ambient AWS chain; R2 uses a private backend-only credentials file. Only exact
+GetObject NoSuchKey proves absence; write errors remain ambiguous until the
+coordinator reads back the intended write_id.
+
+Local validation passed: Blue 186 tests; Green 37 tests / 403 assertions;
+Red 100 tests / 415 assertions and typechecking; 248 shared parity cases per
+color. The actual AWS CLI HTTPS loopback probe passed in each color: one winner
+among two simultaneous acquisitions, a successful conditional update, and a
+refused stale update. It observed only seven expected requests per color,
+with correct R2 signing and no ambient AWS session token. No live service,
+state or deployment was used. The contracts job and all eight provider schema
+jobs passed in [GitHub Checks](https://github.com/getcolors/colors-compute/actions/runs/34357566145).
+
+The library's new generic prerequisite is AWS CLI 2 with conditional PutObject
+support, tested locally with 2.35.11. Add this prerequisite when consumers
+migrate; adding a compute provider later must not require package changes.
+The current native runtime targets POSIX environments, as do its private-file
+and process-group controls. Neither the transport nor pure journal rules
+constitute complete orchestration.
+
+Next implementation:
+
+1. Build a single coordinator over the journal transport. Serialize transitions;
+   generate unique run/write/attempt IDs; confirm ambiguous writes by exact
+   document/write_id readback. Stop new dispatch on ownership uncertainty.
+2. Wrap the actual Colors fan-out so each node's durable start intent precedes
+   dispatch and every terminated attempt records its outcome. Track active
+   children; keep the lock on cancellation or uncertainty until safe recovery.
+3. Extend the journal's currently limited transitions for shared key/network
+   ownership, retry, scale-down, destruction and retired deployment records.
+   Implement those lifecycle operations before migrating AutoMQ.
+4. Migrate the cluster packages first, prove version-only provider adoption,
+   then migrate single-host packages and installed deployment launchers.
+
+No additional permission is needed for the already-authorized implementation,
+commits, main pushes or disposable validation. Preserve the unrelated workspace
+changes listed above. Keep writing this handoff before stopping.

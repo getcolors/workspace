@@ -83,6 +83,7 @@ change to the same file. The five standards were revised in this conversation.
 - [x] Publish standards and plan, workspace `873f384`.
 - [x] Publish tested contract/SDK workflow foundation, colors-compute `a112e17`.
 - [x] Publish private state readers and pure coordination transitions, colors-compute `fba3e4c`.
+- [x] Publish conditional journal transport and native HTTPS contention probes, colors-compute `5ffa2a1`.
 - [ ] Implement and publish the complete three-color lifecycle library.
 - [ ] Migrate cluster package skills.
 - [ ] Prove version-only provider adoption.
