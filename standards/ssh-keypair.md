@@ -1,295 +1,229 @@
-# SSH Keypair Standard for Package Skills
+# SSH keypair standard for package skills
 
-Status: normative. Reference implementation: `once` (green, red, blue).
-Consumers: every Package Skill that provisions compute. `dotfiles`, which
-provisions no infrastructure, and `no-infra` compute are out of scope. No
-machine, no key. Every consumer of `compute-cluster.md` — `automq`,
-`langfuse`, `mysql-agy`, `mysql-ha`, `postgres-agy`, `postgres-ha`, `k8s` —
-delegates to ONCE's `ssh` namespace rather than carrying a copy (the last
-five adopted on 2026-09-05, tri-colour).
+Status: normative target, revised 2026-09-09. Shared SSH implementation belongs
+to `colors-compute` in Green, Red, and Blue. This revision supersedes ONCE
+ownership and the previous single-state create matrix. It does not claim that
+existing consumers have migrated.
 
-This document defines how a Package Skill creates, uses, protects, and
-destroys the SSH keypair that gives a deployment access to the machines it
-provisions. It exists because key provenance used to be per-deployment
-folklore. Some deployments generated keys, some referenced hand-registered
-account keys, and none agreed on names, locations, or error behaviour.
+Consumers: every package skill that creates compute machines. Packages that
+create no machines have no keypair requirement. `no-infra` compute is not a
+supported selection under [compute-provider.md](compute-provider.md).
 
 ## 1. The deployment owns its key by default
 
-When the selected compute provider's machine-key configuration key (§4) is
-**absent** from `colors.yml`, the package is in keygen mode and MUST manage
-the machine-access keypair itself:
+When the selected provider's machine-key setting is absent from desired state,
+the library MUST manage one deployment access keypair. This is keygen mode.
+When that setting is present, the library MUST use the supplied key reference
+and MUST NOT generate, adopt, change permissions on, or delete the operator's
+key material. This is opt-out mode. A present but invalid setting is a
+validation error, not an implicit request to generate a key.
 
-- On the first real `create`, generate an ed25519 keypair with no passphrase
-  and comment `<profile> managed by Colors`:
+The library registry defines each provider's machine-key setting. Consumers
+MUST NOT duplicate the provider-to-setting mapping. Existing opt-out settings
+must retain their meaning through migration, including private-key path
+references required by downstream SSH clients.
 
-  ```sh
-  ssh-keygen -q -t ed25519 -N "" -C "<profile> managed by Colors" -f ~/.ssh/<profile>
-  ```
+In keygen mode, the first real create generates an ed25519 keypair without a
+passphrase and with comment `<profile> managed by Colors`. The key is shared
+by the deployment's nodes. Only that generated key is installed for machine
+access; extra operator keys MUST NOT be merged into its authorized-key list.
+Opt-out mode preserves the supplied list.
 
-- The package names the keypair after the profile, the same value that keys
-  remote state (`<profile>/<tool>.tfstate`) and separates deployments sharing
-  one provider account. Where the provider holds a key resource, that resource
-  is named `<profile>` too (§4.3).
+## 2. Location and identity
 
-When the provider's machine-key configuration key is **present** in
-`colors.yml`, the package is in opt-out mode. It MUST use the supplied value
-exactly as it did before this standard, and MUST NOT generate, validate, or
-delete any key material. Presence of the explicit key is the only switch.
-There is no flag.
+The private key is `~/.ssh/<profile>`, the public key is
+`~/.ssh/<profile>.pub`, and an optional deployment known-hosts file is
+`~/.ssh/<profile>.known_hosts`. Keys MUST NOT live in the checkout, generated
+workdir, or newly created subdirectories under `~/.ssh`.
 
-## 2. The `~/.ssh` location
+The profile MUST be unique among deployments managed by the same local SSH
+identity. Different buckets or state prefixes do not guarantee that uniqueness.
+Local keys and aliases share a namespace even when remote backends differ.
+The library MUST detect ownership collisions and refuse adoption.
 
-All SSH state of a deployment lives in the operator's `~/.ssh`, named by
-profile: the private key `~/.ssh/<profile>`, the public key
-`~/.ssh/<profile>.pub`, and any per-deployment `known_hosts` a package needs,
-as `~/.ssh/<profile>.known_hosts`. Packages MUST NOT create subdirectories
-under `~/.ssh`, or keep SSH state inside the checkout.
+The library MUST resolve home from `$HOME` first, then the runtime home,
+consistently with the local Ansible play. On real create and delete in keygen
+mode it MUST enforce `700` on the SSH directory and `600` on the private key
+when present. It MUST NOT change unrelated files. Other lifecycle verbs MUST
+NOT generate, remove, or change key material.
 
-The profile is what makes one flat shared directory safe. It is globally
-unique by construction, because it already keys remote state
-(`<profile>/<stage>.tfstate`) in a shared backend. Two deployments cannot
-collide in `~/.ssh` without already colliding in state.
+Build and dry-run MUST NOT read, create, modify, or require local SSH files.
+Private key material MUST NOT enter desired state, outputs, logs, or remote
+ownership records. Node results may carry an identity path reference only.
 
-- The keypair is not generated output. It must survive regeneration of the
-  workdir (`.colors/`), because losing it means losing access to the machine.
-  Never write it inside the workdir.
-- `~/.ssh` sits outside every checkout. No `.gitignore` interaction, and no
-  way for a commit, tarball, or rsync of the repository to sweep key material
-  along with it. It is also one predictable place to copy credentials from
-  when moving between workstations. The corollary is that a checkout carries
-  no key material, so cloning a deployment repository on another workstation
-  does not carry access with it. Copy `~/.ssh/<profile>`(`.pub`) deliberately
-  when access should move.
-- The package MUST enforce permissions on every real run, not only at
-  generation time: `700` on `~/.ssh`, creating it if missing, and `600` on the
-  private key. A key restored with wrong permissions then fails early and
-  clearly.
-- `build` and `--dry-run` MUST NOT read, create, or require anything under
-  `~/.ssh`. Builds render from desired state alone and stay byte-deterministic
-  (§6).
+## 3. Lifecycle and state
 
-## 3. Lifecycle and error conditions
-
-Key lifecycle belongs to `create` and `delete` alone. Verbs like `stop`,
-`start`, `run`, and `sync` MUST NOT touch key material.
+The deployment prepares its key once before node fan-out. Individual node
+operations consume its public key or provider registration reference; they
+MUST NOT run independent local key generation or cleanup.
 
 ### 3.1 Create
 
-On a real `create` in keygen mode, before any provider call:
+Before key generation or provider mutation, the library MUST read the shared
+ownership record and recorded node states. Backend credentials are required
+for this read. Reads distinguish confirmed absence from failure.
 
-| Compute state | `~/.ssh/<profile>` | Meaning | Behaviour |
-|---|---|---|---|
-| readable, non-empty | present | normal converge | reuse the key |
-| readable, non-empty | absent | this workstation does not hold the key (fresh clone, new machine) | error. Access to the live machine is lost; do not regenerate |
-| absent / unreadable | present | previous delete incomplete, or interrupted first create | error. Refuse (§3.2) |
-| absent / unreadable | absent | first create | generate |
+| Recorded ownership | Local keypair | Behavior |
+|---|---|---|
+| Readable deployment owns nodes or a prepared key | Present and consistent | Reuse the key |
+| Readable deployment owns nodes or a prepared key | Missing or inconsistent | Refuse; never regenerate access to an existing deployment |
+| Confirmed absent | Any profile key file exists | Refuse adoption and leave files intact |
+| Confirmed absent | Neither key file exists | Generate and record preparation before dispatching nodes |
+| Unreadable or uncertain | Any state of local files | Refuse before generating or mutating anything |
 
-"Compute state" is the deployment's own OpenTofu state for the compute stage,
-read best-effort. A state that cannot be read, on a fresh clone before any
-build or with a missing backend, counts as absent. That makes the fourth row
-reachable on a fresh clone whose remote state does exist. The
-`prevent_destroy` guard on the compute resource catches that case, and the
-apply fails loudly instead of replacing the instance.
+Consistency includes a complete matching public/private pair and agreement
+with recorded public-key identity where available. Legacy ownership without
+that identity needs an explicit migration check. An unreadable backend MUST
+NOT become the first-create case. A fresh checkout does not establish that
+remote resources are absent.
 
-### 3.2 Never overwrite, never adopt
+The ownership record MUST distinguish a prepared deployment from one with no
+state, so retries after partial node creation can reuse the key. If interruption
+leaves local files without a completed ownership record, the next run MUST
+refuse automatic adoption. Remote records may contain a public-key fingerprint
+and provider registration ids, never private key material.
 
-An existing `~/.ssh/<profile>` without state MUST be an error, never silently
-overwritten. The key on disk may be the only remaining credential to a host
-that is still alive. The error message MUST give the recovery path and make
-the human the authorization boundary:
+### 3.2 Never overwrite or adopt implicitly
 
-> verify at the provider that no host for `<profile>` survives; if the
-> previous create was interrupted before creating resources, or the host is
-> confirmed gone, remove `~/.ssh/<profile>` and `~/.ssh/<profile>.pub` and
-> retry.
+An existing profile key file without established ownership MUST be an error.
+The diagnostic MUST direct the operator to verify whether any host survives
+and to resolve the leftover files explicitly. It MUST NOT remove or overwrite
+them automatically. A profile key registration belonging to another state
+MUST likewise never be auto-imported.
 
-Symmetrically, a provider-side key resource named `<profile>` that is not in
-the deployment's state MUST be an error, never auto-imported (§5). If state
-was lost, the instance is probably orphaned too, and importing the key would
-let `create` build a second machine beside the first.
+If a local key is missing while owned machines remain, report that this
+workstation lacks the deployment key. Recreating a key with the same name
+does not restore access. Key transfer or rebuild is an explicit operator action.
 
 ### 3.3 Delete
 
-In keygen mode, a real `delete` removes the local keypair **last, only after
-the compute destroy succeeded**. A delete that fails or is interrupted leaves
-the key in place, correctly, because it is still needed. That ordering is what
-holds the invariant "the key exists exactly when the deployment does", and
-what gives §3.1 its meaning. The removal touches the profile-named files and
-nothing else. `~/.ssh` itself is the operator's directory and is never
-removed. Dry-run deletes touch nothing.
+The shared local keypair MUST be removed last, only after all recorded nodes
+and owned provider-side key registrations have been successfully destroyed.
+A successful individual node delete MUST NOT remove it. A failed or interrupted
+delete MUST retain the key and ownership records needed for retry.
+
+Cleanup MUST account for attempted, partially created, and retired nodes from
+the deployment record, not current desired count alone. Confirmed empty states
+are idempotent cleanup cases. Unreadable state blocks destructive cleanup.
+
+Removal touches only owned profile files, including an owned per-deployment
+known-hosts file if one was created. The SSH directory itself is never removed.
+A surviving key file after attempted cleanup MUST make delete fail. A repeated
+delete after successful cleanup MUST succeed without requiring key files.
 
 ### 3.4 Rotation
 
-There is no rotation verb. Machine key lists are ForceNew on the providers
-that register keys, so rotation is a rebuild: `delete`, then `create`.
+This contract has no in-place rotation operation. Changing managed machine
+keys requires an explicit rebuild. A dependency bump MUST NOT regenerate keys
+or silently change the access key mode of an existing deployment.
 
-## 4. How providers take the public key
+## 4. Provider adapters and public keys
 
-Providers take the public key in three ways. This standard covers all three,
-and a package implements the ways its own providers use.
+The library MUST support provider-specific public-key inputs through its
+registry and templates. Packages supply access requirements without branching
+on provider names.
 
-### 4.1 Path providers (OCI, AWS, Azure, Google)
+### 4.1 Path inputs
 
-The template reads the public key with `file(<path>)`. In keygen mode the
-package fills the provider's machine-key configuration key with the absolute
-path of `~/.ssh/<profile>.pub`, expanding `$HOME` itself. Tofu's `file()` does
-not expand `~`, and it resolves relative paths against the stage directory.
+OCI, AWS, Azure, and Google templates may read the public key from a file.
+On real operations the library supplies an absolute path and expands home
+itself. Template file functions MUST NOT be expected to expand `~`.
 
-### 4.2 Content providers (Yandex)
+### 4.2 Content inputs
 
-The template interpolates the public key content (`compute-pubkey`). In keygen
-mode the package fills it with the content of `~/.ssh/<profile>.pub` on real
-events, and with the fixed placeholder
-`ssh-ed25519 PLACEHOLDER managed-by-colors` on `build` and `--dry-run` (§6).
+For Yandex content inputs, the library reads the public key only on real
+operations. Builds and dry-runs use the fixed fixture
+`ssh-ed25519 PLACEHOLDER managed-by-colors` without accessing the filesystem.
 
-### 4.3 Registered-key providers (DigitalOcean, Hetzner, Vultr, AWS)
+### 4.3 Provider-side registrations
 
-The account holds a key resource, and instances reference it. In keygen mode
-the package's compute template creates that resource itself, named
-`<profile>`, from the public key file, and references it by resource
-attribute, never by a literal id:
+DigitalOcean, hcloud, Vultr, and AWS use provider-side key registrations.
+In keygen mode the library MUST create each required registration once in
+shared deployment state, with the profile as its default name. It MUST record
+its provider identity, scope, and resource id. Node states reference that
+registration and MUST NOT each create a resource named after the same profile.
 
-```hcl
-resource "vultr_ssh_key" "machine" {
-  name    = "<profile>"
-  ssh_key = fileexists("<abs path>") ? trimspace(file("<abs path>")) : "ssh-ed25519 PLACEHOLDER managed-by-colors"
-}
-```
+Registration scope is provider-specific, such as an AWS region. Deployments
+that need more than one scope require one explicitly owned registration per
+scope. The same public key may be registered in each scope. An `ssh_key_id`
+returned by a node is a reference to that ownership, not ownership itself.
 
-The `fileexists` guard is not decoration. A delete after a completed delete
-renders this stack with the key files already removed — §3.3 removes them
-last — and tofu evaluates `file()` while planning the destroy of an empty
-state, so an unguarded read turns the second delete into a template error.
-A real create has generated the file in preflight (§3) before the stack
-renders, so the fallback is never applied; a build renders the placeholder
-path and never reads it. The fallback is the §4.2 placeholder line rather
-than an empty string because the provider validates the attribute at plan
-time (DigitalOcean refuses an empty `public_key` even while destroying
-nothing), and it is not key material the provider would accept at apply.
-The same guard applies to every other read of the key files the template
-makes — a provisioner `connection { private_key = file(<private key>) }`
-that waits for ssh is evaluated by the same destroy plan (found on the
-Vultr second-delete gate the same day; `automq` and `langfuse` guard it as
-`fileexists(p) ? file(p) : ""`, the connection being dialled only by the
-create). `once`, `signoz`, `clickstack`, `posthog`, `agent-network`,
-`netbird`, `neon` and `n8n` carry that connection block unguarded too. (Found live on 2026-09-05 by the
-multi-node adopters' second-delete gate; their templates carry the guard.
-ONCE's DigitalOcean, Hetzner and Vultr templates, and the single-node
-packages that render them or copy the line — `signoz`, `clickstack`,
-`posthog`, `redis`, `agent-network`, `netbird` and the rest — still read
-the file unguarded and owe the same one-line change.)
+Opt-out mode creates no managed registration for supplied account keys.
+Legacy templates that created registrations in opt-out mode require an
+explicit ownership migration; they MUST NOT silently delete or abandon them.
 
-The resource lives in the deployment's state, which is what makes ownership
-decidable (§5). In opt-out mode the template keeps today's literal references
-and creates nothing.
+Template reads of key files MUST tolerate a repeated delete after files have
+been removed. Public-key reads may use a guarded placeholder; private-key
+reads for connections must also be guarded. Real create MUST verify its key
+before rendering so a placeholder cannot reach a provider apply.
 
-AWS is both a path provider, since the key arrives as a `file()` path, and a
-registered-key provider through `aws_key_pair`. In keygen mode its `key_name`
-MUST be `<profile>`. In opt-out mode it keeps its historical name.
+## 5. Collision preflight
 
-## 5. Ownership and the collision preflight
+Recorded state determines registration ownership. A matching name or public
+key fingerprint alone does not establish ownership.
 
-The deployment's OpenTofu state decides whether a provider-side key resource
-belongs to it: the resource id recorded under `<profile>/<stage>.tfstate` in
-the shared backend. Names are conventions anyone can copy. A fingerprint
-identifies key material, not which deployment created it. The id in state is
-the link the provider itself made. No fingerprint or ownership record is ever
-written into `colors.yml`, because desired state is hand-written input, not
-observed output.
+On real create in keygen mode, DigitalOcean, hcloud, and Vultr adapters MUST
+check registrations with the intended name, following pagination. A preflight
+API failure is an error, not a skipped check.
 
-On a real `create` in keygen mode, for providers with a simple token-bearing
-REST API (DigitalOcean, Hetzner, Vultr), the package MUST check for an account
-key named `<profile>` before applying:
+- A registration whose id and scope match shared ownership may be reused.
+- An unowned registration with matching key material is a possible leftover.
+  Refuse and require the operator to establish whether any host survives.
+- An unowned registration with different material is foreign. Refuse and
+  explicitly advise against deleting it.
+- No matching registration permits normal creation.
 
-- found, and its id is the one in our state → normal converge.
-- found, id not in our state, whether state is absent or different → error,
-  and the local public key's fingerprint selects the message:
-  - fingerprint matches `~/.ssh/<profile>.pub` → our leftover. The message
-    directs the operator to verify no host survives, delete the provider key,
-    and retry.
-  - fingerprint differs → foreign key. The message MUST say **do not delete
-    it**, and direct the operator to investigate or change profile.
-- not found → proceed.
+AWS may rely on its scoped key-name uniqueness and the node dependency on
+successful registration instead of a separate REST preflight. The library MUST
+prove that duplicate registration failure prevents node creation. Providers
+without registrations require only the local ownership checks.
 
-AWS is exempt from the REST preflight. `aws_key_pair` names are unique per
-region and the instance depends on the key pair, so a duplicate name fails the
-apply loudly before any instance exists. Path and content providers have no
-account resource and so have nothing to collide with. Only the local checks
-apply to them.
+Preflight runs once per required registration scope, before node fan-out.
+Build and dry-run perform no account checks.
 
-The preflight runs on a real `create` alone, so `build` and `--dry-run` stay
-credential-free. Packages MUST follow pagination. A preflight API failure is
-an error, not a skip.
+## 6. Determinism and parity
 
-## 6. Build determinism and parity
+The library MUST own the provider and keypair-mode matrix in all three colors.
+Builds MUST render identically whether SSH files exist or not, using a stable
+home placeholder and fixed public-key content where needed.
 
-`build` and `--dry-run` MUST render byte-identically whether or not the
-keypair exists, and identically across colours:
+Checks MUST cover the state matrix, unowned files, foreign registrations,
+partial creation and retry, shared-key reuse across node calls, failed delete,
+and successful repeated delete. All colors MUST agree on ownership decisions
+and error behavior. Package tests cover delegation and lifecycle ordering.
 
-- Path values (§4.1) come from the home directory and the profile, and are
-  never read from disk. A package that commits rendered build output, as
-  walter's goldens do, substitutes a stable placeholder for the home directory
-  on `build`, so the committed bytes match across workstations.
-- Content values (§4.2) use the fixed placeholder on non-real events.
-- Generation, permission enforcement, the state matrix (§3.1), and the
-  preflight (§5) run on real events alone.
+## 7. Access references downstream
 
-Multi-colour packages MUST land the whole behaviour in every colour in one
-commit, and cover it with their parity fixtures.
+The node result MUST carry its login and any required identity reference to the
+join. Ansible may use an explicit opt-out identity path when configured.
+The operator SSH config policy remains in [ssh-config.md](ssh-config.md),
+which emits `IdentityFile` and `IdentitiesOnly` only in keygen mode.
+Neither consumer may receive private key content in the collected parameters.
 
-## 7. Only the generated key
+## 8. Migration
 
-In keygen mode the generated key is the machine's only access key. The package
-MUST NOT merge additional operator keys into the instance's key list. Personal
-access goes through the deployment's key. Opt-out mode passes the user's
-explicit list through untouched, as it does today.
+Moving SSH behavior from ONCE to `colors-compute` MUST preserve existing local
+key paths, comments, access modes, and provider registrations unless an explicit
+migration changes them. Old per-cluster or per-node registration resources
+must transfer ownership into shared state without duplicate management.
 
-## 8. Adoption
+Legacy machine-key setting renames MUST be diagnosed by name. They MUST NOT
+silently turn opt-out into keygen. Existing deployments adopt a different
+access key only through explicit rebuild or a separately specified migration.
 
-- New packages are born conforming. `create-package-skill` references this
-  document.
-- Existing packages adopt behind their normal pin flow. Existing deployments
-  keep working unchanged, because their `colors.yml` already carries explicit
-  keys, which is exactly opt-out mode. A live deployment adopts keygen mode
-  only by rebuild.
-- This standard supersedes walter's `compute-keygen` flag, which goes when
-  walter adopts. Walter's per-provider machine-key keys then follow the
-  opt-out rule like everyone else's.
-- A package that used to take a private-key path beside the account key
-  (`digitalocean-ssh-private-key` in the MySQL and PostgreSQL pairs) keeps
-  it as an opt-out-only key: required when `digitalocean-ssh-keys` is
-  supplied and unused otherwise, because in keygen mode the identity file
-  is `~/.ssh/<profile>` by §2 and nothing else names it.
-- A package whose historical key was not the §4 machine-key key (`k8s` took
-  `digitalocean-ssh-key-fingerprint`) renames it to the §4 key and refuses
-  the old name by name in `state-errors`: an operator sees the rename,
-  rather than an unchanged `colors.yml` silently selecting keygen mode.
-- Delete removes the key files after the compute destroy and MUST fail the
-  run when one survives the removal: a `delete` that reports success with
-  `~/.ssh/<profile>` still on disk turns the next create's §3.2 refusal into
-  a puzzle. ONCE's `cleanup-step` does so since 31d3758.
+Migration evidence MUST include ownership mapping, repeated-delete behavior,
+and interrupted-run recovery. Historical provider template exceptions are
+migration work, not exemptions from guarded file reads or centralized ownership.
 
 ## 9. Conformance checklist
 
-A package conforms when:
-
-1. Absent machine-key config means keygen mode, and present means opt-out with
-   byte-for-byte historical rendering.
-2. The key is ed25519, has no passphrase, carries the comment
-   `<profile> managed by Colors`, and sits at `~/.ssh/<profile>`(`.pub`).
-3. `700` and `600` are enforced on every real run.
-4. The §3.1 matrix is implemented with the §3.2 messages.
-5. The provider resource is named `<profile>`, referenced by attribute, and
-   lives in deployment state.
-6. The REST preflight covers DigitalOcean, Hetzner, and Vultr, with
-   fingerprint-selected messages.
-7. Delete removes the local key last, after a successful destroy, and failed
-   deletes leave it.
-8. `build` and `--dry-run` are deterministic and credential-free, and never
-   touch `~/.ssh`.
-9. No extra keys are merged in keygen mode.
-10. Goldens and parity fixtures are updated in the same change.
-11. A second `delete` after a completed one exits 0 and changes nothing: the
-    key resource's template read is guarded with `fileexists` (§4.3) and the
-    delete tolerates an empty state.
+1. The library owns key behavior and provider mappings in all three colors.
+2. Keygen and opt-out are explicit consequences of setting presence.
+3. One deployment key is prepared before fan-out, outside node operations.
+4. Unreadable state never authorizes generation or cleanup.
+5. Local and provider-side ownership collisions fail without adoption.
+6. Registrations have one shared owner per required provider scope.
+7. Only complete deployment destruction permits local key removal.
+8. Build and dry-run are deterministic and never access SSH files.
+9. Connection results contain references, never private key material.
+10. Repeated delete succeeds after completed cleanup.

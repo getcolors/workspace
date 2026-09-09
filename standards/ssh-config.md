@@ -1,288 +1,172 @@
-# SSH Config Standard for Package Skills
+# SSH config standard for package skills
 
-Status: normative. Reference implementation: `clickstack` (green).
-Consumers: every Package Skill that provisions a host the operator will reach
-over SSH. Sibling of `ssh-keypair.md`, which governs the key itself.
+Status: normative target, revised 2026-09-09. Packages retain ownership of the
+local SSH config play. Connection data comes from `colors-compute` node
+results or the Colors cluster join. Existing package copies require migration
+where they differ from this contract.
 
-This document defines how a Package Skill manages the `~/.ssh/config` entry
-that lets an operator type `ssh <profile>` instead of reconstructing an
-address, a user, and an identity file by hand.
+Consumers: packages that create hosts the operator can reach over SSH.
+Key ownership is specified in [ssh-keypair.md](ssh-keypair.md).
 
-It exists because seven packages already do this and no two do it the same
-way. `once`, `walter`, `alice`, `k3s`, `k8s`, `postgres-agy`, and `postgres-ha`
-each ship an `ansible-local` stage whose only job is one `blockinfile` task
-against `~/.ssh/config`. Between them they use three different mechanisms to
-decide whether the block names an identity file, two host-key policies, and two
-marker forms, one of which repeats the package name the profile already
-carries. Ten further packages, `clickstack` included until this document
-landed, write no block at all.
+## 1. Scope
 
-## 1. Scope: who writes a block
+A package MUST manage an SSH config block for an operator-reachable deployment,
+in keygen and opt-out modes. It MUST NOT create an alias that cannot connect.
+Packages without machines have no SSH config requirement. A deployment that
+exposes only an entry node may publish only its entry alias.
 
-A package MUST manage a `~/.ssh/config` block when it provisions a host the
-operator is expected to reach over SSH. That is the trigger, and it is not
-"the package generated a key". `k3s`, `k8s`, and `alice` write useful blocks
-in opt-out mode, because an alias is worth having whoever owns the key.
+Individual compute node operations MUST NOT edit `~/.ssh/config`. The package
+writes one deployment block after compute results have been collected and
+validated. Single-host packages use their single normalized node result.
 
-Out of scope: `dotfiles`, and any package with no machine. A package whose
-hosts are unreachable by design, with no public SSH and no jump host, MUST NOT
-write a block that cannot connect.
+## 2. Alias and marker
 
-Keygen mode changes one line of the block, not whether it exists (§3).
+The entry alias is the profile. A package MUST NOT introduce an unrelated
+configuration setting for that alias. New cluster node aliases follow
+compute-cluster.md §6, using stable node identities even for singleton roles.
 
-## 2. The alias and the marker
-
-The alias is the profile, unchanged. `ssh-keypair.md` §2 already argues that
-the profile is globally unique by construction, because it keys remote state in
-a shared backend. The same argument holds here. A package MUST NOT introduce a
-separate configuration key for the alias.
-
-The marker MUST carry the alias and nothing else:
+One deployment owns one block, identified by its profile:
 
 ```yaml
 marker: "# {mark} {{ host_alias }} ANSIBLE MANAGED BLOCK"
 ```
 
-The profile already names the package. Every profile in this workspace is
-`<package>-<suffix>`: `clickstack-vultr`, `walter-oci`, `k3s-hetzner`,
-`once-colors`. A marker carrying the package name too would say it twice, as
-`# BEGIN clickstack clickstack-vultr`.
+Here `host_alias` is the deployment profile, not the current node alias.
+The block contains the entry stanza and any node stanzas. Profiles and derived
+aliases MUST be unique on the workstation and validated before rendering.
+Separate remote backends do not prevent local alias or key collisions.
 
-The collision a package name would guard against cannot happen. Two packages
-sharing one profile would already be fighting over `~/.ssh/<profile>`, because
-`ssh-keypair.md` §2 puts all SSH state in one flat profile-named directory. A
-deployment that gets that far is broken before it reaches this file, and a
-longer marker would not save it.
-
-`once` already writes this marker. The other six prepend their package name and
-are the ones that must change; see §8.
-
-## 3. The block
+## 3. Stanzas and connection data
 
 ```sshconfig
-Host <profile>
-    HostName <ip>
-    User <user>
+Host <alias>
+    HostName <node-ip>
+    User <node-user>
     Port 22
-    IdentityFile ~/.ssh/<profile>      # keygen mode only
-    IdentitiesOnly yes                 # keygen mode only
+    IdentityFile ~/.ssh/<profile>
+    IdentitiesOnly yes
     StrictHostKeyChecking accept-new
     ForwardAgent no
 ```
 
-- `IdentityFile` and `IdentitiesOnly` appear only in keygen mode, where the
-  package knows the key because it generated it. In opt-out mode the operator
-  supplied the key and has their own arrangements for finding it. Guessing is
-  worse than silence. This is `walter`'s existing block, generalized.
-- `StrictHostKeyChecking accept-new` trusts the host key on first connection
-  and refuses it if it ever changes afterwards. That suits a machine this
-  deployment just created. Convergence gets no interactive prompt, and the
-  operator gets a real warning if the address is ever recycled to a stranger.
-  A package MAY instead pin the key in `~/.ssh/<profile>.known_hosts`, which
-  `ssh-keypair.md` §2 reserves and no package writes today. A package that does
-  MUST also emit `UserKnownHostsFile`, and MUST NOT weaken
-  `StrictHostKeyChecking`.
-- `ForwardAgent no` is explicit rather than implied. OpenSSH already defaults
-  to it, and stating it stops a later `Host *` block turning it on for a
-  machine that has no use for it.
+`IdentityFile` and `IdentitiesOnly` MUST appear only in keygen mode. Opt-out
+mode leaves operator SSH identity selection to the operator's configuration;
+Ansible may separately use an explicitly supplied identity reference.
 
-Multi-node packages write one block holding one stanza per node; see
-"Multi-node blocks" below.
+Each stanza MUST use its own node's returned address and user. Root MUST NOT
+be hardcoded for clusters. The entry stanza uses the explicitly selected entry
+node. Extra metadata MUST NOT be interpreted as arbitrary SSH directives.
+
+The host-key policy MUST accept new hosts without accepting changed keys.
+A package MAY use a deployment-owned `~/.ssh/<profile>.known_hosts` file with
+explicit key pinning. It MUST then emit `UserKnownHostsFile` and MUST NOT
+weaken host-key checks. `ForwardAgent no` MUST remain explicit.
+
+The current machine contract uses port 22 and public addresses. Other routes,
+such as a jump host, need explicit connection configuration and validation;
+an unreachable private node MUST NOT receive a public-SSH stanza by assumption.
 
 ## 4. Lifecycle
 
-A dedicated `ansible-local` stage writes the block, running against `localhost`
-with `connection: local`. Nothing else touches the file. One task, one file.
+A dedicated package-owned `ansible-local` stage manages the block against
+localhost with `connection: local`. No parallel node branch writes the file.
 
-**Create.** The stage runs after the compute stage, which is where the address
-first exists, and before the stage that converges the machine.
+Create writes or updates the block after all required compute and network
+steps and the successful node join, before application convergence. A failed
+join MUST NOT replace the existing block with a partial inventory.
 
-**Delete.** The stage runs again with `block_state: absent`, before the compute
-destroy.
+Delete removes the block after any application cleanup that needs it and
+before compute destruction. The keypair is removed only after every dependent
+compute resource has been destroyed, as ssh-keypair.md requires. These are
+different lifecycle points and MUST remain so.
 
-That ordering reverses the keypair's, and both are right. A config block that
-outlives its host is stale but harmless, so removing it early costs nothing. A
-key that predeceases its host locks the operator out of a machine that still
-exists, which is why `ssh-keypair.md` §3.3 removes the key last. A package MUST
-NOT tidy these into agreement.
-
-Verbs other than `create` and `delete` MUST NOT write the block. A `stop` or
-`start` leaves the address unchanged and has nothing to say about it.
+Other verbs MUST NOT modify the block. Updating a dependency alone MUST NOT
+edit local SSH configuration; a real lifecycle operation performs the edit.
+Concurrent edits from different deployments MUST be serialized around the
+read and write of the shared config file, without losing unrelated blocks.
 
 ## 5. Ownership and placement
 
-Two local checks run on a real `create`, before the stage renders.
+On real create, before rendering or editing the block, the package MUST:
 
-**Never adopt.** A `Host <profile>` stanza that sits in `~/.ssh/config` outside
-our markers MUST be an error, never overwritten. The operator wrote it by hand,
-or another tool owns it, and it may be their only record of how to reach
-something. The message MUST name the file and the line, and leave the decision
-with the human, mirroring `ssh-keypair.md` §3.2.
+- Refuse any matching alias outside its owned markers. The diagnostic names
+  the file and line and leaves the operator's stanza unchanged.
+- Check every cluster alias against the deployment marker, not a marker made
+  from each individual alias.
+- Refuse leading global options before the first `Host` or `Match` stanza
+  when inserting the managed block would change their scope.
 
-**The wildcard trap.** `ssh_config` takes the first value it obtains for most
-keywords, and `blockinfile` appends by default. A `Host *` or `Match` stanza
-earlier in the file that sets `User`, `IdentityFile`, or `IdentitiesOnly`
-therefore beats the managed block. The connection then authenticates as the
-wrong user with the wrong key, while the block reads as if it should have
-worked.
+The managed block MUST be inserted at the beginning of the file with
+`insertbefore: BOF`. This gives its connection settings precedence over later
+wildcard settings. A regex targeting an arbitrary Host line is not sufficient.
 
-Packages MUST insert the block at the top of the file:
+For a leading-global-option refusal, the recovery is to place those settings
+in an explicit `Host *` stanza in the intended position, usually at the end.
+The package MUST NOT silently move them or insert a block that makes global
+settings apply only to its final host stanza.
 
-```yaml
-insertbefore: BOF
-```
-
-`BOF` rather than a regex, and not as a matter of taste. `blockinfile` anchors
-`insertbefore` on the last match, which is the wrong end of the file, and it
-has no `firstmatch` parameter. That belongs to `lineinfile`. A regex meant to
-find the first `Host` line therefore finds the last one, and places the block
-below every wildcard it was meant to outrank.
-
-A `BOF` insert has one failure of its own. Options standing above the first
-`Host` or `Match` line are global, and a block inserted above them would
-capture them into its own stanza, narrowing a global setting to one host
-without saying so. Packages MUST detect that layout on a real `create` and
-refuse. The message MUST name the line and offer the recovery: move those
-options below the managed block, or into an explicit `Host *` stanza at the end
-of the file.
-
-Refusing beats falling back to appending. In such a file, correct placement and
-correct meaning conflict, and only the operator can resolve it.
+Preflight and the play MUST resolve the same file, using `$HOME` first and
+runtime home only as fallback. They MUST validate aliases and connection
+values against newline or directive injection before editing.
 
 ## 6. Build determinism
 
-`build` and `--dry-run` MUST NOT read, create, or modify `~/.ssh/config`, on
-the same reasoning as `ssh-keypair.md` §6.
+Build and dry-run MUST NOT read, create, modify, or require `~/.ssh/config`.
+Runtime address, user, alias list, identity reference, and block state MUST
+arrive as Ansible extra-vars. They MUST NOT be embedded into generated local
+plays from real state. Keygen mode may determine whether identity directives
+appear because it is known from desired state.
 
-One rule makes this hold. Run-time facts reach the play as Ansible extra-vars,
-never through Selmer. The address, the user, the alias, and `block_state`
-arrive at execution time, so the rendered playbook is byte-identical whether or
-not the machine exists, and a package that commits goldens commits no IP
-address. Only desired state a `build` already knows may be templated, which
-means keygen mode, and therefore whether the `IdentityFile` pair appears at
-all.
+Goldens MUST contain neither workstation-specific SSH paths nor observed
+node addresses in the local play. Different provider login users MUST not
+require different copies of the play.
 
-`walter`'s playbook already documents this distinction. This makes it binding.
+## 7. Package-owned play
 
-## 7. Copy, do not share
+Each package MUST own its local SSH config play. The play consumes the common
+node/alias data contract and contains no provider-specific behavior. The
+library supplies connection data and reusable validation, not an automatic
+node-level write to the operator's shared file.
 
-Each package MUST own its copy of the local play. This reverses
-`ssh-keypair.md`, where `clickstack` reuses `once`'s implementation so that one
-standard has one implementation.
+Provider additions MUST NOT require edits to this play. New connection data
+that changes its contract requires an explicit versioned integration change.
+Packages remain responsible for reviewing changes to SSH directives and
+host-key policy.
 
-The difference is what a pin bump can reach. `ssh.clj` acts on profile-named
-files that only its own deployment uses, so sharing it carries an upstream fix
-to every consumer. The local play writes into a file the operator shares with
-every other host they reach. Sharing that play would let an unrelated upstream
-change, an added `ProxyJump` or a different host-key policy, rewrite that file
-at pin-bump time in a repository nobody was working in. `walter` reached this
-conclusion independently, and its source comment records it.
+`workspace/scripts/package-copies.py` checks existing copy families. Any
+implementation migration changing those families MUST update its declared
+variants and checks in the same change. Revising this standard alone does not
+claim the existing copies or that script already implement the new contract.
 
-Three duplicated files cost less than that.
+## 8. Migration
 
-## 8. Adoption
+A marker change requires explicit migration. The local play MUST remove the
+old owned block before writing the replacement. Ownership checks MUST recognize
+both old and new markers during the migration window. The old-marker removal
+and recognition MUST retire together, only after affected deployment upgrades
+have been accounted for; an upstream pin cycle alone is not proof of upgrade.
 
-- New packages are born conforming. `create-package-skill` references this
-  document.
-- The seven packages that already write a block adopt behind their normal pin
-  flow. `once`'s marker conforms; `walter`, `alice`, `k3s`, `k8s`,
-  `postgres-agy`, and `postgres-ha` prepend their package name and must drop
-  it. `walter` and `once` gain the host-key policy, `k8s` stops hardcoding
-  `User root`, and all seven gain the `insertbefore: BOF` placement and the
-  leading-option refusal beside it.
-- **A marker change is a migration, not a rename.** The new marker cannot see a
-  block written under the old one, so a converge leaves the old stanza in place
-  and adds a second `Host` block above it. First-match means the new block
-  wins, and the stale one sits there misleading whoever reads the file next.
-  The adopting change MUST remove the old block before writing the new one,
-  through a second `blockinfile` task carrying the old marker with
-  `state: absent`. It MUST NOT ship as a bare marker edit. The removal task
-  stays for one pin cycle, then goes.
-- **The never-adopt check MUST recognise the superseded marker for that same
-  window.** A block under the old marker still belongs to the package. A check
-  that knows only the new marker reads a `Host <profile>` stanza it did not
-  write, and refuses, blocking the migration meant to clean it up. The
-  reference implementation hit this on the converge after its own marker
-  changed. Retire the old marker from the check and from the removal task
-  together, or not at all.
-- The ten packages that write no block adopt when they next need one. Nothing
-  breaks meanwhile; the operator keeps typing the address.
-- Where this stands on 2026-09-05: `postgres-agy` and `postgres-ha` have
-  completed their marker migration (the one-cycle task has run and is gone);
-  `mysql-agy` and `mysql-ha`, which wrote no block before, were born with the
-  profile marker; `k8s`'s migration is in flight — the removal task for
-  `# BEGIN k8s <alias>` and the superseded marker in its `owned-markers`
-  retire together at its next pin cycle — as is `alice`'s; `walter` and
-  `k3s` still owe theirs.
+Alias changes, including old singleton aliases gaining a stable index, require
+an explicit compatibility or replacement plan. They MUST NOT leave stale
+stanzas or silently repoint an operator's alias to another node. Existing
+provider-independent aliases may remain through a migration mapping.
+
+Before migrating a copy, inventory its markers, aliases, key mode, home
+resolution, and host-key policy. Preserve unrelated operator configuration.
+Historical package-specific exceptions are migration work, not permanent
+permission to hardcode root or write one block per node.
 
 ## 9. Conformance checklist
 
-A package conforms when:
-
-1. It writes a block if and only if it provisions an SSH-reachable host.
-2. The alias is the profile, with no separate configuration key.
-3. The marker carries the alias alone, because the profile already names the
-   package.
-4. `IdentityFile` and `IdentitiesOnly` appear in keygen mode and are absent in
-   opt-out mode.
-5. `StrictHostKeyChecking accept-new` and `ForwardAgent no` are present, or a
-   pinned `known_hosts` replaces the former without weakening it.
-6. Create writes the block after compute and before convergence. Delete removes
-   it before the compute destroy.
-7. Address, user, alias, and `block_state` arrive as Ansible extra-vars, not
-   through Selmer.
-8. `build` and `--dry-run` never touch `~/.ssh/config`, and goldens carry no
-   address.
-9. An unmarked `Host <profile>` stanza is an error, never overwritten.
-10. The block is inserted with `insertbefore: BOF`, and a file whose first
-    option stands above the first `Host` line is an error rather than a
-    silently narrowed global.
-11. The play is the package's own copy, not a shared upstream one.
-12. Goldens updated in the same change.
-
-## Multi-node blocks
-
-A multi-node deployment writes **one** block, not one per node. The marker
-carries the profile, as §2 requires, and the block holds one stanza per
-alias: `Host <profile>` first, pointing at the entry node, then one stanza
-per machine. `compute-cluster.md` §6 owns the alias derivation
-(`<profile>-<index>`, `<profile>-<role>`, `<profile>-<role>-<index>`) and the
-choice of entry node; nothing here adds a second rule.
-
-The never-adopt check of §5 runs once per alias, with a two-arity
-`foreign-stanza-line`: the marker comes from the profile and the stanza
-search takes the alias, skipping the lines between the package's own
-markers. A check that used each alias as its own marker would read the
-package's own stanzas as foreign and refuse its own block.
-
-## The copies are checked as one
-
-`workspace/scripts/package-copies.py` clusters every package's copy of the
-module and the play by content, with the package name normalised out, and
-fails on any cluster it cannot name. The single-node copies are one gated
-cluster. The multi-node plays of `automq`, `langfuse`, `mysql-agy`,
-`mysql-ha`, `postgres-agy` and `postgres-ha` are a second gated cluster,
-unified on 2026-09-05: one block marked with the profile, one stanza per
-alias from ONCE's `ssh-config-hosts`, `User root`, `Port 22`,
-`StrictHostKeyChecking accept-new`, `ForwardAgent no`, and the
-`IdentityFile` pair under the one Selmer conditional (`ssh-keygen`), so a
-stanza-line change lands in all six or in none. The multi-node `ssh_config`
-modules of the four DB packages are a third gated cluster, one copy
-derived from `automq`'s that differs from it only in where the spec lives.
-`n8n` stays a
-named variant, with its reason: a single alias and its own play. The §8
-migrations in flight (`alice`, `k8s`) and still owed (`walter`, `k3s`,
-`airflow`) are named variants; anything else is drift. A change to the
-reference implementation is finished when that script is green again, not
-when clickstack's tests pass.
-
-## Note added 2026-09-04
-
-The preflight MUST resolve `~/.ssh/config` the way the local play's `~` does:
-from `$HOME` first, falling back to the runtime's notion of the home
-directory. A green copy that reads only the JVM's `user.home` can approve
-one file while Ansible edits another when the two differ. `rybbit` resolves
-it from `$HOME`; the other green copies (`clickstack`, `signoz`,
-`agent-network`, `posthog`, `redis`) still read `user.home` alone and owe
-the same one-line change.
-
+1. One package stage writes one block per SSH-reachable deployment.
+2. The profile identifies the entry alias and ownership marker.
+3. Node aliases use stable identities and each node's returned connection data.
+4. Identity directives appear only in keygen mode.
+5. Host-key checks remain strict about changed keys and agent forwarding is off.
+6. Create follows the complete join; delete removes the block before compute.
+7. Unowned aliases and unsafe leading options fail without file mutation.
+8. Preflight and Ansible resolve the same file and serialize shared-file edits.
+9. Build and dry-run never access the local SSH config.
+10. The package-owned play contains no compute-provider branches.
+11. Marker and alias migrations preserve ownership and unrelated stanzas.
+12. Copy-family checks and package integration fixtures cover implementation changes.

@@ -1,84 +1,93 @@
-# Compute Name Standard for Package Skills
+# Compute name standard for package skills
 
-Status: normative. Reference implementation: `alice` (green); `netbird` is born
-conforming.
-Consumers: every Package Skill that provisions a named compute resource.
+Status: normative target, revised 2026-09-09. Naming rules belong to
+`colors-compute` in Green, Red, and Blue. Existing names require migration
+mapping where they differ; this document does not authorize resource renames.
 
-This document defines what a Package Skill calls the machines it creates.
+Consumers: every package skill that creates a named compute machine.
 
-It exists because the workspace already agreed on the answer and then wrote it
-down twenty times by hand. Every package requires a provider-scoped name key —
-`digitalocean-name`, `vultr-name` — and every deployment sets that key to its
-own profile. A required key whose only correct value is another key's value is
-not configuration; it is a transcription step, and transcription drifts. It
-drifted in `alice-digitalocean`, which named its Droplet `alice` while its
-profile, its machine keypair, its `~/.ssh/config` alias, and its OpenTofu state
-key all said `alice-digitalocean`.
+## 1. Deployment identity and defaults
 
-## 1. The rule
+A single-host deployment MUST use its profile as the default compute name.
+A package MUST NOT require a separate name setting when the profile provides
+that name. The profile also identifies the deployment SSH alias and keypair.
 
-A package MUST name compute resources after the profile by default. The profile
-is the deployment's identity: it keys remote state as `<profile>/<stage>.tfstate`,
-it names the machine keypair and its provider-side registration, it is the
-`~/.ssh/config` alias an operator types, and it is what a reader recognizes in a
-provider console. The machine's own label MUST NOT be the one place that
-disagrees.
+Profile identity MUST remain stable across lifecycle runs. Different backend
+buckets do not make the same profile safe to reuse on one workstation because
+SSH keys and aliases still share a namespace. Profiles MUST be validated for
+safe use in local paths and aliases; they MUST NOT contain path traversal,
+whitespace, or SSH configuration control characters.
 
-A package MUST NOT require a name key in desired state. A fresh `colors.yml`
-that omits it is complete, and the rendered template names the resource
-`<profile>`.
+Display names are not ownership identifiers. State keys and node identities
+MUST NOT change when a display-name override changes. Backend or deployment
+identity changes require explicit migration under compute-provider.md.
 
-## 2. The override
+## 2. Optional name override
 
-A package MAY accept an optional provider-scoped name key — `digitalocean-name`,
-`vultr-name`, and so on — for an account that needs a different label: a naming
-policy a profile cannot satisfy, or an existing resource being adopted.
+The library MAY accept provider-scoped display-name overrides such as
+`digitalocean-name` or `vultr-name`. Absent, blank, or `REPLACE_ME` uses the
+profile. A supplied value MUST pass the selected provider's naming rules.
+This blank-value behavior applies to names, not to SSH key setting presence.
 
-Presence is the only switch, matching how `digitalocean-vpc-uuid` selects
-between a pinned VPC and regional discovery, and how `digitalocean-ssh-keys`
-selects between opt-out and keygen. Absent, blank, or `REPLACE_ME` means the
-profile. Anything else is the name, and a package MUST validate it against the
-provider's naming rules rather than passing it through unread.
+The library MUST resolve the effective deployment name once. Templates and
+packages MUST NOT independently choose between profile and override.
+Provider rules and configuration documentation belong to the library registry.
 
-A package MUST resolve the effective name once, in one function, and render
-that. Templates MUST NOT branch on whether the override is present.
+## 3. Derived names and node identity
 
-## 3. Derived names
+Shared-resource labels derive from the resolved deployment name. New cluster
+node display names derive from that name plus the stable `node_id` defined in
+[compute-cluster.md](compute-cluster.md):
 
-Resources named around the machine — a firewall, a VPC, a per-node suffix —
-MUST derive from the same resolved name, not from the raw override key and not
-from a second copy of the profile. One function answers "what is this
-deployment's machine called", and everything that needs a label asks it.
+```text
+single host:       <resolved-name>
+homogeneous node:  <resolved-name>-<index>
+named-role node:   <resolved-name>-<role>-<index>
+```
 
-## 4. What a rename does not do
+Named-role nodes always retain their index, even when the role has one node.
+Scaling from one node to several MUST NOT rename the existing node or its
+state key. A node's identity MUST NOT depend on its position in a result list.
 
-Changing the name renames the resource at the provider. It does not rename the
-running machine: cloud-init sets the guest hostname from the name at creation,
-and a later rename never revisits it. `alice-digitalocean` demonstrated this —
-its Droplet answered `hostname` with `alice` after the profile had long since
-become its identity everywhere else.
+The library MUST validate final derived names against provider limits before
+mutation. It MUST reject collisions and invalid names rather than silently
+truncate them. Provider adapters may define deterministic resource-specific
+label rules where resource types have different constraints; these rules MUST
+be documented and tested in all colors.
 
-A package MUST therefore treat a name change as taking effect on the next
-create, not as a repair to a running host. Packages whose machines are
-ephemeral get the correct hostname for free on the next cycle; packages with
-long-lived hosts SHOULD say plainly that the guest hostname lags until a
-rebuild.
+The deployment keypair and provider-side key registration retain their
+profile-based names under ssh-keypair.md. Display-name overrides MUST NOT
+rename access credentials or SSH aliases.
 
-## 5. Removing `package`
+## 4. Rename behavior
 
-A package MUST NOT require a `package` key in desired state. Every package
-supplied it as a default and then validated that it equalled the package's own
-constant name, which is a key that can hold exactly one value and therefore
-carries no information. Remove it from desired state, from required keys, and
-from validation together.
+Changing a display name MUST NOT imply a guest-hostname repair or state move.
+Provider adapters MUST document whether each name attribute updates in place,
+requires replacement, or only influences creation-time guest configuration.
+The library MUST NOT promise uniform rename behavior across providers.
 
-## 6. Adoption
+A rename that requires replacement MUST follow an explicit rebuild or migration
+procedure. Existing protection against unintended destruction remains in force.
+A dependency update MUST NOT silently turn a label update into replacement by
+selecting a different provider attribute.
 
-`alice` implements this standard, and `netbird` was born conforming: it never
-had a name key to remove, which is what §1 describes as the end state. Every
-other package still requires one and MUST migrate. Migration is a no-op on the wire for a deployment whose name
-key already equals its profile, which is all of them but a handful — those
-render an identical template before and after, and the change is visible only
-as a shorter `colors.yml`. The exceptions named a machine after the package
-rather than the deployment and will show a rename in their next plan; §4
-governs what that rename does and does not achieve.
+Results MUST report the provider's observed name. Downstream steps MUST NOT
+recompute an existing machine's name from newly edited desired state.
+
+## 5. No required package constant
+
+A package MUST NOT require a desired-state `package` key whose only allowed
+value is the package's own name. Package identity belongs to the implementation;
+deployment identity belongs to the profile.
+
+## 6. Migration and evidence
+
+Existing singleton role names, one-based indices, and package-specific suffixes
+MUST be inventoried before adopting the new convention. Preserve their names,
+node identities, state addresses, and aliases through explicit migration
+mappings, or perform a separately authorized rename or rebuild.
+
+Library parity checks MUST cover defaults, overrides, provider validation,
+derived-name collisions, and stable names when counts change. Package checks
+cover their topology-to-node mapping. Adoption is not permission to rename
+existing resources merely to make a new golden match.

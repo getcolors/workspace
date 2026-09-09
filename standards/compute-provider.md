@@ -1,410 +1,265 @@
-# Compute Provider Standard for Package Skills
+# Compute provider standard for package skills
 
-Status: normative. The operations of §2, §4 and §5 have one implementation:
-ONCE's `compute` namespace (`io.github.getcolors.once.compute`,
-`package-once-red`'s `compute` export, `package_once_blue.compute`), which a
-package calls with a spec value carrying its own registry. Reference
-consumer: `clickstack` (green, red, blue); `posthog` is born conforming on
-its second provider.
-Consumers: every Package Skill that fills the `provider-compute` slot.
-Sibling of `ssh-keypair.md`, `ssh-config.md`, and `compute-name.md`, which
-govern the keys a provider template interpolates; this document governs how a
-package advertises, selects, and proves a provider.
+Status: normative target, revised 2026-09-09. This revision defines the
+`colors-compute` library contract. It does not claim that the library or its
+package migrations have shipped. It supersedes the package-owned registries
+and ONCE compute delegation required by the previous revision.
 
-This document defines the single-node contract a Package Skill follows to
-support more than one compute provider: what a provider entry declares, how a
-template is chosen, what the compute stage hands to every later stage, what
-the network looks like on every provider, and what evidence advertises a
-provider at all.
+Consumers: every package skill that creates compute machines, including
+single-host packages and packages that create machines for clusters.
+Managed control-plane services are outside this machine API; any machine
+provisioning they perform is subject to it. Packages that create no machines
+have no compute dependency requirement.
 
-It exists because the workspace already had three answers and one of them was
-wrong in public. `once` renders nine providers from one registry and one
-template directory per provider. `rybbit` copied the shape for two providers
-and then shipped Package Skill payloads that document only one of them, so an
-agent installing `package-rybbit-green` learns of DigitalOcean and never of
-Vultr, while `repositories.json` says "on DigitalOcean" about a package whose
-second deployment runs on Vultr. `walter`, `airflow`, and `vaultwarden` reach
-ONCE's registry through a pin and advertise providers none of their fixtures
-render. Two dozen other packages hardcode `:provider-compute must be
-<one name>`, which is honest but leaves every port to be designed from scratch.
-The port is the same design every time. This writes it down.
+## 1. Scope and ownership
 
-## 1. Scope
+`colors-compute/` MUST provide Green, Red, and Blue implementations of one
+contract. Each package implementation MUST depend on and pin the matching
+library implementation in its dependency manifest and bundled launcher.
+ONCE is a consumer, not the owner of shared compute behavior.
 
-This revision defines the **single-node** contract: one machine with a public
-IPv4 address, a provider firewall in front of it, and no private network. A
-package whose machines bind a service to a VPC address, build per-peer
-east-west rules, or number more than one node is out of scope here and
-governed by `compute-cluster.md`, the multi-node contract that extends this
-one. Today that is `langfuse`, `automq`,
-`mysql-agy`, `mysql-ha`, `postgres-agy`, `postgres-ha`, `k8s`, `clickhouse`,
-and `k3s`. The managed-Kubernetes packages provision a control plane rather
-than a machine and are never in scope. `dotfiles` provisions nothing.
+The library MUST own provider registration, validation, credential mappings,
+provider templates, rendering, output normalization, state access, lifecycle
+operations, and provider-specific SSH and network behavior. It MUST use the
+matching Colors SDK for workflow and tool execution.
 
-A package with one provider conforms with a one-entry registry. Nothing here
-obliges a second provider; everything here makes a second provider a copy of a
-known shape rather than a design.
+Packages own application configuration, application secrets, topology,
+application checks, and downstream steps such as Ansible. They MUST express
+compute requirements, including ports, protocols, source restrictions, and
+network needs, as data accepted by the library. They MUST NOT maintain compute
+provider allowlists, provider templates, or provider-specific compute branches.
 
-## 2. The registry
+A single-host package calls the node operation once. A cluster is a Colors
+fan-out that calls the same operation once per node and joins the results,
+as specified in [compute-cluster.md](compute-cluster.md). Shared deployment
+resources have separate library operations with one owner, not one creator
+per node.
 
-A package MUST own a registry that maps each provider it supports to what
-selecting it implies:
+## 2. Provider registry and configuration
 
-```clojure
-(def compute-providers
-  {"vultr" {:required [:vultr-region :vultr-plan :vultr-os-id
-                       :vultr-ssh-sources :vultr-http-sources]
-            :secrets [:vultr-api-key]
-            :tofu-env {:vultr-api-key "VULTR_API_KEY"}}
-   "digitalocean" {:required [:digitalocean-region :digitalocean-size
-                              :digitalocean-image :digitalocean-ssh-sources
-                              :digitalocean-http-sources]
-                   :secrets [:do-token]
-                   :tofu-env {:do-token "DIGITALOCEAN_TOKEN"}}})
-```
+The library MUST expose one authoritative registry in each color. The three
+registries MUST agree on provider identifiers, configuration, credentials,
+capabilities, and output behavior. Required settings and credential mappings
+MUST derive from the selected registry entry, not parallel lists in consumers.
 
-`:required` are the non-secret keys that provider's template interpolates.
-`:secrets` are the credentials it needs through `COLORS_PAR_*`. `:tofu-env` is
-the subset OpenTofu reads from the process environment itself. The same map,
-in each colour's idiom, lives in `validate.ts` and `validate.py`; the three
-MUST agree, and `scripts/parity.sh` is where they are proven to.
+The compute providers in this revision are exactly:
 
-An entry MAY carry a fourth key, `:network`, naming the private network
-selecting that provider implies. Absent means none. `compute-cluster.md` §2
-defines its values; the single-node `compute` namespace ignores it.
+| Provider | Required credentials |
+|---|---|
+| `azure` | No `COLORS_PAR_*` credential; OpenTofu uses the ambient Azure CLI session |
+| `aws` | No `COLORS_PAR_*` credential; OpenTofu uses the ambient AWS credential chain |
+| `google` | No `COLORS_PAR_*` credential; OpenTofu uses Application Default Credentials |
+| `digitalocean` | `COLORS_PAR_DO_TOKEN` |
+| `hcloud` | `COLORS_PAR_HCLOUD_TOKEN` |
+| `vultr` | `COLORS_PAR_VULTR_API_KEY` |
+| `yandex` | `COLORS_PAR_YANDEX_TOKEN` |
+| `oci` | No `COLORS_PAR_*` credential; `oci-config-file-profile` selects a profile in `~/.oci/config` |
 
-The keys of the registry are the **advertised** providers. A selection outside
-it is refused with
+`no-infra` compute is unsupported in this revision. Selecting it MUST fail
+validation, not select a fallback or create an implicit existing-host mode.
+SMTP, DNS, and GitHub integrations are not compute providers in this library.
 
-```text
-:provider-compute must be one of digitalocean, vultr
-```
+The registry MUST document each provider's non-secret settings, including
+region or location, image, machine size, and network requirements. Existing
+provider-scoped settings such as `vultr-plan` remain valid where the library
+supports them. Settings belonging to unselected providers MUST be accepted
+and ignored. Provider-specific validation runs only for the selected provider.
 
-listing the advertised names sorted. Required keys, secrets, and the OpenTofu
-environment MUST be derived from the selected entry, never from a second list
-kept beside it: a provider added to one and not the other is how a package
-comes to demand a token it never uses.
+An unsupported selection MUST fail with `:provider-compute must be one of `
+followed by the sorted registry identifiers. Missing credentials MUST name
+only the required variable, never its value. Secrets MUST NOT enter desired
+state, rendered templates, command-line arguments, or diagnostic output.
 
-Provider keys are provider-scoped: `vultr-plan`, `digitalocean-size`,
-`<provider>-ssh-sources`, `<provider>-http-sources`. Keys belonging to a
-provider that is not selected MUST be accepted and ignored, never refused, so
-one `colors.yml` can carry both blocks and switch providers by editing one
-line. Validation that is specific to one provider — Vultr's numeric `os-id`,
-DigitalOcean's refusal of a configured VPC — runs only when that provider is
-selected.
+Packages MAY declare required capabilities through the common contract.
+The library MUST reject unsupported requirements before mutation and explain
+which capability is missing. It MUST NOT silently weaken network restrictions
+or substitute a different machine configuration.
 
-The registry is the package's; the operations over it are not. A package
-MUST hand its registry, its default provider and its source keys to ONCE's
-`compute` namespace as one spec value —
-`{:registry … :default … :sources {:non-empty [...] :may-be-empty [...]}}` —
-and call ONCE for the refusal above, for the required keys, secrets and
-OpenTofu environment of the selected entry, for the per-provider checks,
-and for everything §4 and §5 name. A package that copies those functions
-instead of calling them is how six packages came to hold four IPv6 parsers.
-ONCE proves the three colours agree through its `compute` parity drivers;
-the package's own tests cover its wiring, not the matrix.
+## 3. Templates and version-only provider adoption
 
-The backend slot is not this document's. Packages keep reading ONCE's
-`:provider-backend` registry for it.
+Provider templates belong inside the library, separated by provider. A
+provider is selected through the registry, not a conditional containing all
+providers in one template. Provider-local optionals and SSH keygen branches
+are allowed. Packages MUST NOT copy or override these templates.
 
-## 3. Template selection
+The library MUST supply provider-independent inputs for application network
+requirements and normalize provider outputs. A package MUST NOT need to
+inspect provider names to render its application inventory.
 
-A provider is selected by directory, never by conditionals inside one file:
+After initial migration, adding a provider MUST require only a library
+version or immutable dependency-pin bump in consumers, including their
+lockfiles and launchers. It MUST NOT require package source, provider fixture,
+or provider documentation edits. Users still supply the selected provider's
+settings. This guarantee applies to a provider implementing the existing
+contract and required capabilities; a contract change needs its own versioned
+migration.
+
+The library owns provider configuration documentation and provider coverage.
+Package skill payloads MUST point to documentation for their pinned library
+version and explain their own requirements. They MUST NOT duplicate an
+exhaustive provider list that requires editing for every new provider.
+
+## 4. Node result and lifecycle
+
+Every successful node operation MUST expose one normalized `params` map:
 
 ```text
-tools/infrastructure/<provider>/main.tf
+{node_id, provider, name, ip, user, sudoer,
+ vpc_ip?, uid?, ssh_key_id?, ssh_identity_file?, metadata?}
 ```
 
-The rendered target stays `<stage>/main.tf`, so the stage directory, the state
-key, and every consumer of the rendered tree are unaware which provider
-produced it. A template MUST NOT branch on the provider name. The only
-conditionals it MAY carry are the `<% if ssh-keygen %>` branch that
-`ssh-keypair.md` §4 defines and optionals local to that provider, such as a
-pinned image id. `rybbit` records why: a build is the only thing that proves a
-provider's tree renders at all, and a conditional tree renders one branch per
-build while claiming both.
+`node_id` is a stable identifier supplied by the topology. It MUST NOT depend
+on completion order, address, display name, or the current node count.
+`provider` is the registry identifier. `name` is the provider's reported
+resource name. `ip` is the public IPv4 address for the current machine
+contract. `user` is the SSH login and `sudoer` is the account that can become
+root. `vpc_ip` is required when the requested network provides private
+connectivity. Additional addressing modes require an explicit contract
+extension, not missing connection fields.
 
-Provenance is free. A package MAY render ONCE's template for a provider by
-pin when it needs no resource ONCE's template lacks; `walter` and `airflow`
-do. A firewall is such a resource, so a package that puts one in front of its
-host owns that provider's template. A package MAY generate `.tf.json` beside
-the template, as `rybbit` does for Vultr's per-CIDR rules; `clickstack`
-achieves the same with `for_each` in the template and the standard prefers
-neither.
+`ssh_key_id`, when present, identifies a provider registration owned by the
+deployment's shared state; returning it does not transfer ownership to the
+node state. `ssh_identity_file` is a local path reference, never key material.
+`metadata` preserves useful non-secret provider outputs such as instance and
+network identifiers. The library validates required provider metadata;
+packages validate additional application requirements. Role and index are
+topology data carried alongside these results by the join.
 
-**Adoption MUST NOT move an existing provider's state.** The resource
-addresses and resource attributes of a provider the package already supported
-MUST render byte-identically before and after the change; the committed
-golden is the proof, and its diff MUST consist of the `params.provider` line
-that §4 adds and nothing else. A package that renames `vultr_instance.node1`
-while adopting this standard has planned a replacement of every live machine.
+Every downstream stage MUST consume the normalized result or the cluster join
+result, not raw provider outputs. A real converge MUST refuse missing or
+incomplete results. It MUST NOT merge placeholder addresses under real outputs.
 
-## 4. The `params` contract
+`build` and `--dry-run` MUST be credential-free and deterministic. They MUST
+use documentation addresses in `192.0.2.0/24`, provider-appropriate login
+values, and deterministic private-address fixtures where required. They MUST
+NOT read remote state, ambient credentials, or local SSH files. A real run
+MUST never substitute these fixtures for failed state reads or node outputs.
 
-Every provider's compute stage outputs one map, and every later stage reads
-only that map:
+On real create and delete, the library MUST read existing state before
+validating compute credentials. Backend credentials are validated first.
+A recorded provider different from the requested provider MUST be refused
+with `state holds a <recorded> machine; set provider-compute back to
+<recorded> and delete first`. Provider switching remains a rebuild.
+Legacy states without provider identity require an explicit migration mapping,
+not a default guessed from the current registry order.
 
-```hcl
-output "params" {
-  value = {
-    provider = "vultr"
-    ip       = vultr_instance.clickstack.main_ip
-    user     = "root"
-    sudoer   = "root"
-    name     = "<{ compute-name }>"
-    ssh_key_id = vultr_ssh_key.machine.id   # keygen mode only
-  }
-}
-```
+Compute destruction MUST remain protected by default through
+`compute-prevent-destroy`. An explicit lifecycle override may authorize the
+requested destruction, but MUST NOT bypass state ownership or provider-switch
+checks. Migration MUST account for existing package-specific deletion guards
+rather than silently removing them on dependency adoption.
 
-- `provider` is the literal registry name the template belongs to, and it is
-  new. It is what makes provider switching decidable (below).
-- `ip` is the public IPv4 address: `ipv4_address` on DigitalOcean, `main_ip`
-  on Vultr. Naming the wrong attribute fails as a missing output rather than
-  as an unreachable host, which is the failure to prefer.
-- `user` and `sudoer` are the login and the account that can become root.
-  `uid` MAY be added by a provider whose image logs in as a non-root user, as
-  ONCE's OCI template does.
-- `name` is the resolved compute name of `compute-name.md` §2.
-- `ssh_key_id` is the provider-side key resource of `ssh-keypair.md` §5,
-  present in keygen mode and absent otherwise. The key MUST keep its
-  underscore: ONCE's create matrix reads it as written, and a renamed key
-  reads as a key the deployment does not own.
+State reads MUST distinguish confirmed absence, readable state, and failure.
+Authentication failures, connectivity failures, malformed state, and an
+uninitialized local backend MUST NOT count as absent remote state. The library
+MUST initialize state access and establish absence or refuse the operation.
+Unreadable state blocks both create and delete before resource mutation or
+key generation. A fresh checkout is not evidence that remote state is absent.
 
-`build` and `--dry-run` render against per-provider fallback params on the
-documentation address `192.0.2.10`, with the provider's real `user` and
-`sudoer`, so a rendered tree can never point at a real machine. A real
-converge MUST refuse when the compute output carries no `ip`, with the
-message `compute produced no ip output; refusing to converge against the
-documentation address`. `posthog` learned this from a live teardown that
-converged against `192.0.2.10`; `clickstack` merged the fallback under the
-output until this document.
+## 5. Network contract
 
-**Provider switching is a rebuild, never an apply.** Every provider of a
-package shares one state key, `<profile>/<package>-infrastructure.tfstate`.
-A `provider-compute` edit on a profile that already holds a machine would
-plan the old provider's destruction and the new provider's creation as one
-apply, and `prevent_destroy` is the last line against that, not the first.
-On every real `create` and every real `delete` the package MUST read the
-existing `params` before it validates provider credentials — the read needs
-backend credentials only — and:
+The library owns provider networks, attachments, and provider firewall rules.
+Packages declare ingress requirements as protocols, ports, CIDR sources, and
+stable peer or network references. Provider adapters translate those inputs.
+The library MUST validate CIDRs and network requirements before mutation.
 
-- when `params.provider` is present and differs from the selected provider,
-  MUST refuse with `state holds a <recorded> machine; set provider-compute
-  back to <recorded> and delete first`. A delete is refused too, because a
-  delete renders and destroys the *selected* provider's template and would
-  otherwise validate the wrong credentials and touch the wrong lifecycle;
-- when `params` is present without `provider` — a deployment created before
-  the package adopted this standard — MUST refuse unless the selected
-  provider is the package's default, which is the provider every such
-  deployment runs.
+SSH sources MUST be non-empty for this public-SSH machine contract. Empty
+optional service sources mean no ingress for that service, never open access.
+Only declared inbound traffic is permitted; outbound traffic is open unless
+the application requests a supported restriction. A guest firewall MUST NOT
+substitute for the requested provider firewall.
 
-The check runs before provider-secret validation so that a mistaken edit
-reports the actionable error and not a missing token for the provider that
-was never meant. In ONCE these are `read-state` (one read, `opts` first, the
-reader passed in, a step error from the reader reported as `{:error …}` and
-anything else propagated), `provider-state-errors`, `provider-validator`
-(which takes the package's secret-errors thunk so ONCE never learns about
-application secrets), `adopt-state` (fail-closed, no address override; a
-package that wants one wraps it) and `resolved-compute`. The message
-strings are ONCE's contract and MUST NOT be reworded by a consumer.
+A single machine may require a private network. Node count MUST NOT decide
+whether a VPC is allowed. Created, discovered, and absent network modes are
+specified in [compute-cluster.md](compute-cluster.md). Shared networks MUST
+be prepared once and referenced by node operations. Provider requirements
+and unavailable capabilities MUST be explicit in the registry.
 
-**An unreadable backend is not an empty state.** On a real `create` an
-unreadable backend counts as no state, because a fresh clone has none. On a
-real `delete` it MUST fail, with `could not read the infrastructure state for
-the delete cleanup: <reason>`, rather than proceed with nothing to address; a
-readable state without `params` leaves the address unset and the cleanup
-skips itself.
+## 6. Remote state backends
 
-## 5. The network contract
+The library MUST own backend selection, configuration, initialization, state
+reads, locking integration, and lifecycle access. `provider-backend` is
+independent of `provider-compute`. Required remote backends are:
 
-The provider firewall is the load-bearing layer. It admits inbound TCP 22
-from `<provider>-ssh-sources`, inbound TCP 80 and 443 from
-`<provider>-http-sources`, and nothing else; outbound is open. A package MUST
-NOT manage ufw for those ports in its plays, and MUST NOT rely on the guest
-firewall for its isolation claim: Docker's published ports bypass ufw through
-the `DOCKER` chain, which is why the provider firewall is the one that counts.
-
-The validator MUST refuse, before any provider call:
-
-- an empty `<provider>-ssh-sources`, which renders a machine no one can reach
-  and fails only at the first converge;
-- any entry of either source key that is not a syntactically valid IPv4 or
-  IPv6 CIDR, which OpenTofu would reject only once the apply reached the
-  provider.
-
-An empty `<provider>-http-sources` is allowed and means no public HTTP.
-Which keys must be non-empty and which may be empty is the spec's `:sources`
-map, by name, never by position; ONCE's `source-errors` and `cidr?` do the
-checking.
-`airflow` defaults an empty list to the whole internet; this standard refuses
-instead, because a silent default-open in front of a database is worse than
-a validation error. Both DigitalOcean and Vultr accept both address families;
-a Vultr rule carries the family explicitly (`ip_type`), a DigitalOcean rule
-infers it.
-
-No VPC is created. DigitalOcean discovers the region's default VPC
-(`data "digitalocean_vpc" "default"`, named `default-<region>`) and the
-validator refuses `digitalocean-vpc-uuid` and `digitalocean-vpc-cidr`, as
-`umami`, `posthog`, `rybbit`, and `alice` already do; a Vultr single-node
-instance attaches no VPC. A package that needs a private network is a
-multi-node package, governed by `compute-cluster.md` §4.
-
-### 5.1 Provider facts
-
-What a live create verified, per provider. A package MAY extend this table in
-its own documentation and MUST NOT state a fact here that no gate proved; in
-particular, nothing below claims how either provider's firewall treats
-private-interface traffic, because no single-node gate exercises it.
-
-| | DigitalOcean | Vultr |
+| Backend | Required credentials | Non-secret settings |
 |---|---|---|
-| Image key | `digitalocean-image: ubuntu-24-04-x64` | `vultr-os-id: 2284` (Ubuntu 24.04 LTS x64) |
-| Login | `root` | `root` |
-| Public address attribute | `ipv4_address` | `main_ip` |
-| Machine key | `ssh_keys`, key ids; keygen via `digitalocean_ssh_key` | `ssh_key_ids`, ForceNew; keygen via `vultr_ssh_key` |
-| Console name | `name`, updates in place | `label`, updates in place; never `hostname`, which is ForceNew and an OS reinstall |
-| Firewall | `digitalocean_firewall`, inbound and outbound rules inline, CIDR lists | `vultr_firewall_group` plus one `vultr_firewall_rule` per CIDR, address and prefix as separate fields |
-| Guest firewall on the image | not shipped enabled | ufw enabled with 22/tcp alone |
-| Account key preflight | `ssh-keypair.md` §5, DigitalOcean REST | `ssh-keypair.md` §5, Vultr REST |
+| `r2` | `COLORS_PAR_R2_ACCESS_KEY_ID`, `COLORS_PAR_R2_SECRET_ACCESS_KEY` | `r2-bucket`, `r2-endpoint` |
+| `s3` | No `COLORS_PAR_*` credential; ambient AWS credential chain | `s3-bucket`, `s3-region` |
 
-## 6. Keys the sibling standards own
+The library uses existing buckets; this contract does not create them.
+Production lifecycle operations MUST use the selected remote backend. Local
+rendering and isolated test backends do not constitute a third supported
+production backend. Existing local-state deployments require explicit state
+migration before adopting this contract.
 
-- `<provider>-ssh-keys` follows `ssh-keypair.md`: absent means keygen mode,
-  present means opt-out. Keygen mode MUST work on every advertised provider,
-  which is why a provider template carries the keygen branch and why the
-  registry never lists the key as required.
-- `<provider>-name` follows `compute-name.md`: optional, the profile by
-  default, resolved once. The registry never lists it as required.
-- The `~/.ssh/config` block follows `ssh-config.md`, and is the same block
-  whichever provider produced the address.
+Backend credentials MUST be isolated from compute credentials. In particular,
+R2 credentials MUST NOT replace AWS compute's ambient credentials through a
+shared `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY` environment. Backend
+configuration and caches containing credentials MUST remain private and MUST
+NOT appear in committed artifacts or logs.
 
-## 7. Fixtures, goldens, parity
+New deployments MUST use stable, distinct state keys for shared deployment
+resources and each node, derived from deployment identity and node identity.
+The provider and display name MUST NOT determine the key. The library MUST
+publish one key derivation used by all three colors. It MUST preserve existing
+keys until an explicit migration maps them to the new layout.
 
-A provider is advertised by evidence. For every provider in the registry a
-package MUST commit one fixture per keypair mode — keygen and opt-out — and
-one golden tree per fixture:
+Backend locking MUST protect each state mutation. Per-state locks do not
+serialize an entire multi-state deployment. Deployment orchestration MUST
+serialize competing lifecycle runs as described in compute-cluster.md.
+Changing bucket, endpoint, region, or state key MUST NOT silently select empty
+state; it requires an explicit backend migration.
 
-```text
-test/fixtures/colors.yml                    # default provider, keygen
-test/fixtures/optout.yml                    # default provider, opt-out
-test/fixtures/colors-digitalocean.yml       # second provider, keygen
-test/fixtures/optout-digitalocean.yml       # second provider, opt-out
-```
+## 7. Evidence and parity
 
-`scripts/golden.sh` MUST render every fixture, and `scripts/parity.sh` MUST
-render every fixture through every colour, diff the rendered trees, and diff
-the three resource trees byte for byte. A provider that appears in the
-registry without a golden is the failure `rybbit` documents: a unit test
-over the registry passes while its template is missing.
+The library MUST own fixtures and golden renders covering all eight providers,
+both keypair modes, and both remote backend configurations in all three colors.
+Parity MUST compare normalized outputs, validation behavior, state-key
+derivation, and rendered resources. Provider-specific login values and network
+capabilities MUST be covered, not assumed to equal root or Vultr behavior.
 
-The assertions the sibling standards place on goldens — no `$HOME/.ssh` path
-and no dotted quad in the rendered local play — hold on every fixture, not
-only the first.
+Behavioral checks MUST cover confirmed missing versus unreadable state,
+provider-switch refusal, incomplete results, credential isolation for AWS
+compute with R2 state, and repeated delete after successful cleanup. Render
+coverage MUST NOT be described as live cloud verification.
 
-## 8. Documentation
+Packages retain integration checks for input delegation, application inventory,
+error propagation, and lifecycle ordering. They MUST NOT duplicate the full
+provider matrix. A version-only adoption check MUST add a test provider inside
+the library and demonstrate that a single-host consumer and a cluster consumer
+can use it with dependency changes alone.
 
-An agent learns a package from its Package Skill payload, not from its
-README, and `rybbit` shows what happens when the two disagree. For every
-advertised provider a package MUST name, in every colour's `SKILL.md` and its
-`references/configuration.md`, the credential variable and the provider
-keys; MUST name the providers in the README's architecture section and in
-the root `index.html`; and MUST name them in the catalog recipe's summary and
-keywords and in the `repositories.json` description. A provider documented
-in one colour and not another is a parity failure that no script catches.
+## 8. Migration
 
-## 9. Adoption
+This revision replaces the previous implementation ownership; it does not
+mark existing packages conforming. Each migration MUST inventory templates,
+resource addresses, backend keys, shared resources, SSH ownership, and legacy
+outputs before changing dependencies.
 
-- New packages are born conforming and born delegating to ONCE's `compute`
-  namespace. `create-package-skill` references this document.
-- Existing packages adopt behind their normal pin flow. Adoption on a
-  package with one provider is a one-entry registry, a directory move that
-  preserves every rendered byte but the `params.provider` line, the two
-  refusals of §4, and the CIDR validation of §5; it obliges no second
-  provider.
-- `redis` was listed here as multi-node for a VPC binding nothing used; it
-  dropped the binding and adopted the standard on both providers instead.
-  Its Vultr golden changed by more than the `params.provider` line — the
-  VPC resource and attachment left with it — which §3 permits only because
-  no live deployment existed to move.
-- `dbos`, composed from ONCE's own tools, adopted the four standards last:
-  its stage directories keep ONCE's names because `tofu-compute` keys the
-  state, it bridges ONCE compute's resolved params into
-  `:once/compute-params` for ONCE's remote step, and its pin bump changed
-  ONCE's shared local play underneath it — the case `ssh-config.md` §7
-  exists for — so the play became the package's own copy. Two gaps stay
-  documented there: no `prevent_destroy` on its firewall, and a red/blue
-  remote-stage shim owed to ONCE rendering null SMTP keys where green omits
-  them.
-- `umami`, `restate` and `temporal` adopted the four standards together on
-  DigitalOcean, delegating to ONCE, with no live droplet to move. Each
-  protected golden changed by the provider field and by the 80/443 rules
-  becoming a dynamic block guarded on a non-empty `http-sources` list —
-  §5's empty list has to render no rule, because an empty DigitalOcean rule
-  is an API error, not a closed port. temporal also lost a ufw task from its
-  converge play and a fingerprint data source that looked an operator key
-  up by md5, both retired by name in its configuration reference.
-- `netbird` adopted the standard by delegation with every sibling standard
-  already in place; both goldens changed by the provider line alone. Its
-  firewall admits UDP 3478 from a third source list, `vultr-stun-sources`,
-  beside §5's 22, 80 and 443: an extension a package MAY make when the
-  service needs it, named in its documentation and carried by the spec as
-  another `:may-be-empty` suffix, never a reason to manage a guest firewall.
-- `rybbit` adopted the standard, delegating to ONCE, and is the one
-  package whose spec default is not its documented first provider: its only
-  legacy state is the live Vultr deployment, so `:default` is `vultr`, which
-  is what the default is for. Its adoption kept every Vultr resource address
-  and the generated per-CIDR rules, and changed the DigitalOcean golden by
-  the empty-HTTP guard as well as the provider line, with no live droplet to
-  move. It adopted the `~/.ssh/config` stage of `ssh-config.md` the same
-  day, additively: four new local-play trees, no existing golden byte.
-  `walter`, `airflow`, and `vaultwarden` advertise ONCE's
-  providers and MUST either commit a fixture and golden per advertised
-  provider or narrow the advertised set to the providers they render.
-- Deployments created before adoption carry no `params.provider`. They keep
-  working unchanged on the package's default provider, and the §4 legacy
-  rule refuses them any other provider until they are deleted and
-  re-created, which is the same rebuild a switch would need anyway.
-- The multi-node packages of §1 adopt `compute-cluster.md`, which cites
-  this document for everything shared and owns the network, node and alias
-  rules that differ. Nothing here should be copied into them by analogy:
-  their firewall is a different design.
+Existing resource identities MUST survive migration unless an explicit rebuild
+is authorized. Golden diffs alone cannot prove state safety. A migration MUST
+provide the old-to-new state and resource mapping, state backups, an ordered
+transfer procedure, recovery steps, and plan evidence that no unintended
+replacement or duplicate ownership results. Never apply a new empty state
+against resources still owned by an old state.
 
-## 10. Conformance checklist
+Splitting a cluster state into shared and node states is a state migration,
+not an ordinary pin bump. Legacy output translators may exist at the migration
+boundary; new application steps MUST consume the normalized contract.
+Migrate one single-host and one cluster consumer as proof before broad rollout.
+Historical package exceptions in the previous revision are migration evidence,
+not permanent exemptions or proof that this contract has shipped.
 
-A package conforms when:
+## 9. Conformance checklist
 
-1. It owns a `compute-providers` registry whose keys are the advertised
-   providers, agreeing across the three colours.
-2. Required keys, secrets, and the OpenTofu environment derive from the
-   selected registry entry alone.
-3. An unadvertised provider is refused with the sorted list; keys of an
-   unselected provider are ignored.
-4. Templates live under `tools/infrastructure/<provider>/` and never branch
-   on the provider name.
-5. Every provider outputs `params` with `provider`, `ip`, `user`, `sudoer`,
-   `name`, and `ssh_key_id` in keygen mode.
-6. `build` and `--dry-run` render fallback params on `192.0.2.10`; a real
-   converge refuses a missing `ip`.
-7. A real create and a real delete refuse a provider that differs from the
-   one recorded in state, and refuse a legacy state on any provider but the
-   default, before validating provider credentials.
-8. An unreadable backend is no state on create and a failure on delete.
-9. The provider firewall admits 22, 80, and 443 from the two source keys and
-   nothing else; the plays do not manage ufw for them.
-10. Empty SSH sources and malformed CIDRs are refused before any provider
-    call.
-11. No VPC is created; DigitalOcean's configured-VPC keys are refused.
-12. Keygen mode works on every advertised provider, and `<provider>-name` is
-    optional.
-13. One fixture per provider per keypair mode, each with a golden;
-    `golden.sh` and `parity.sh` render all of them.
-14. Every colour's SKILL payload, the README, the landing page, the catalog
-    recipe, and `repositories.json` name every advertised provider.
-15. Adoption leaves an existing provider's golden unchanged but for the
-    `params.provider` line.
-16. Goldens and parity fixtures are updated in the same change.
-17. It delegates the operations of §2, §4 and §5 to ONCE's `compute`
-    namespace rather than copying them; its own tests keep one wiring test
-    per safety boundary and one spec-content test per colour, and drop the
-    pure-function matrices ONCE tests.
+1. Every compute-creating package pins its matching `colors-compute` library.
+2. Provider code, registry, templates, credentials, and backends live there.
+3. All eight compute providers and R2/S3 backends have parity evidence.
+4. `no-infra` compute is refused.
+5. Single-host and cluster node calls use the same operation.
+6. Node outputs are complete, normalized, and free of secret material.
+7. Unreadable state blocks mutation; provider and backend changes cannot
+   silently redirect ownership.
+8. Shared resources have one owner, and node states have stable identities.
+9. New providers require dependency changes alone in migrated consumers.
+10. Migration preserves resource ownership and includes reviewed plan evidence.
