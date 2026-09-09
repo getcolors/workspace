@@ -18,16 +18,22 @@ before stopping, even when work remains incomplete.
 - Eight provider template sets have passed credential-free OpenTofu 1.12.5
   schema validation. Their versions and limitations are documented in each
   provider README. Runtime cloud operations are not implemented yet.
-- Packaged provider loaders and remaining OCI/Yandex templates are being
-  prepared for the next library commit. Shared parity currently passes 124
+- Packaged provider loaders and OCI/Yandex templates were pushed as
+  `1cf448db814773e56d9f7afb89bd814574c8f6c1`. Shared parity passes 129
   cases per color, including packaged provider plans against validated examples.
+- Its GitHub contracts job and all eight provider schema jobs passed:
+  https://github.com/getcolors/colors-compute/actions/runs/34353691140
+- Published Git dependency smoke checks passed in temporary directories outside
+  the workspace for all three colors. Blue's built wheel also loads packaged
+  templates and the SDK without local-source overrides.
 - No package migration or live operation has occurred. Cluster packages remain
   first in rollout order. The inventory is `colors-compute-cluster-inventory.md`.
 - Unrelated workspace changes are recorded in the plan and must be preserved.
 
 ## Remaining work
 
-1. Finish publishing and checking the packaged provider-plan milestone.
+1. The packaged provider-plan milestone is complete and published. The
+   production library and consumer rollout are not complete.
 2. Implement protected backend credential binding and cache handling, remote
    state reads that distinguish absence from errors, deployment coordination,
    and persistent ownership records before enabling provider mutations.
@@ -38,6 +44,10 @@ before stopping, even when work remains incomplete.
    foundation as though it were a completed compute lifecycle.
 5. Prove version-only provider adoption, complete required package checks, and
    migrate installed deployment launchers only with reviewed state procedures.
+
+Final implementation check counts: Blue 41 tests; Green 14 tests / 90 assertions;
+Red 24 tests / 109 assertions plus typechecking; 129 parity cases per color.
+Registry/template copies and deterministic provider examples pass checks.
 
 The read-only AutoMQ migration planner has 7 passing synthetic tests. It never
 fetches or writes live state and always marks plans non-executable. It is a
