@@ -80,7 +80,8 @@ change to the same file. The five standards were revised in this conversation.
 
 - [x] Revise the five standards.
 - [x] Record the plan and authorization.
-- [ ] Publish standards and plan.
+- [x] Publish standards and plan, workspace `873f384`.
+- [x] Publish tested contract/SDK workflow foundation, colors-compute `a112e17`.
 - [ ] Implement and publish the three-color library.
 - [ ] Migrate cluster package skills.
 - [ ] Prove version-only provider adoption.
