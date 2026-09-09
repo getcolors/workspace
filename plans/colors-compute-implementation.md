@@ -82,7 +82,8 @@ change to the same file. The five standards were revised in this conversation.
 - [x] Record the plan and authorization.
 - [x] Publish standards and plan, workspace `873f384`.
 - [x] Publish tested contract/SDK workflow foundation, colors-compute `a112e17`.
-- [ ] Implement and publish the three-color library.
+- [x] Publish private state readers and pure coordination transitions, colors-compute `fba3e4c`.
+- [ ] Implement and publish the complete three-color lifecycle library.
 - [ ] Migrate cluster package skills.
 - [ ] Prove version-only provider adoption.
 - [ ] Migrate single-host package skills.

@@ -66,3 +66,24 @@ completed its validation.
 ## Live resources
 
 None created or changed by this task.
+
+## Published runtime and journal contracts
+
+Library commit `fba3e4ceaa647f7590754e93eac3bf8921846935` is pushed to main.
+It adds protected read-only backend sessions and pure conditional journal
+transitions in Green, Red, and Blue. Current local suites passed Blue 130 tests,
+Green 26 tests / 283 assertions, Red 89 tests / 309 assertions, and 211 shared
+parity cases per color. Real OpenTofu loopback tests verified private R2 binding,
+ambient AWS separation and native state reads. A deterministic 4,608-case
+mutation audit found no cross-color coordination mismatch.
+
+[GitHub Checks](https://github.com/getcolors/colors-compute/actions/runs/34356072900)
+passed. The AWS schema job initially received a GitHub HTTP 500 downloading the
+provider signature; its retry passed. No validation was skipped to get a pass.
+
+Work is continuing on the conditional journal transport described in
+`colors-compute/contracts/object-transport.md`. It uses AWS CLI 2 to preserve
+S3's ambient credential chain and private backend-only R2 credentials. An
+HTTPS loopback probe will test actual conditional writes. A transport result
+must not dispatch provider work until the coordinator establishes ownership.
+No package or live deployment has migrated; cluster packages still go first.
