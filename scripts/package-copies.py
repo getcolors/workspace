@@ -24,6 +24,7 @@ from __future__ import annotations
 import argparse
 import difflib
 import re
+import subprocess
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -55,26 +56,26 @@ ARTIFACTS: dict[str, dict] = {
     "ssh-config green": {
         "globs": ["{pkg}/green/src/clj/io/github/getcolors/*/ssh_config.clj",
                   "{pkg}/src/clj/io/github/getcolors/*/ssh_config.clj"],
-        "gate": True,
+        "gate": False,
         "variants": {"automq": MULTI_NODE, "langfuse": MULTI_NODE, "n8n": MULTI_NODE, "alice": IN_FLIGHT, "k8s": IN_FLIGHT},
         "clusters": {"multi-node module": ({"mysql-agy", "mysql-ha", "postgres-agy", "postgres-ha"}, MULTI_NODE_MODULE)},
     },
     "ssh-config red": {
         "globs": ["{pkg}/red/src/ssh-config.ts"],
-        "gate": True,
+        "gate": False,
         "variants": {"automq": MULTI_NODE, "langfuse": MULTI_NODE, "n8n": MULTI_NODE, "k8s": IN_FLIGHT},
         "clusters": {"multi-node module": ({"mysql-agy", "mysql-ha", "postgres-agy", "postgres-ha"}, MULTI_NODE_MODULE)},
     },
     "ssh-config blue": {
         "globs": ["{pkg}/blue/src/package_*_blue/ssh_config.py"],
-        "gate": True,
+        "gate": False,
         "variants": {"automq": MULTI_NODE, "langfuse": MULTI_NODE, "n8n": MULTI_NODE, "k8s": IN_FLIGHT},
         "clusters": {"multi-node module": ({"mysql-agy", "mysql-ha", "postgres-agy", "postgres-ha"}, MULTI_NODE_MODULE)},
     },
     "ssh-config play main.yml": {
         "globs": ["{pkg}/green/src/resources/io/github/getcolors/*/tools/ansible-local/main.yml",
                   "{pkg}/src/resources/io/github/getcolors/*/tools/ansible-local/main.yml"],
-        "gate": True,
+        "gate": False,
         "variants": {"alice": IN_FLIGHT, "k8s": IN_FLIGHT,
                      "airflow": MIGRATING, "k3s": MIGRATING, "walter": MIGRATING},
         "clusters": {"multi-node play": ({"automq", "langfuse", "mysql-agy", "mysql-ha", "postgres-agy", "postgres-ha"}, MULTI_NODE)},
@@ -88,7 +89,7 @@ ARTIFACTS: dict[str, dict] = {
     "ssh-config play inventory.ini": {
         "globs": ["{pkg}/green/src/resources/io/github/getcolors/*/tools/ansible-local/inventory.ini",
                   "{pkg}/src/resources/io/github/getcolors/*/tools/ansible-local/inventory.ini"],
-        "gate": True,
+        "gate": False,
         "variants": {"airflow": MIGRATING, "walter": MIGRATING},
     },
     # The wrappers around ONCE's ssh differ per package by design: which
@@ -110,7 +111,7 @@ ARTIFACTS: dict[str, dict] = {
 
 # ONCE is the upstream, not a copy; the SDKs and the deployments carry none of
 # these files. Everything else that matches is a package.
-EXCLUDE = {"once", "green", "red", "blue", "workspace", "skills"}
+EXCLUDE = {"once", "green", "red", "blue", "workspace", "skills", "colors-compute"}
 
 
 def brand_names(pkg: str) -> set[str]:
@@ -180,6 +181,15 @@ def main() -> int:
     args = ap.parse_args()
 
     drift = 0
+    # Gate the executable SSH updater and local-only envelope in every color.
+    # The reports below watch package-specific preflight and inventory adapters.
+    if not args.only or "ssh-config" in args.only:
+        result = subprocess.run([
+            sys.executable, str(Path(__file__).with_name("compute-copy-contracts.py")),
+            "--workspace", str(WORKSPACE),
+        ], check=False)
+        if result.returncode:
+            drift += 1
     for artifact, spec in ARTIFACTS.items():
         if args.only and args.only not in artifact:
             continue

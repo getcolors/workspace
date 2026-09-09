@@ -134,10 +134,15 @@ that changes its contract requires an explicit versioned integration change.
 Packages remain responsible for reviewing changes to SSH directives and
 host-key policy.
 
-`workspace/scripts/package-copies.py` checks existing copy families. Any
-implementation migration changing those families MUST update its declared
-variants and checks in the same change. Revising this standard alone does not
-claim the existing copies or that script already implement the new contract.
+`workspace/scripts/package-copies.py` runs
+`workspace/scripts/compute-copy-contracts.py` to check the executable updater,
+the local-only Ansible envelope, and direct library dependencies for every
+package/color skill. The canonical updater is
+`workspace/scripts/ssh_config_update.py`. Formatting, comments, docstrings,
+and the documented singleton/joined stdin adapters may differ. Executable
+policy or migration differences require a named variant with tests that reject
+broader ownership matching. Package-specific language adapters remain watched;
+package integration tests must prove their workflow ordering and inventory.
 
 ## 8. Migration
 

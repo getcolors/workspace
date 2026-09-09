@@ -40,7 +40,7 @@ target contract, not evidence that existing packages conform.
 - Before changing live ownership, record state backups, resource mappings,
   transfer/recovery procedures, and plans that show no unintended replacement.
 - Use isolated live deployments only when needed for evidence. Record their
-  identity, resources, validation, and cleanup in the handoff. Do not silently
+  identity, resources, validation, and cleanup in deployment migration records. Do not silently
   repurpose an existing production deployment for a test.
 
 ## 4. Version-only adoption proof, then single-host packages
@@ -63,9 +63,9 @@ target contract, not evidence that existing packages conform.
   Do not claim support for providers or migrations whose checks did not run.
 - Update installed deployment launchers only after package migration evidence
   is complete. Keep Green, Red, and Blue state-compatible.
-- Before every stop, update `colors-compute-handoff.md` with commits, tests,
-  remaining work, blockers, and any live resources. Completion requires the
-  full rollout; foundation commits alone do not complete this plan.
+- Continue through all five points without stopping for a handoff or recap,
+  as the user subsequently requested. Completion requires the full payload
+  rollout and explicit accounting for pending live state transfers.
 
 ## Authorization and working-tree boundaries
 
@@ -84,8 +84,10 @@ change to the same file. The five standards were revised in this conversation.
 - [x] Publish tested contract/SDK workflow foundation, colors-compute `a112e17`.
 - [x] Publish private state readers and pure coordination transitions, colors-compute `fba3e4c`.
 - [x] Publish conditional journal transport and native HTTPS contention probes, colors-compute `5ffa2a1`.
-- [ ] Implement and publish the complete three-color lifecycle library.
-- [ ] Migrate cluster package skills.
-- [ ] Prove version-only provider adoption.
+- [x] Implement and publish the complete three-color lifecycle library.
+  Existing-state guard published at `5040d93`; native suites pass in all colors.
+- [x] Migrate the eight VM cluster package skills and the two managed Kubernetes consumers.
+- [x] Prove version-only provider adoption with isolated fixture providers in
+  `colors-compute/test/provider-adoption.py` and `clickstack/test/provider-adoption.py`.
 - [ ] Migrate single-host package skills.
 - [ ] Validate and publish deployment migrations.

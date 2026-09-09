@@ -184,57 +184,43 @@ add an `index.html` merely to satisfy this convention.
 workspace; it is documentation, not a build root. `repositories.json` is the
 canonical organization-wide description/homepage inventory. Run
 `./scripts/github-metadata.py` to check GitHub, and add `--apply` to
-synchronize it. `./scripts/package-copies.py` is the net for what the
-standards share by copy rather than by pin — every package's `ssh_config`
-module, its `ansible-local` play, its ONCE ssh wrapper and the red `once.ts`
-shim: it name-normalises each copy, clusters them, and fails on drift a
-gated family does not name as a deliberate variant (`n8n`'s single-alias
-play, a §8 marker migration in flight or still owed). The single-node
-copies are one gated cluster and, since 2026-09-05, the six multi-node
-plays (`automq`, `langfuse`, `mysql-agy`, `mysql-ha`, `postgres-agy`,
-`postgres-ha`) and the four DB packages' multi-node `ssh_config` modules
-are gated clusters of their own. Run it after touching any of those files;
-a copy that drifts in one package is invisible to every package's own
-tests.
-`standards/` holds the
-normative cross-package conventions: `standards/ssh-keypair.md` defines how a
-package generates and owns the profile-named machine SSH keypair in `.ssh/`
-(reference implementation: `once`; packages adopt behind their pin flow —
-every multi-node consumer of `compute-cluster.md` delegates to ONCE's `ssh`
-namespace since 2026-09-05, the MySQL and PostgreSQL pairs and `k8s` in
-that day's tri-colour adoptions), and
-`standards/ssh-config.md` defines the `~/.ssh/config` block that makes
-`ssh <profile>` work (reference implementation: `clickstack`). The two are
-siblings and disagree deliberately on two points: the config play is copied per
-package rather than shared, and delete removes the config block *before* the
-compute destroy while the keypair goes *after* it. `standards/compute-name.md`
-defines what a package calls the machines it creates — the profile, with an
-optional provider-scoped name key as the override, and no required `package`
-key (reference implementation: `alice`, with `netbird` born conforming; every
-other package still requires a name key and has yet to migrate).
-`standards/context-skill.md` defines the Context Skill — knowledge distilled
-from a verified build, the third skill kind beside Package Skills and generic
-Agent Skills: five required artifacts, a no-second-copy rule, and spec
-validation (reference implementation: `skills/agent-network-single-node`;
-consumed by `skills/create-context-skill`, `skills/submit-context-skill`, and
-the `colors-website` catalog). `standards/compute-provider.md` defines how a
-package supports more than one compute provider — a package-owned registry of
-advertised providers, template selection by directory, one `params` contract
-that records the provider, a rebuild-only rule for switching it, and a fixture
-and golden per advertised provider per keypair mode. The operations over
-that registry — the switch refusal, the state read, the CIDR checks, the
-per-provider checks — have one implementation, ONCE's `compute` namespace in
-all three colours, which a package calls with a spec value; packages own
-their registry and their wiring, never a copy of the functions (reference
-consumer: `clickstack`; `posthog`, `signoz`, `agent-network` and `redis`
-delegate too; `rybbit`, `walter`, `airflow` and `vaultwarden` are named as
-the adoption backlog). `standards/compute-cluster.md` is the multi-node
-contract that document defers: the `:roles` spec, the `params.nodes` list,
-the owned-or-discovered private network, fallback names and per-node
-aliases, and an enumerated golden allowance per adopting package. It too has
-one implementation, ONCE's `compute-cluster` namespace in all three colours
-(reference consumer: `automq`; `mysql-agy`, `mysql-ha`, `postgres-agy`,
-`postgres-ha`, `k8s` and `langfuse` delegate too).
+synchronize it. `./scripts/package-copies.py` runs the executable copy contracts and reports
+package-specific adapters. `scripts/compute-copy-contracts.py` discovers package
+skills and checks their direct immutable compute dependencies in every color.
+For VM consumers it checks the package-owned local play against the canonical
+SSH updater, its local-only Ansible envelope, and the documented singleton or
+joined-inventory adapter. It checks the explicit Alice policy and Walter legacy
+marker variants without accepting arbitrary executable differences. Whole
+language-specific preflight modules are watched because their adapters differ.
+Run these checks after changing a local play, an updater, or compute dependencies.
+
+`standards/` holds the normative cross-package contracts. Shared compute lives
+in `colors-compute/`, implemented in Green, Red, and Blue. Compute package
+skills, including ONCE, depend directly on that library. It owns the eight VM
+providers, R2/S3 compute state, normalized node results, machine SSH keypairs,
+networks, lifecycle coordination, and native Colors node fan-out and joins.
+Application installation and the local SSH config play remain package-owned.
+Provider additions require a library dependency bump, not application changes.
+
+`standards/compute-provider.md` defines provider selection and state ownership;
+`standards/compute-cluster.md` defines topology and the joined inventory;
+`standards/compute-name.md` defines stable names;
+`standards/ssh-keypair.md` defines machine-key ownership; and
+`standards/ssh-config.md` defines the operator's aliases and migration rules.
+Local SSH configuration must complete before application convergence. Delete
+removes owned aliases before compute destruction and removes owned keys only
+after the owned resources are destroyed. Application deployment keys are
+separate from the machine keypair.
+
+Package source migration and deployment payload refresh do not transfer live
+state. Preserve existing state and review ownership mappings and replacement
+plans before applying the new library layout. `compute-require-existing-state:
+true` prevents a create against absent, uninitialized, or retired ownership;
+it is appropriate when preparing an existing local-state deployment for R2 or
+S3. It does not import resources or perform the transfer.
+
+`standards/context-skill.md` defines Context Skills, which capture a verified
+build and are separate from Package Skills and generic Agent Skills.
 
 **`skills/`** — Agent Skills. `refresh-oci-token` renews the shared OCI session,
 while `create-package-skill` governs the phased workflow for creating a Package
