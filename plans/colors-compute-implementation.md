@@ -89,5 +89,23 @@ change to the same file. The five standards were revised in this conversation.
 - [x] Migrate the eight VM cluster package skills and the two managed Kubernetes consumers.
 - [x] Prove version-only provider adoption with isolated fixture providers in
   `colors-compute/test/provider-adoption.py` and `clickstack/test/provider-adoption.py`.
-- [ ] Migrate single-host package skills.
-- [ ] Validate and publish deployment migrations.
+- [x] Migrate every single-host compute package skill. All 32 compute package
+  repositories depend directly on the library across their supported colors.
+- [x] Validate and publish all 45 deployment payload/configuration refreshes,
+  covering 65 installed colors. Root copies, published skills, and installation
+  provenance agree. Live ownership transfers remain a separate guarded operation.
+
+## Completion evidence
+
+The published revisions and verification results are recorded in
+[colors-compute-rollout.json](../reports/colors-compute-rollout.json). The
+fixture-provider proofs pass for unchanged cluster and singleton workflows in
+all three colors. Native tests cover lifecycle coordination, provider/backend
+contracts, repeated deletion, local cleanup recovery, and refusal of stale
+remote addresses after retirement.
+
+No live infrastructure or ownership transfer was performed. Each deployment
+has a compute-migration.md runbook. The six former local-backend configurations
+now select R2 with compute-require-existing-state enabled. Existing state must
+be retained and transferred explicitly before real convergence; successful
+offline builds do not establish migrated ownership or application health.

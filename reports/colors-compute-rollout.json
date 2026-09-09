@@ -1,0 +1,1468 @@
+{
+  "verified_at_utc": "2026-09-09T19:51:08.856549+00:00",
+  "scope": {
+    "compute_packages": 32,
+    "package_color_contracts": 86,
+    "deployments": 45,
+    "installed_color_payloads": 65
+  },
+  "library": {
+    "repository": "getcolors/colors-compute",
+    "revision": "5040d93672b9f10e7861f527ea552177369c6851",
+    "vm_providers": [
+      "azure",
+      "aws",
+      "google",
+      "digitalocean",
+      "hcloud",
+      "vultr",
+      "yandex",
+      "oci"
+    ],
+    "backends": [
+      "r2",
+      "s3"
+    ]
+  },
+  "checks": {
+    "library_native_tests": {
+      "blue": 489,
+      "red": 306,
+      "green": 99
+    },
+    "red_typecheck": "passed",
+    "copy_contracts": "86 passed",
+    "copy_checker_regression_tests": "13 passed",
+    "version_only_provider_adoption": [
+      "colors-compute/test/provider-adoption.py: all three unchanged AutoMQ workflows passed",
+      "clickstack/test/provider-adoption.py: all three unchanged ClickStack workflows passed"
+    ],
+    "package_checks": "Affected native suites, parity, golden review and cold pinned launcher builds passed.",
+    "deployment_checks": "All installed colors built desired state in temporary directories with published dependencies and sanitized environments.",
+    "publication": "All package and deployment branches track origin/main and match remote main; installed skills match published sources and root launchers."
+  },
+  "live_state": {
+    "infrastructure_changes_performed": false,
+    "ownership_transfers_performed": false,
+    "status": "Existing resource ownership must be migrated and reviewed before live convergence. Payload refresh is not a state transfer.",
+    "local_backend_conversions_guarded": [
+      "alice-digitalocean",
+      "once-aws",
+      "once-azure",
+      "once-google",
+      "once-vultr",
+      "rama-digitalocean"
+    ],
+    "runbooks": "Each deployment contains compute-migration.md. Existing local and remote state was retained and not inspected."
+  },
+  "packages": [
+    {
+      "package": "agent-network",
+      "head": "c1c2631ab1cbe5e91a6c8f423cb9f1cd69366964",
+      "remote_main": "c1c2631ab1cbe5e91a6c8f423cb9f1cd69366964",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "agent-network-doks",
+      "head": "affbd82f3c3b4332bcee47b1ccfcb29bb6befecf",
+      "remote_main": "affbd82f3c3b4332bcee47b1ccfcb29bb6befecf",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "agent-network-k8s",
+      "head": "aea0f14a44b46dcdc371ccfa04ceffb0f56217a5",
+      "remote_main": "aea0f14a44b46dcdc371ccfa04ceffb0f56217a5",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "airflow",
+      "head": "bb8c82bc44363adfeb1837b8a4cfa6d1ab924597",
+      "remote_main": "bb8c82bc44363adfeb1837b8a4cfa6d1ab924597",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "alice",
+      "head": "31d4e3a71bd7654b27dca9c38d9b2db05e0e2669",
+      "remote_main": "31d4e3a71bd7654b27dca9c38d9b2db05e0e2669",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "automq",
+      "head": "010bc92f602f4fa7eb54113fdc016284b020ee01",
+      "remote_main": "010bc92f602f4fa7eb54113fdc016284b020ee01",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "clickhouse",
+      "head": "eb201662063175a12610bbf73ef4e1ee7019a3ca",
+      "remote_main": "eb201662063175a12610bbf73ef4e1ee7019a3ca",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "clickstack",
+      "head": "c6df637e84f2e43d522694b8b32c96daed3256b2",
+      "remote_main": "c6df637e84f2e43d522694b8b32c96daed3256b2",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "dbos",
+      "head": "57697e8e23808771505613bac1b3eb94aa11258c",
+      "remote_main": "57697e8e23808771505613bac1b3eb94aa11258c",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "github-dwh",
+      "head": "f5b04535043defef116f183778f903f29b6029d6",
+      "remote_main": "f5b04535043defef116f183778f903f29b6029d6",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "k3s",
+      "head": "218a64a5fb5849297ad06f37a49a42163235a6c0",
+      "remote_main": "218a64a5fb5849297ad06f37a49a42163235a6c0",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "k8s",
+      "head": "28ed094e281fd85af061f8b4609656ca3818337d",
+      "remote_main": "28ed094e281fd85af061f8b4609656ca3818337d",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "langfuse",
+      "head": "5290041c5fb3365ed4a42194203dc38c6e277908",
+      "remote_main": "5290041c5fb3365ed4a42194203dc38c6e277908",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "mysql-agy",
+      "head": "d47b52390da1dd7193b357dea5eb603e4b1a3ccb",
+      "remote_main": "d47b52390da1dd7193b357dea5eb603e4b1a3ccb",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "mysql-ha",
+      "head": "72cbfeed66ee66270d5cc42393aa9627228bdab6",
+      "remote_main": "72cbfeed66ee66270d5cc42393aa9627228bdab6",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "n8n",
+      "head": "b47ab429d0be8593fe2aa0e3e1f9d2687b8ab59c",
+      "remote_main": "b47ab429d0be8593fe2aa0e3e1f9d2687b8ab59c",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "neon",
+      "head": "9fa966633b278dc8bbf6e9c80496d5f33a1c0c9b",
+      "remote_main": "9fa966633b278dc8bbf6e9c80496d5f33a1c0c9b",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "netbird",
+      "head": "119b2aa84b1dcf6988ac87c237b4c6743fef062c",
+      "remote_main": "119b2aa84b1dcf6988ac87c237b4c6743fef062c",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "once",
+      "head": "173823ebdf6b90145db632e73ef8d8388cd93174",
+      "remote_main": "173823ebdf6b90145db632e73ef8d8388cd93174",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "postgres-agy",
+      "head": "2b4ec146e8a33ce006da0395fbabfb326920a9de",
+      "remote_main": "2b4ec146e8a33ce006da0395fbabfb326920a9de",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "postgres-ha",
+      "head": "956058800e0f344bb23647c253ba04ad1ad73a12",
+      "remote_main": "956058800e0f344bb23647c253ba04ad1ad73a12",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "posthog",
+      "head": "53544325bad1e85aded5b5d123b0f1d8f534b8cb",
+      "remote_main": "53544325bad1e85aded5b5d123b0f1d8f534b8cb",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "rama",
+      "head": "d3efe20489e8e20f1765674a3524cd370d6ac6c9",
+      "remote_main": "d3efe20489e8e20f1765674a3524cd370d6ac6c9",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "redis",
+      "head": "9db5268f427b746a01c189548c5fe0b0934772d2",
+      "remote_main": "9db5268f427b746a01c189548c5fe0b0934772d2",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "restate",
+      "head": "8422eb7e510877166e31b4a6d781350e9f6ba9b0",
+      "remote_main": "8422eb7e510877166e31b4a6d781350e9f6ba9b0",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "rybbit",
+      "head": "91524a5d2b00b99562ae2bb45e31a869848dab84",
+      "remote_main": "91524a5d2b00b99562ae2bb45e31a869848dab84",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "signoz",
+      "head": "afc2e5fea7aada2064193b997d4011cddc332158",
+      "remote_main": "afc2e5fea7aada2064193b997d4011cddc332158",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "temporal",
+      "head": "efb10708eae13adfbeeddabb126277838d9df427",
+      "remote_main": "efb10708eae13adfbeeddabb126277838d9df427",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "umami",
+      "head": "b3aa56fbdbd062229cf336b1ff08ada720d5de27",
+      "remote_main": "b3aa56fbdbd062229cf336b1ff08ada720d5de27",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "vaultwarden",
+      "head": "c1764279ee8f7ad9eb83ed36f1cc2acf34bf9ff6",
+      "remote_main": "c1764279ee8f7ad9eb83ed36f1cc2acf34bf9ff6",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "walter",
+      "head": "3c385901dea62fc09712ca2ab61deec8623621dc",
+      "remote_main": "3c385901dea62fc09712ca2ab61deec8623621dc",
+      "branch": "main",
+      "tracking": "origin/main"
+    },
+    {
+      "package": "wavehouse",
+      "head": "26198416d57cd345f4b513400d9fe8f95164fa66",
+      "remote_main": "26198416d57cd345f4b513400d9fe8f95164fa66",
+      "branch": "main",
+      "tracking": "origin/main"
+    }
+  ],
+  "deployments": [
+    {
+      "repo": "agent-network-digitalocean",
+      "package": "agent-network",
+      "head": "d25279791f0c4242573cb31d5fa324d313d6d3ff",
+      "remote_main": "d25279791f0c4242573cb31d5fa324d313d6d3ff",
+      "package_revision": "c1c2631ab1cbe5e91a6c8f423cb9f1cd69366964",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-agent-network-blue",
+          "color": "blue",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "fe4194a6b4d60124cba1e3752dcb977b61eb42fb4373bc63234cb12c3fb9b24d",
+          "lock_matches": true
+        },
+        {
+          "skill": "package-agent-network-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "d69ae5ea4bfb77e207e515c7bbdb40b8a4084df5488e1da59a43ce05a76d68dd",
+          "lock_matches": true
+        },
+        {
+          "skill": "package-agent-network-red",
+          "color": "red",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "9ba2b99ef8071506126a43bfe3fb7df3868cbfddb894f8dee79f35e43b768637",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "agent-network-doks-digitalocean",
+      "package": "agent-network-doks",
+      "head": "95f8602abffb2f0700a6cb904882800e14ef9305",
+      "remote_main": "95f8602abffb2f0700a6cb904882800e14ef9305",
+      "package_revision": "affbd82f3c3b4332bcee47b1ccfcb29bb6befecf",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-agent-network-doks-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "e21f2b993414549524279ef6790e3bc47fbb67454df939734a18b6e8523d9af7",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "agent-network-k8s-vultr",
+      "package": "agent-network-k8s",
+      "head": "b959e854a166652815dd0e49dd299a80828c54ec",
+      "remote_main": "b959e854a166652815dd0e49dd299a80828c54ec",
+      "package_revision": "aea0f14a44b46dcdc371ccfa04ceffb0f56217a5",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-agent-network-k8s-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "4d6fe234c6b6947c8f8aa64750c03573166b24d346439eb033ec84f530b24a1a",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "agent-network-vultr",
+      "package": "agent-network",
+      "head": "ea2d3f1b6b39837416046d936bc270e05b8993c3",
+      "remote_main": "ea2d3f1b6b39837416046d936bc270e05b8993c3",
+      "package_revision": "c1c2631ab1cbe5e91a6c8f423cb9f1cd69366964",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-agent-network-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "d69ae5ea4bfb77e207e515c7bbdb40b8a4084df5488e1da59a43ce05a76d68dd",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "airflow-digitalocean",
+      "package": "airflow",
+      "head": "b650fbcd3855a704ebfd0b84e8ff260a04f6c052",
+      "remote_main": "b650fbcd3855a704ebfd0b84e8ff260a04f6c052",
+      "package_revision": "bb8c82bc44363adfeb1837b8a4cfa6d1ab924597",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-airflow-blue",
+          "color": "blue",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "777f7e0fec1721613cdd31b380523fe24966e95638b7e80dfe6cfc62a3d83ddf",
+          "lock_matches": true
+        },
+        {
+          "skill": "package-airflow-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "6fe74628ca9c83f964f0d4c8abc9ec6271f191cf038cdfa3c5af6d070bbc935f",
+          "lock_matches": true
+        },
+        {
+          "skill": "package-airflow-red",
+          "color": "red",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "71c5781c06401b54dbdf949bfc87ccb3d5949df849d7f7c14f4378a1847bacfd",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "alice-digitalocean",
+      "package": "alice",
+      "head": "765e7da22f5489c996e84ede8c96a1232f27483c",
+      "remote_main": "765e7da22f5489c996e84ede8c96a1232f27483c",
+      "package_revision": "31d4e3a71bd7654b27dca9c38d9b2db05e0e2669",
+      "backend": "r2",
+      "existing_state_guard": true,
+      "provenance": "manual",
+      "skills": [
+        {
+          "skill": "package-alice-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "efc5aac1d56cf8d53cf84edda8ab78910c536d5e78d8d8a6da697473d62e6923"
+        }
+      ]
+    },
+    {
+      "repo": "automq-vultr",
+      "package": "automq",
+      "head": "74ab3c075883e7695af40ba3449b7d97a709f4fc",
+      "remote_main": "74ab3c075883e7695af40ba3449b7d97a709f4fc",
+      "package_revision": "010bc92f602f4fa7eb54113fdc016284b020ee01",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-automq-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "3a70f1b11461ba8a02dd99a1926814ad2e4ef60302387451b4f81407cb1702af",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "clickhouse-hetzner",
+      "package": "clickhouse",
+      "head": "37576252275be419064682eed3d4c787406a6890",
+      "remote_main": "37576252275be419064682eed3d4c787406a6890",
+      "package_revision": "eb201662063175a12610bbf73ef4e1ee7019a3ca",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "manual",
+      "skills": [
+        {
+          "skill": "package-clickhouse-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "c9f6ee7f6e6f5b6abd58d0ffa1866df447203ea12dfaca086d659b2ee14c5d04"
+        }
+      ]
+    },
+    {
+      "repo": "clickstack-digitalocean",
+      "package": "clickstack",
+      "head": "a999a5651f23f2a2e9a8719b685d164f3190e498",
+      "remote_main": "a999a5651f23f2a2e9a8719b685d164f3190e498",
+      "package_revision": "c6df637e84f2e43d522694b8b32c96daed3256b2",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-clickstack-blue",
+          "color": "blue",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "52618e52e4f376369128a9098bcf5d9f70272043d9e432ede3f74991f5979abb",
+          "lock_matches": true
+        },
+        {
+          "skill": "package-clickstack-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "51cd558219664eadd527892671b0ad72662630147ef447e22563df63202d6270",
+          "lock_matches": true
+        },
+        {
+          "skill": "package-clickstack-red",
+          "color": "red",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "d0c23a45a9e2613762e6cc42719737e6ac4c66b15c99f18fa4b3c93fd0621c96",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "clickstack-vultr",
+      "package": "clickstack",
+      "head": "a6d869f81b07041f43642cb44e71a2545ad00199",
+      "remote_main": "a6d869f81b07041f43642cb44e71a2545ad00199",
+      "package_revision": "c6df637e84f2e43d522694b8b32c96daed3256b2",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-clickstack-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "51cd558219664eadd527892671b0ad72662630147ef447e22563df63202d6270",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "dbos-digitalocean",
+      "package": "dbos",
+      "head": "06a60dc585f550e58a01f6474a899ebee055299a",
+      "remote_main": "06a60dc585f550e58a01f6474a899ebee055299a",
+      "package_revision": "57697e8e23808771505613bac1b3eb94aa11258c",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-dbos-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "8b23a1da16ea35170a2ae00733ce413ac87bd5305cfc15143a143f2494b7c3f9",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "github-dwh-vultr",
+      "package": "github-dwh",
+      "head": "0d6def1599bf90a1237e5c150750b7fc6573e864",
+      "remote_main": "0d6def1599bf90a1237e5c150750b7fc6573e864",
+      "package_revision": "f5b04535043defef116f183778f903f29b6029d6",
+      "backend": "r2",
+      "existing_state_guard": true,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-github-dwh-blue",
+          "color": "blue",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "919af56e3e1c3aab0e0c1703a9e3cbbfcc79b8444323b1d2a2a6e756d912f073",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "k3s-hetzner",
+      "package": "k3s",
+      "head": "49aec92775c77214a40ed69805c4a6722a800a84",
+      "remote_main": "49aec92775c77214a40ed69805c4a6722a800a84",
+      "package_revision": "218a64a5fb5849297ad06f37a49a42163235a6c0",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-k3s-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "09e68d1740218db281336fb533ed682cc5e76e6f8e6aa627417aaf94ceadf5a1",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "k8s-digitalocean",
+      "package": "k8s",
+      "head": "5fe89160ed926277a55029f13a288f6707afecaa",
+      "remote_main": "5fe89160ed926277a55029f13a288f6707afecaa",
+      "package_revision": "28ed094e281fd85af061f8b4609656ca3818337d",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-k8s-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "d236e41b5d1733dd0644fdc134b17175809cc574bf4909f29852a3164f606165",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "langfuse-vultr",
+      "package": "langfuse",
+      "head": "a819e77c4d6a330c367c431471cc91d46a97895b",
+      "remote_main": "a819e77c4d6a330c367c431471cc91d46a97895b",
+      "package_revision": "5290041c5fb3365ed4a42194203dc38c6e277908",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-langfuse-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "ed82ed165c3c8ff497078e61b84e02c9f8fa7bed275bdaf77416829c2549bed3",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "mysql-agy-digitalocean",
+      "package": "mysql-agy",
+      "head": "6d2800e2b98b9656b5269b00746f93d72d4435d6",
+      "remote_main": "6d2800e2b98b9656b5269b00746f93d72d4435d6",
+      "package_revision": "d47b52390da1dd7193b357dea5eb603e4b1a3ccb",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-mysql-agy-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "2029f4ff87505de6e8eae553d2a8b81dcf4549e49b469ebaf72ff144e696e660",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "mysql-ha-digitalocean",
+      "package": "mysql-ha",
+      "head": "3a838ab4fb6e698f9bcf2516497d5f969008bd5d",
+      "remote_main": "3a838ab4fb6e698f9bcf2516497d5f969008bd5d",
+      "package_revision": "72cbfeed66ee66270d5cc42393aa9627228bdab6",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-mysql-ha-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "6b3cbb438381b1cc24a6378ab039ba16c8de75421f7899f4ada7e8a56858cd8e",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "n8n-vultr",
+      "package": "n8n",
+      "head": "69e026509ab025354df5ed4ecc39512a62deacc0",
+      "remote_main": "69e026509ab025354df5ed4ecc39512a62deacc0",
+      "package_revision": "b47ab429d0be8593fe2aa0e3e1f9d2687b8ab59c",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-n8n-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "e901ebcc519859942912b5d66cd32e9f811b6c694c2cdcb86e5e493937ab2798",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "neon-vultr",
+      "package": "neon",
+      "head": "708dd8513b91ee838abe4a8db6fb3e3208b62a87",
+      "remote_main": "708dd8513b91ee838abe4a8db6fb3e3208b62a87",
+      "package_revision": "9fa966633b278dc8bbf6e9c80496d5f33a1c0c9b",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-neon-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "fb5907371dedf6775d30b9162f28a6bb999b8d7b7111a246acf632fb42e2f610",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "netbird-vultr",
+      "package": "netbird",
+      "head": "91d995d221f25790b9a9e10083c63c60c2183f87",
+      "remote_main": "91d995d221f25790b9a9e10083c63c60c2183f87",
+      "package_revision": "119b2aa84b1dcf6988ac87c237b4c6743fef062c",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-netbird-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "cabfa8fc08c74a186ff39e8c6cfee905a4dcc44fa5073e24e2fb70e60fb6901a",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "once-aws",
+      "package": "once",
+      "head": "cea367079e355f9bb25ad8d89d048de85e7feb5d",
+      "remote_main": "cea367079e355f9bb25ad8d89d048de85e7feb5d",
+      "package_revision": "173823ebdf6b90145db632e73ef8d8388cd93174",
+      "backend": "r2",
+      "existing_state_guard": true,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-once-blue",
+          "color": "blue",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "16936c0493baabde5577e8db9ae7fb21df0bb8934035944dc34081755e75b4c1",
+          "lock_matches": true
+        },
+        {
+          "skill": "package-once-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "c213c07b8e5244607c392ba0668170696048681567b223d61c09dd65529cdf76",
+          "lock_matches": true
+        },
+        {
+          "skill": "package-once-red",
+          "color": "red",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "0ef9517ab93f638bee7f9dc6289f69a49d018f1d850c97a46958c57db9502ee4",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "once-azure",
+      "package": "once",
+      "head": "b38c15e27082eedb93f28eda8be3601cd3f4f8e6",
+      "remote_main": "b38c15e27082eedb93f28eda8be3601cd3f4f8e6",
+      "package_revision": "173823ebdf6b90145db632e73ef8d8388cd93174",
+      "backend": "r2",
+      "existing_state_guard": true,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-once-blue",
+          "color": "blue",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "16936c0493baabde5577e8db9ae7fb21df0bb8934035944dc34081755e75b4c1",
+          "lock_matches": true
+        },
+        {
+          "skill": "package-once-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "c213c07b8e5244607c392ba0668170696048681567b223d61c09dd65529cdf76",
+          "lock_matches": true
+        },
+        {
+          "skill": "package-once-red",
+          "color": "red",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "0ef9517ab93f638bee7f9dc6289f69a49d018f1d850c97a46958c57db9502ee4",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "once-colors",
+      "package": "once",
+      "head": "6b79e4bb88deed9f4949e39ea74ca1a950dfd021",
+      "remote_main": "6b79e4bb88deed9f4949e39ea74ca1a950dfd021",
+      "package_revision": "173823ebdf6b90145db632e73ef8d8388cd93174",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-once-blue",
+          "color": "blue",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "16936c0493baabde5577e8db9ae7fb21df0bb8934035944dc34081755e75b4c1",
+          "lock_matches": true
+        },
+        {
+          "skill": "package-once-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "c213c07b8e5244607c392ba0668170696048681567b223d61c09dd65529cdf76",
+          "lock_matches": true
+        },
+        {
+          "skill": "package-once-red",
+          "color": "red",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "0ef9517ab93f638bee7f9dc6289f69a49d018f1d850c97a46958c57db9502ee4",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "once-google",
+      "package": "once",
+      "head": "fdae07cc43718d2cf2209b83eb4d3674e5bdff05",
+      "remote_main": "fdae07cc43718d2cf2209b83eb4d3674e5bdff05",
+      "package_revision": "173823ebdf6b90145db632e73ef8d8388cd93174",
+      "backend": "r2",
+      "existing_state_guard": true,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-once-blue",
+          "color": "blue",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "16936c0493baabde5577e8db9ae7fb21df0bb8934035944dc34081755e75b4c1",
+          "lock_matches": true
+        },
+        {
+          "skill": "package-once-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "c213c07b8e5244607c392ba0668170696048681567b223d61c09dd65529cdf76",
+          "lock_matches": true
+        },
+        {
+          "skill": "package-once-red",
+          "color": "red",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "0ef9517ab93f638bee7f9dc6289f69a49d018f1d850c97a46958c57db9502ee4",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "once-vultr",
+      "package": "once",
+      "head": "949ad2c964731eb93438e8baa07cfaf1481427ee",
+      "remote_main": "949ad2c964731eb93438e8baa07cfaf1481427ee",
+      "package_revision": "173823ebdf6b90145db632e73ef8d8388cd93174",
+      "backend": "r2",
+      "existing_state_guard": true,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-once-blue",
+          "color": "blue",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "16936c0493baabde5577e8db9ae7fb21df0bb8934035944dc34081755e75b4c1",
+          "lock_matches": true
+        },
+        {
+          "skill": "package-once-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "c213c07b8e5244607c392ba0668170696048681567b223d61c09dd65529cdf76",
+          "lock_matches": true
+        },
+        {
+          "skill": "package-once-red",
+          "color": "red",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "0ef9517ab93f638bee7f9dc6289f69a49d018f1d850c97a46958c57db9502ee4",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "postgres-agy-digitalocean",
+      "package": "postgres-agy",
+      "head": "aae193680984434150abe69826a6329ab3de3150",
+      "remote_main": "aae193680984434150abe69826a6329ab3de3150",
+      "package_revision": "2b4ec146e8a33ce006da0395fbabfb326920a9de",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-postgres-agy-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "6283b614ede86400d026a1aa60fe0aae9ede998183584904ad7454b8906510b7",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "postgres-ha-digitalocean",
+      "package": "postgres-ha",
+      "head": "87552dee24fbb490b362bf40d457513bfec548a4",
+      "remote_main": "87552dee24fbb490b362bf40d457513bfec548a4",
+      "package_revision": "956058800e0f344bb23647c253ba04ad1ad73a12",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-postgres-ha-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "124b55e9612b07f0f0d21d39f0d17c3397cb70b5d550ccbece6d217e69afda56",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "posthog-digitalocean",
+      "package": "posthog",
+      "head": "8bb7746d7866175df4ca52d0dbb85e144a6b2b21",
+      "remote_main": "8bb7746d7866175df4ca52d0dbb85e144a6b2b21",
+      "package_revision": "53544325bad1e85aded5b5d123b0f1d8f534b8cb",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "manual",
+      "skills": [
+        {
+          "skill": "package-posthog-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "68f72586159cf8fa0ed11a74cf1b9a7382a328302b6842e87661abfaa8021270"
+        }
+      ]
+    },
+    {
+      "repo": "posthog-vultr",
+      "package": "posthog",
+      "head": "5f2d52c6b0dbf34cf55a86f217f5a51e950eb06d",
+      "remote_main": "5f2d52c6b0dbf34cf55a86f217f5a51e950eb06d",
+      "package_revision": "53544325bad1e85aded5b5d123b0f1d8f534b8cb",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-posthog-blue",
+          "color": "blue",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "bcbd06e7e62d22ad25bb5d1646bbf8315100bd8f31de3718151b71edfaacc041",
+          "lock_matches": true
+        },
+        {
+          "skill": "package-posthog-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "68f72586159cf8fa0ed11a74cf1b9a7382a328302b6842e87661abfaa8021270",
+          "lock_matches": true
+        },
+        {
+          "skill": "package-posthog-red",
+          "color": "red",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "63919c5fb25c265d2d9dc3a664c272232a02fd6d23bfae218eaa4af0dc7b478f",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "rama-digitalocean",
+      "package": "rama",
+      "head": "03d3aa710ed135d2bf45bd41b171f6041d6a7ced",
+      "remote_main": "03d3aa710ed135d2bf45bd41b171f6041d6a7ced",
+      "package_revision": "d3efe20489e8e20f1765674a3524cd370d6ac6c9",
+      "backend": "r2",
+      "existing_state_guard": true,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-rama-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "ea2db9e9744d6e7380c9a882600fecfa5137dc0939d8ea554f9e49646489a84c",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "redis-vultr",
+      "package": "redis",
+      "head": "29cb6fb985faf8cce102a6227e706f7aeef1f866",
+      "remote_main": "29cb6fb985faf8cce102a6227e706f7aeef1f866",
+      "package_revision": "9db5268f427b746a01c189548c5fe0b0934772d2",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-redis-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "41cf9e9b2917f7f2b51ad526cacb27668992a12c8cbc6a68938d329c9217926a",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "restate-digitalocean",
+      "package": "restate",
+      "head": "bf2f48f1c23cd9fb69fa979f11f75bb9177a40ef",
+      "remote_main": "bf2f48f1c23cd9fb69fa979f11f75bb9177a40ef",
+      "package_revision": "8422eb7e510877166e31b4a6d781350e9f6ba9b0",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-restate-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "40946514e577a3bb7470d992d97f60046c7447ef2687c51f9ed1750fde722865",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "rybbit-digitalocean",
+      "package": "rybbit",
+      "head": "8089db591b32dcb1f39cb9d03473b445e2c9027c",
+      "remote_main": "8089db591b32dcb1f39cb9d03473b445e2c9027c",
+      "package_revision": "91524a5d2b00b99562ae2bb45e31a869848dab84",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "manual",
+      "skills": [
+        {
+          "skill": "package-rybbit-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "bd234f85fcae008958311175e5fc793cfdc76057c2d4d76e3aff90d1f8ee47cd"
+        }
+      ]
+    },
+    {
+      "repo": "rybbit-vultr",
+      "package": "rybbit",
+      "head": "ae47dbd79e0c14fc0c8c4049105ed15bbe4a7f8f",
+      "remote_main": "ae47dbd79e0c14fc0c8c4049105ed15bbe4a7f8f",
+      "package_revision": "91524a5d2b00b99562ae2bb45e31a869848dab84",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-rybbit-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "bd234f85fcae008958311175e5fc793cfdc76057c2d4d76e3aff90d1f8ee47cd",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "signoz-digitalocean",
+      "package": "signoz",
+      "head": "810f9ce4279320e5bbed7ff6b61a97f696ed7816",
+      "remote_main": "810f9ce4279320e5bbed7ff6b61a97f696ed7816",
+      "package_revision": "afc2e5fea7aada2064193b997d4011cddc332158",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-signoz-blue",
+          "color": "blue",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "5bda068e410ba4c1d68cd863b5b3f1227138f94d7b9c79b3282d506f32766570",
+          "lock_matches": true
+        },
+        {
+          "skill": "package-signoz-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "0e336726f404b818aadb485c03e7e3950120d2aefb1655e546eb214af8a24d2e",
+          "lock_matches": true
+        },
+        {
+          "skill": "package-signoz-red",
+          "color": "red",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "355628c36e14180241e1e82e07400600989dc510cab3c90fa6ad9ff0f96e8031",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "signoz-vultr",
+      "package": "signoz",
+      "head": "ba00313ffcd7a3ffec87c324f6d770ba225128c0",
+      "remote_main": "ba00313ffcd7a3ffec87c324f6d770ba225128c0",
+      "package_revision": "afc2e5fea7aada2064193b997d4011cddc332158",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-signoz-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "0e336726f404b818aadb485c03e7e3950120d2aefb1655e546eb214af8a24d2e",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "temporal-digitalocean",
+      "package": "temporal",
+      "head": "ac7281f8944238f15260c94236dd21be670cb659",
+      "remote_main": "ac7281f8944238f15260c94236dd21be670cb659",
+      "package_revision": "efb10708eae13adfbeeddabb126277838d9df427",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-temporal-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "671c5c7f8a1ff71acda580e6d0f6e666708cf6a52fe95a879be8de15dc76d43a",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "umami-digitalocean",
+      "package": "umami",
+      "head": "d6ebd9afc6c0c9926d9f9ff100650ddfba9b4c09",
+      "remote_main": "d6ebd9afc6c0c9926d9f9ff100650ddfba9b4c09",
+      "package_revision": "b3aa56fbdbd062229cf336b1ff08ada720d5de27",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "manual",
+      "skills": [
+        {
+          "skill": "package-umami-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "9b1f59696395a466b7b309056b9d7014680be2a2c870be4b0f0b395ecc9f6747"
+        }
+      ]
+    },
+    {
+      "repo": "vaultwarden-digitalocean",
+      "package": "vaultwarden",
+      "head": "7a596fbf406df78b8eba4c3847305414c35e33a4",
+      "remote_main": "7a596fbf406df78b8eba4c3847305414c35e33a4",
+      "package_revision": "c1764279ee8f7ad9eb83ed36f1cc2acf34bf9ff6",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "manual",
+      "skills": [
+        {
+          "skill": "package-vaultwarden-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "ffb6bc04aedf78fac7e1bfc7a3daadba425698b138a591d94e0fc6a5ac7ce176"
+        }
+      ]
+    },
+    {
+      "repo": "walter-ada",
+      "package": "walter",
+      "head": "e8a3cacaab9b52562e215d0b721cebd4f5e1e040",
+      "remote_main": "e8a3cacaab9b52562e215d0b721cebd4f5e1e040",
+      "package_revision": "3c385901dea62fc09712ca2ab61deec8623621dc",
+      "backend": "r2",
+      "existing_state_guard": true,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-walter-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "377ca253586c4101658950470e0e15f6be4694b3e3b0bbe543452b239cb10c21",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "walter-liliana",
+      "package": "walter",
+      "head": "2f2c09edbc1a9a39916a213fc083795ed2f44e07",
+      "remote_main": "2f2c09edbc1a9a39916a213fc083795ed2f44e07",
+      "package_revision": "3c385901dea62fc09712ca2ab61deec8623621dc",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "manual",
+      "skills": [
+        {
+          "skill": "package-walter-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "377ca253586c4101658950470e0e15f6be4694b3e3b0bbe543452b239cb10c21"
+        }
+      ]
+    },
+    {
+      "repo": "walter-many",
+      "package": "walter",
+      "head": "f43ceaa64a7039629efc0a59d853b9c8d197a937",
+      "remote_main": "f43ceaa64a7039629efc0a59d853b9c8d197a937",
+      "package_revision": "3c385901dea62fc09712ca2ab61deec8623621dc",
+      "backend": "r2",
+      "existing_state_guard": true,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-walter-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "377ca253586c4101658950470e0e15f6be4694b3e3b0bbe543452b239cb10c21",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "walter-oci",
+      "package": "walter",
+      "head": "739131eeed557e2ce9e28e680ef934cd4f35bb41",
+      "remote_main": "739131eeed557e2ce9e28e680ef934cd4f35bb41",
+      "package_revision": "3c385901dea62fc09712ca2ab61deec8623621dc",
+      "backend": "r2",
+      "existing_state_guard": true,
+      "provenance": "manual",
+      "skills": [
+        {
+          "skill": "package-walter-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "377ca253586c4101658950470e0e15f6be4694b3e3b0bbe543452b239cb10c21"
+        }
+      ]
+    },
+    {
+      "repo": "walter-vultr",
+      "package": "walter",
+      "head": "6a3c0ab3ca3ba94fa5d8548826cfa3c3720ce028",
+      "remote_main": "6a3c0ab3ca3ba94fa5d8548826cfa3c3720ce028",
+      "package_revision": "3c385901dea62fc09712ca2ab61deec8623621dc",
+      "backend": "r2",
+      "existing_state_guard": true,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-walter-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "377ca253586c4101658950470e0e15f6be4694b3e3b0bbe543452b239cb10c21",
+          "lock_matches": true
+        }
+      ]
+    },
+    {
+      "repo": "wavehouse-vultr",
+      "package": "wavehouse",
+      "head": "f428ec8e7583d03a3d43fe27fab9dfe2d4b790fd",
+      "remote_main": "f428ec8e7583d03a3d43fe27fab9dfe2d4b790fd",
+      "package_revision": "26198416d57cd345f4b513400d9fe8f95164fa66",
+      "backend": "r2",
+      "existing_state_guard": null,
+      "provenance": "lockfile",
+      "skills": [
+        {
+          "skill": "package-wavehouse-green",
+          "color": "green",
+          "root_matches": true,
+          "missing_files": [],
+          "extra_files": [],
+          "different_files": [],
+          "computed_hash": "32c07ff777b0284571f80f82577b681e65f484a48b13b5b58530126df0b9b6ed",
+          "lock_matches": true
+        }
+      ]
+    }
+  ]
+}
