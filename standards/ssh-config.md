@@ -97,8 +97,9 @@ On real create, before rendering or editing the block, the package MUST:
   when inserting the managed block would change their scope.
 
 The managed block MUST be inserted at the beginning of the file with
-`insertbefore: BOF`. This gives its connection settings precedence over later
-wildcard settings. A regex targeting an arbitrary Host line is not sufficient.
+`insertbefore: BOF`, or an equivalent atomic insertion at byte zero while
+holding the shared-file lock. This gives its connection settings precedence
+over later wildcard settings. A regex targeting an arbitrary Host line is not sufficient.
 
 For a leading-global-option refusal, the recovery is to place those settings
 in an explicit `Host *` stanza in the intended position, usually at the end.
