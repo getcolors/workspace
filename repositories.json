@@ -321,8 +321,13 @@
   },
   "redis": {
     "category": "package",
-    "description": "One Redis 7.2 server on one Vultr instance or DigitalOcean droplet — loopback only, SSH tunnel client path, AOF persistence, RDB backup sets in Cloudflare R2 with a rehearsed restore. Green Package Skill.",
+    "description": "One Redis 7.2 server on one Vultr instance, DigitalOcean droplet or AWS EC2 instance — loopback only, SSH tunnel client path, AOF persistence, RDB backup sets in Cloudflare R2 or a deployment-owned S3 bucket with a rehearsed restore. Green, red and blue Package Skills.",
     "homepage": "https://getcolors.github.io/redis/"
+  },
+  "redis-aws": {
+    "category": "deployment",
+    "description": "Desired state for one Redis 7.2 server on AWS — loopback only, reached over an SSH tunnel, with the state and backup S3 buckets owned by the deployment; verified in green, red and blue.",
+    "homepage": "https://getcolors.github.io/redis-aws/"
   },
   "redis-vultr": {
     "category": "deployment",

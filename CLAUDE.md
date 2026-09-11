@@ -42,7 +42,8 @@ SDK            green ──┬── once ──┬── once-colors          (
                                    │                     └─ n8n (3 colours) ─┬─ n8n-vultr (Vultr n8n on that tier)
                                    │                                          └─ n8n-aws   (AWS n8n, owned S3 buckets)
                                    ├── langfuse (3 colours) ─ langfuse-vultr (Vultr Langfuse on Neon, Redis, ClickHouse ×3)
-                                   ├── redis (green) ─── redis-vultr        (Vultr Redis, loopback only, SSH tunnel)
+                                   ├── redis (3 colours) ─┬─ redis-vultr    (Vultr Redis, loopback only, SSH tunnel)
+                                   │                      └─ redis-aws      (AWS Redis, owned S3 state and backup buckets)
                                    ├── alice     ─── alice-digitalocean (ephemeral Transmission)
                                    ├── rama      ─── rama-digitalocean  (DigitalOcean Rama)
                                    ├── k3s       ─── k3s-hetzner        (Hetzner K3s)
@@ -112,7 +113,7 @@ engine namespace (`:green/exit` → `"red/exit"` → `"blue/exit"`).
 | `neon/` | green, red, blue | one self-hosted Neon on Vultr — storage broker, pageserver, one safekeeper, and a Postgres 17 compute node under `compute_ctl`, with layers and WAL in Cloudflare R2; no DNS and no public port, reached over an SSH tunnel |
 | `n8n/` | green, red, blue | one n8n workflow automation server on Vultr or AWS behind Caddy, with Code nodes in an external task runner, on a colocated self-hosted Neon storage tier whose layers, WAL and backups live in R2 or S3; on AWS the deployment can own its state, Neon and backup buckets as lifecycle resources — the one package that renders **another package's** templates rather than owning them |
 | `langfuse/` | green, red, blue | self-hosted Langfuse v4 on **six** Vultr machines in one VPC — a `neon`-rendered storage tier, a Redis host, three ClickHouse replicas with Keeper (templates derived from `clickhouse`, owned here), and the app host behind Caddy and Cloudflare; Cloudflare R2 for events, media, Neon layers/WAL and backups; the second package that renders `neon`'s templates rather than owning them |
-| `redis/` | green only | one Redis 7.2 server on one Vultr instance or DigitalOcean droplet — published on loopback only, reached over an SSH tunnel, an append-only file for persistence, and RDB backup sets in Cloudflare R2 with a completion protocol and a `rehearse` verb that restores one into a scratch instance of the pinned image |
+| `redis/` | green, red, blue | one Redis 7.2 server on one Vultr instance, DigitalOcean droplet or AWS EC2 instance — published on loopback only, reached over an SSH tunnel, an append-only file for persistence, and RDB backup sets in Cloudflare R2 or, on AWS, in an S3 bucket the deployment creates and destroys as a lifecycle resource beside the managed state bucket, with a completion protocol and a `rehearse` verb that restores one into a scratch instance of the pinned image |
 | `netbird/` | green, red, blue | one self-hosted NetBird control plane on Vultr — Traefik, the combined `netbird-server` (management, signal, relay, STUN), the dashboard, and Authentik as the identity provider |
 | `agent-network/` | green, red, blue | one minimal NetBird Agent Network demo on Vultr or DigitalOcean: a keyless, policy-gated LLM endpoint (private reverse proxy, model allowlist, budget caps) and a network-isolated agent container running headless Claude Code |
 | `agent-network-k8s/` | green, red, blue | one NetBird Agent Network demo on Vultr Kubernetes Engine: the gateway on VKE behind a TCP-mode load balancer, an in-cluster kaniko image build, and a two-pod application — the NetBird client in netstack/SOCKS5 mode and a network-isolated agent pod running headless Claude Code |
@@ -140,7 +141,7 @@ target, so its verbs are `build`, `diff` and `create` — there is no `delete`.
 `clickstack-digitalocean/`,
 `dbos-digitalocean/`, `restate-digitalocean/`, `temporal-digitalocean/`,
 `vaultwarden-digitalocean/`, `github-dwh-vultr/`, `wavehouse-vultr/`,
-`neon-vultr/`, `n8n-vultr/`, `n8n-aws/`, `langfuse-vultr/`, `redis-vultr/`, `netbird-vultr/`, `agent-network-vultr/`,
+`neon-vultr/`, `n8n-vultr/`, `n8n-aws/`, `langfuse-vultr/`, `redis-vultr/`, `redis-aws/`, `netbird-vultr/`, `agent-network-vultr/`,
 `agent-network-digitalocean/`, `agent-network-k8s-vultr/`,
 `agent-network-doks-digitalocean/`,
 `mysql-agy-digitalocean/`,
@@ -155,7 +156,7 @@ Every current deployment tracks an `.agents/skills/package-*/` payload, but
 launcher provenance is **not** uniform. The five ONCE deployments, Airflow,
 Rama, K3s, K8s, DBOS, Restate, Temporal, GitHub DWH, WaveHouse, ClickStack,
 NetBird, Agent Network, Agent Network K8s, Agent Network DOKS, Walter Vultr, Walter Many, both MySQL and both
-Postgres deployments, Rybbit Vultr, Redis Vultr, both SigNoz deployments, both Agent
+Postgres deployments, Rybbit Vultr, Redis Vultr, Redis AWS, both SigNoz deployments, both Agent
 Network deployments, ClickStack DigitalOcean, PostHog Vultr, AutoMQ Vultr,
 Neon Vultr, n8n Vultr, n8n AWS, Langfuse Vultr, and both dotfiles
 deployments also track `skills-lock.json`. Alice, the three OCI Walter deployments, ClickHouse,
@@ -255,7 +256,7 @@ Each repo, from its own directory:
 | `airflow/`, `neon/`, `n8n/`, `langfuse/`, `netbird/`, `agent-network/`, `agent-network-k8s/`, `agent-network-doks/`, `k3s/`, `k8s/`, `clickhouse/`, `clickstack/`, `dbos/`, `restate/`, `temporal/`, `vaultwarden/`, `wavehouse/`, `mysql-agy/`, `mysql-ha/`, `postgres-agy/`, `postgres-ha/`, `posthog/`, `rybbit/`, `signoz/`, `umami/` | `cd green && bb test && bb golden` · red/blue suites · `./scripts/parity.sh` · `./scripts/launcher.sh` |
 | `walter/`, `rama/`, `alice/`, `automq/`, `dotfiles/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
 | `github-dwh/` | `uv run pytest` · `./scripts/golden.sh` · `./scripts/launcher.sh` |
-| `redis/` | `bb test` · `bb golden` · `bb syntax` · `./scripts/launcher.sh` |
+| `redis/` | `cd green && bb test && bb golden && bb syntax` · `cd red && bun test` · `cd blue && uv run pytest` · `./scripts/parity.sh` · `./scripts/launcher.sh` |
 | `colors-website/` | `pnpm typecheck` · `pnpm build` · `pnpm dev` |
 | `colors-redirect/` | `caddy validate --config Caddyfile --adapter caddyfile` |
 
