@@ -80,6 +80,17 @@ def updater_source(source, package):
     # Reviewed explicit variants, never a blanket exemption. Alice preserves its
     # stricter managed-key identity-agent policy. Walter migrates only anchored
     # legacy per-seat markers, including retired seats (SSH standard section 8).
+    if package == 'automq':
+        # Recovered empty-node deployments can remove their owned block without addresses.
+        replacements = {
+            "not isinstance(hosts, list) or not hosts or len(hosts) > 1001": "not isinstance(hosts, list) or (mode == 'present' and not hosts) or len(hosts) > 1001",
+            "if profile.lower() not in aliases:": "if hosts and profile.lower() not in aliases:",
+        }
+        for old, new in replacements.items():
+            if source.count(old) != 1:
+                raise ValueError('canonical updater changed; review the explicit automq variant')
+            source = source.replace(old, new)
+        return source
     if package == 'alice':
         old = "block.extend(['    IdentityFile ~/.ssh/' + profile, '    IdentitiesOnly yes'])"
         new = "block.extend(['    IdentityFile ~/.ssh/' + profile, '    IdentitiesOnly yes', '    IdentityAgent none'])"

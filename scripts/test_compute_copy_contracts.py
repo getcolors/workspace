@@ -135,7 +135,7 @@ class CopyContracts(unittest.TestCase):
         self.assertEqual([], self.audit().errors)
 
     def test_reviewed_variants_do_not_allow_unrelated_drift(self):
-        for name in ('alice','walter'):
+        for name in ('alice','walter','automq'):
             code = checker.updater_source(SOURCE, name)
             self.package(name, 'green', code=code, adapter='joined')
         self.assertEqual([], self.audit().errors)
