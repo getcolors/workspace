@@ -64,6 +64,11 @@
     "description": "Three-node AutoMQ cluster on Vultr — Kafka-compatible brokers whose storage tier is Cloudflare R2, behind a SASL_SSL endpoint with SCRAM and ACLs (Colors Package Skill, green only)",
     "homepage": "https://getcolors.github.io/automq/"
   },
+  "automq-aws": {
+    "category": "deployment",
+    "description": "Desired state for three AutoMQ 1.7.4 nodes on AWS EC2, with the state, data and ops S3 buckets owned by the deployment; verified live and then deleted.",
+    "homepage": ""
+  },
   "automq-vultr": {
     "category": "deployment",
     "description": "Desired state for a three-node AutoMQ cluster on Vultr, run by the automq Package Skill",
@@ -78,6 +83,11 @@
     "category": "package",
     "description": "Provision a private replicated ClickHouse, Keeper, and Metabase stack with Green.",
     "homepage": "https://getcolors.github.io/clickhouse/"
+  },
+  "clickhouse-aws": {
+    "category": "deployment",
+    "description": "Desired state for a replicated ClickHouse cluster with Keeper, Metabase and dbt on AWS, with the state and backup S3 buckets owned by the deployment; verified live and then deleted.",
+    "homepage": ""
   },
   "clickhouse-hetzner": {
     "category": "deployment",
@@ -98,6 +108,11 @@
     "category": "deployment",
     "description": "Desired state for a ClickStack observability server on Vultr.",
     "homepage": "https://getcolors.github.io/clickstack-vultr/"
+  },
+  "colors-compute": {
+    "category": "sdk",
+    "description": "Shared compute library for the Green, Red and Blue Package Skills: eight VM providers, managed S3 and R2 state, machine SSH keypairs, networks and lifecycle coordination.",
+    "homepage": ""
   },
   "colors-redirect": {
     "category": "application",
@@ -184,6 +199,11 @@
     "description": "Self-hosted Langfuse v4 on six Vultr machines in one VPC — a self-hosted Neon storage tier, Redis, three ClickHouse replicas with Keeper, and the app host behind Cloudflare, with Cloudflare R2 for events, media and backups. Green Package Skill.",
     "homepage": "https://getcolors.github.io/langfuse/"
   },
+  "langfuse-aws": {
+    "category": "deployment",
+    "description": "Desired state for self-hosted Langfuse v4 on six AWS machines (Neon storage tier, Redis, three ClickHouse replicas, the app host) with deployment-owned S3 buckets; verified live and then deleted.",
+    "homepage": ""
+  },
   "langfuse-vultr": {
     "category": "deployment",
     "description": "Langfuse v4 on six Vultr machines — desired state for langfuse.bigconfig.online.",
@@ -214,6 +234,11 @@
     "description": "n8n workflow automation on one Vultr instance or one AWS EC2 instance, backed by a colocated self-hosted Neon — storage/compute-separated Postgres with layers and WAL in Cloudflare R2 or S3. Green, red, and blue Package Skills.",
     "homepage": "https://getcolors.github.io/n8n/"
   },
+  "n8n-aws": {
+    "category": "deployment",
+    "description": "n8n on one AWS EC2 instance backed by a colocated self-hosted Neon, with the state, Neon and backup S3 buckets owned by the deployment — desired state for n8n-aws.bigconfig.online.",
+    "homepage": "https://getcolors.github.io/n8n-aws/"
+  },
   "n8n-vultr": {
     "category": "deployment",
     "description": "n8n on one Vultr instance backed by a colocated self-hosted Neon — desired state for n8n.bigconfig.online.",
@@ -223,6 +248,16 @@
     "category": "package",
     "description": "Self-hosted Neon serverless Postgres on one Vultr instance — storage/compute separation with layers and WAL in Cloudflare R2. Green, red, and blue Package Skills.",
     "homepage": "https://getcolors.github.io/neon/"
+  },
+  "neon-multi-node": {
+    "category": "package",
+    "description": "Self-hosted Neon Postgres 17 across five AWS machines: one compute node, a pageserver with the storage broker, three safekeepers, native PostgreSQL TLS and a managed S3 bucket. Green, red, and blue Package Skills.",
+    "homepage": ""
+  },
+  "neon-multi-node-aws": {
+    "category": "deployment",
+    "description": "Desired state for the Neon Multi-Node package in AWS us-east-1: five machines, deployment-owned S3 state and data buckets, Cloudflare DNS; verified live in green, red and blue, then deleted.",
+    "homepage": ""
   },
   "neon-vultr": {
     "category": "deployment",
@@ -453,10 +488,5 @@
     "category": "portfolio",
     "description": "Cross-repository portfolio and readiness audit for the Colors workspace.",
     "homepage": ""
-  },
-  "n8n-aws": {
-    "category": "deployment",
-    "description": "n8n on one AWS EC2 instance backed by a colocated self-hosted Neon, with the state, Neon and backup S3 buckets owned by the deployment — desired state for n8n-aws.bigconfig.online.",
-    "homepage": "https://getcolors.github.io/n8n-aws/"
   }
 }

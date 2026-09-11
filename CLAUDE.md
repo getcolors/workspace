@@ -37,18 +37,22 @@ SDK            green ──┬── once ──┬── once-colors          (
                                    │              ├─ walter-liliana    (OCI dev machine)
                                    │              ├─ walter-vultr      (Vultr dev machine)
                                    │              └─ walter-many       (Vultr dev machine, seats)
-                                   ├── automq    ─── automq-vultr        (Vultr AutoMQ cluster)
+                                   ├── automq    ─┬─ automq-vultr        (Vultr AutoMQ cluster)
+                                   │              └─ automq-aws          (AWS AutoMQ cluster, owned S3 buckets)
                                    ├── neon (3 colours) ─┬─ neon-vultr    (Vultr self-hosted Neon)
                                    │                     └─ n8n (3 colours) ─┬─ n8n-vultr (Vultr n8n on that tier)
                                    │                                          └─ n8n-aws   (AWS n8n, owned S3 buckets)
-                                   ├── langfuse (3 colours) ─ langfuse-vultr (Vultr Langfuse on Neon, Redis, ClickHouse ×3)
+                                   ├── langfuse (3 colours) ─┬─ langfuse-vultr (Vultr Langfuse on Neon, Redis, ClickHouse ×3)
+                                   │                        └─ langfuse-aws   (AWS Langfuse, owned S3 buckets)
+                                   ├── neon-multi-node (3 colours) ─ neon-multi-node-aws (AWS five-machine Neon)
                                    ├── redis (3 colours) ─┬─ redis-vultr    (Vultr Redis, loopback only, SSH tunnel)
                                    │                      └─ redis-aws      (AWS Redis, owned S3 state and backup buckets)
                                    ├── alice     ─── alice-digitalocean (ephemeral Transmission)
                                    ├── rama      ─── rama-digitalocean  (DigitalOcean Rama)
                                    ├── k3s       ─── k3s-hetzner        (Hetzner K3s)
                                    ├── k8s       ─── k8s-digitalocean   (DigitalOcean Kubernetes)
-                                   ├── clickhouse ─ clickhouse-hetzner  (Hetzner data stack)
+                                   ├── clickhouse ─┬─ clickhouse-hetzner  (Hetzner data stack)
+                                   │              └─ clickhouse-aws      (AWS data stack, owned S3 buckets)
                                    ├── clickstack ─┬─ clickstack-vultr        (Vultr observability stack)
                                    │              └─ clickstack-digitalocean (DigitalOcean observability stack)
                                    ├── dbos      ─── dbos-digitalocean  (DigitalOcean DBOS)
@@ -112,6 +116,7 @@ engine namespace (`:green/exit` → `"red/exit"` → `"blue/exit"`).
 | `wavehouse/` | green, red, blue | one WaveHouse analytics demo: ClickHouse, the WaveHouse gateway, and a live GitHub stats dashboard on Vultr |
 | `neon/` | green, red, blue | one self-hosted Neon on Vultr — storage broker, pageserver, one safekeeper, and a Postgres 17 compute node under `compute_ctl`, with layers and WAL in Cloudflare R2; no DNS and no public port, reached over an SSH tunnel |
 | `n8n/` | green, red, blue | one n8n workflow automation server on Vultr or AWS behind Caddy, with Code nodes in an external task runner, on a colocated self-hosted Neon storage tier whose layers, WAL and backups live in R2 or S3; on AWS the deployment can own its state, Neon and backup buckets as lifecycle resources — the one package that renders **another package's** templates rather than owning them |
+| `neon-multi-node/` | green, red, blue | self-hosted Neon Postgres 17 across **five** AWS machines: one compute node, a pageserver with the storage broker, three safekeepers with WAL quorum, native PostgreSQL TLS, Cloudflare DNS and a deployment-owned S3 bucket |
 | `langfuse/` | green, red, blue | self-hosted Langfuse v4 on **six** Vultr machines in one VPC — a `neon`-rendered storage tier, a Redis host, three ClickHouse replicas with Keeper (templates derived from `clickhouse`, owned here), and the app host behind Caddy and Cloudflare; Cloudflare R2 for events, media, Neon layers/WAL and backups; the second package that renders `neon`'s templates rather than owning them |
 | `redis/` | green, red, blue | one Redis 7.2 server on one Vultr instance, DigitalOcean droplet or AWS EC2 instance — published on loopback only, reached over an SSH tunnel, an append-only file for persistence, and RDB backup sets in Cloudflare R2 or, on AWS, in an S3 bucket the deployment creates and destroys as a lifecycle resource beside the managed state bucket, with a completion protocol and a `rehearse` verb that restores one into a scratch instance of the pinned image |
 | `netbird/` | green, red, blue | one self-hosted NetBird control plane on Vultr — Traefik, the combined `netbird-server` (management, signal, relay, STUN), the dashboard, and Authentik as the identity provider |
@@ -135,13 +140,13 @@ target, so its verbs are `build`, `diff` and `create` — there is no `delete`.
 **Deployments — desired state only, no source code.** `once-colors/`,
 `once-aws/`, `once-azure/`, `once-google/`, `once-vultr/`, `walter-oci/`,
 `walter-ada/`, `walter-liliana/`, `walter-vultr/`, `walter-many/`,
-`airflow-digitalocean/`, `alice-digitalocean/`, `automq-vultr/`,
+`airflow-digitalocean/`, `alice-digitalocean/`, `automq-vultr/`, `automq-aws/`,
 `rama-digitalocean/`,
-`k3s-hetzner/`, `k8s-digitalocean/`, `clickhouse-hetzner/`, `clickstack-vultr/`,
+`k3s-hetzner/`, `k8s-digitalocean/`, `clickhouse-hetzner/`, `clickhouse-aws/`, `clickstack-vultr/`,
 `clickstack-digitalocean/`,
 `dbos-digitalocean/`, `restate-digitalocean/`, `temporal-digitalocean/`,
 `vaultwarden-digitalocean/`, `github-dwh-vultr/`, `wavehouse-vultr/`,
-`neon-vultr/`, `n8n-vultr/`, `n8n-aws/`, `langfuse-vultr/`, `redis-vultr/`, `redis-aws/`, `netbird-vultr/`, `agent-network-vultr/`,
+`neon-vultr/`, `neon-multi-node-aws/`, `n8n-vultr/`, `n8n-aws/`, `langfuse-vultr/`, `langfuse-aws/`, `redis-vultr/`, `redis-aws/`, `netbird-vultr/`, `agent-network-vultr/`,
 `agent-network-digitalocean/`, `agent-network-k8s-vultr/`,
 `agent-network-doks-digitalocean/`,
 `mysql-agy-digitalocean/`,
@@ -253,7 +258,7 @@ Each repo, from its own directory:
 | `red/` | `bun test` · `bun run typecheck` |
 | `blue/` | `uv sync && uv run pytest` (one test: `-k <name>`) |
 | `once/` | per-colour suites, then `./scripts/parity.sh` and `./scripts/launcher.sh` |
-| `airflow/`, `neon/`, `n8n/`, `langfuse/`, `netbird/`, `agent-network/`, `agent-network-k8s/`, `agent-network-doks/`, `k3s/`, `k8s/`, `clickhouse/`, `clickstack/`, `dbos/`, `restate/`, `temporal/`, `vaultwarden/`, `wavehouse/`, `mysql-agy/`, `mysql-ha/`, `postgres-agy/`, `postgres-ha/`, `posthog/`, `rybbit/`, `signoz/`, `umami/` | `cd green && bb test && bb golden` · red/blue suites · `./scripts/parity.sh` · `./scripts/launcher.sh` |
+| `airflow/`, `neon/`, `neon-multi-node/`, `n8n/`, `langfuse/`, `netbird/`, `agent-network/`, `agent-network-k8s/`, `agent-network-doks/`, `k3s/`, `k8s/`, `clickhouse/`, `clickstack/`, `dbos/`, `restate/`, `temporal/`, `vaultwarden/`, `wavehouse/`, `mysql-agy/`, `mysql-ha/`, `postgres-agy/`, `postgres-ha/`, `posthog/`, `rybbit/`, `signoz/`, `umami/` | `cd green && bb test && bb golden` · red/blue suites · `./scripts/parity.sh` · `./scripts/launcher.sh` |
 | `walter/`, `rama/`, `alice/`, `automq/`, `dotfiles/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
 | `github-dwh/` | `uv run pytest` · `./scripts/golden.sh` · `./scripts/launcher.sh` |
 | `redis/` | `cd green && bb test && bb golden && bb syntax` · `cd red && bun test` · `cd blue && uv run pytest` · `./scripts/parity.sh` · `./scripts/launcher.sh` |
