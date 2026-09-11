@@ -39,7 +39,8 @@ SDK            green ──┬── once ──┬── once-colors          (
                                    │              └─ walter-many       (Vultr dev machine, seats)
                                    ├── automq    ─── automq-vultr        (Vultr AutoMQ cluster)
                                    ├── neon (3 colours) ─┬─ neon-vultr    (Vultr self-hosted Neon)
-                                   │                     └─ n8n (3 colours) ─ n8n-vultr (Vultr n8n on that tier)
+                                   │                     └─ n8n (3 colours) ─┬─ n8n-vultr (Vultr n8n on that tier)
+                                   │                                          └─ n8n-aws   (AWS n8n, owned S3 buckets)
                                    ├── langfuse (3 colours) ─ langfuse-vultr (Vultr Langfuse on Neon, Redis, ClickHouse ×3)
                                    ├── redis (green) ─── redis-vultr        (Vultr Redis, loopback only, SSH tunnel)
                                    ├── alice     ─── alice-digitalocean (ephemeral Transmission)
@@ -109,7 +110,7 @@ engine namespace (`:green/exit` → `"red/exit"` → `"blue/exit"`).
 | `github-dwh/` | blue only | one GitHub organization warehouse with ClickHouse and PocketBase |
 | `wavehouse/` | green, red, blue | one WaveHouse analytics demo: ClickHouse, the WaveHouse gateway, and a live GitHub stats dashboard on Vultr |
 | `neon/` | green, red, blue | one self-hosted Neon on Vultr — storage broker, pageserver, one safekeeper, and a Postgres 17 compute node under `compute_ctl`, with layers and WAL in Cloudflare R2; no DNS and no public port, reached over an SSH tunnel |
-| `n8n/` | green, red, blue | one n8n workflow automation server on Vultr behind Caddy, with Code nodes in an external task runner, on a colocated self-hosted Neon storage tier — the one package that renders **another package's** templates rather than owning them |
+| `n8n/` | green, red, blue | one n8n workflow automation server on Vultr or AWS behind Caddy, with Code nodes in an external task runner, on a colocated self-hosted Neon storage tier whose layers, WAL and backups live in R2 or S3; on AWS the deployment can own its state, Neon and backup buckets as lifecycle resources — the one package that renders **another package's** templates rather than owning them |
 | `langfuse/` | green, red, blue | self-hosted Langfuse v4 on **six** Vultr machines in one VPC — a `neon`-rendered storage tier, a Redis host, three ClickHouse replicas with Keeper (templates derived from `clickhouse`, owned here), and the app host behind Caddy and Cloudflare; Cloudflare R2 for events, media, Neon layers/WAL and backups; the second package that renders `neon`'s templates rather than owning them |
 | `redis/` | green only | one Redis 7.2 server on one Vultr instance or DigitalOcean droplet — published on loopback only, reached over an SSH tunnel, an append-only file for persistence, and RDB backup sets in Cloudflare R2 with a completion protocol and a `rehearse` verb that restores one into a scratch instance of the pinned image |
 | `netbird/` | green, red, blue | one self-hosted NetBird control plane on Vultr — Traefik, the combined `netbird-server` (management, signal, relay, STUN), the dashboard, and Authentik as the identity provider |
@@ -139,7 +140,7 @@ target, so its verbs are `build`, `diff` and `create` — there is no `delete`.
 `clickstack-digitalocean/`,
 `dbos-digitalocean/`, `restate-digitalocean/`, `temporal-digitalocean/`,
 `vaultwarden-digitalocean/`, `github-dwh-vultr/`, `wavehouse-vultr/`,
-`neon-vultr/`, `n8n-vultr/`, `langfuse-vultr/`, `redis-vultr/`, `netbird-vultr/`, `agent-network-vultr/`,
+`neon-vultr/`, `n8n-vultr/`, `n8n-aws/`, `langfuse-vultr/`, `redis-vultr/`, `netbird-vultr/`, `agent-network-vultr/`,
 `agent-network-digitalocean/`, `agent-network-k8s-vultr/`,
 `agent-network-doks-digitalocean/`,
 `mysql-agy-digitalocean/`,
@@ -156,7 +157,7 @@ Rama, K3s, K8s, DBOS, Restate, Temporal, GitHub DWH, WaveHouse, ClickStack,
 NetBird, Agent Network, Agent Network K8s, Agent Network DOKS, Walter Vultr, Walter Many, both MySQL and both
 Postgres deployments, Rybbit Vultr, Redis Vultr, both SigNoz deployments, both Agent
 Network deployments, ClickStack DigitalOcean, PostHog Vultr, AutoMQ Vultr,
-Neon Vultr, n8n Vultr, Langfuse Vultr, and both dotfiles
+Neon Vultr, n8n Vultr, n8n AWS, Langfuse Vultr, and both dotfiles
 deployments also track `skills-lock.json`. Alice, the three OCI Walter deployments, ClickHouse,
 Vaultwarden, PostHog, Rybbit DigitalOcean, and Umami track hand-copied
 payloads with no lockfile. A lockfile proves an install; never fabricate one

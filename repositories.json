@@ -211,7 +211,7 @@
   },
   "n8n": {
     "category": "package",
-    "description": "n8n workflow automation on one Vultr instance, backed by a colocated self-hosted Neon — storage/compute-separated Postgres with layers and WAL in Cloudflare R2. Green, red, and blue Package Skills.",
+    "description": "n8n workflow automation on one Vultr instance or one AWS EC2 instance, backed by a colocated self-hosted Neon — storage/compute-separated Postgres with layers and WAL in Cloudflare R2 or S3. Green, red, and blue Package Skills.",
     "homepage": "https://getcolors.github.io/n8n/"
   },
   "n8n-vultr": {
@@ -448,5 +448,10 @@
     "category": "portfolio",
     "description": "Cross-repository portfolio and readiness audit for the Colors workspace.",
     "homepage": ""
+  },
+  "n8n-aws": {
+    "category": "deployment",
+    "description": "n8n on one AWS EC2 instance backed by a colocated self-hosted Neon, with the state, Neon and backup S3 buckets owned by the deployment — desired state for n8n-aws.bigconfig.online.",
+    "homepage": "https://getcolors.github.io/n8n-aws/"
   }
 }
