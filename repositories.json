@@ -134,6 +134,16 @@
     "description": "Desired state for a DBOS durable-workflow service on DigitalOcean.",
     "homepage": ""
   },
+  "doks": {
+    "category": "package",
+    "description": "Provision one managed Kubernetes cluster (DigitalOcean DOKS or Vultr VKE) named after the profile, with an optional deployment-owned DigitalOcean container registry integrated with the cluster, using Green and colors-compute.",
+    "homepage": ""
+  },
+  "doks-dev": {
+    "category": "deployment",
+    "description": "Desired state for the development DOKS cluster and registry that the Redis operator deployment runs in.",
+    "homepage": ""
+  },
   "dotfiles": {
     "category": "package",
     "description": "Configure Ubuntu or macOS homes with a Green Package Skill.",
@@ -363,6 +373,16 @@
     "category": "deployment",
     "description": "Desired state for one Redis 7.2 server on AWS — loopback only, reached over an SSH tunnel, with the state and backup S3 buckets owned by the deployment; verified in green, red and blue.",
     "homepage": "https://getcolors.github.io/redis-aws/"
+  },
+  "redis-operator": {
+    "category": "package",
+    "description": "A Green Kubernetes controller that provisions and heals one Redis Droplet from a RedisDeployment custom resource, and the Package Skill that installs it — build, create, check, rehearse, drill, restart, delete.",
+    "homepage": ""
+  },
+  "redis-operator-doks": {
+    "category": "deployment",
+    "description": "Desired state for the Redis operator installed in the doks-dev cluster, managing one Redis Droplet in ams3; live-verified recovery, rehearsal and restart evidence.",
+    "homepage": ""
   },
   "redis-vultr": {
     "category": "deployment",

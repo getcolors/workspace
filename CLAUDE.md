@@ -9,7 +9,7 @@ own; almost every subdirectory is a separate clone of
 `git@github.com:getcolors/<name>`. Nothing here builds as a whole and there is
 no root manifest, task runner, or test command.
 
-The workspace currently contains 82 checkouts, all from the `getcolors` GitHub
+The workspace currently contains more than a hundred checkouts, all from the `getcolors` GitHub
 organisation. Audit the directories rather than relying on a hard-coded count:
 new Package Skills and deployments are added independently.
 
@@ -77,6 +77,8 @@ SDK            green ──┬── once ──┬── once-colors          (
                                    ├── signoz    ─┬─ signoz-vultr          (Vultr SigNoz)
                                    │              └─ signoz-digitalocean   (DigitalOcean SigNoz)
                                    ├── umami     ─── umami-digitalocean    (DigitalOcean Umami)
+                                   ├── doks      ─── doks-dev           (DigitalOcean DOKS cluster + registry, private)
+                                   ├── redis-operator ─ redis-operator-doks (Redis operator on that cluster, private)
                                    └── dotfiles  ─┬─ dotfiles-colors    (this machine's home)
                                                   └─ dotfiles-ubuntu    (Ubuntu home)
 ```
@@ -131,6 +133,8 @@ engine namespace (`:green/exit` → `"red/exit"` → `"blue/exit"`).
 | `rybbit/` | green, red, blue | one single-node Rybbit analytics service (PostgreSQL + ClickHouse) on DigitalOcean or Vultr |
 | `signoz/` | green, red, blue | one single-node SigNoz observability stack on Vultr or DigitalOcean: ClickHouse/Keeper, a Postgres metastore, the SigNoz app, and the OTel collector behind Caddy |
 | `umami/` | green, red, blue | one single-node Umami web analytics service with colocated PostgreSQL on DigitalOcean |
+| `doks/` | green only | one managed Kubernetes cluster (DigitalOcean DOKS or Vultr VKE) named after the profile through colors-compute's `managed-kubernetes` kind, plus an optional deployment-owned DigitalOcean container registry integrated with the cluster; a platform package whose kubeconfig is consumed by other deployments |
+| `redis-operator/` | green only | a `green.kubernetes` controller image and the Package Skill that installs it: the `RedisDeployment` CRD, the controller that runs the `redis` package workflow to keep one Redis Droplet converged and heals confirmed Droplet loss, with `rehearse`, `drill` (owned-Droplet deletion recovery test) and `restart` verbs |
 | `dotfiles/` | green only | Ubuntu or macOS home configuration on the local machine |
 
 `dotfiles/` is the one package that provisions no infrastructure: it renders a
@@ -153,6 +157,7 @@ target, so its verbs are `build`, `diff` and `create` — there is no `delete`.
 `mysql-ha-digitalocean/`, `postgres-agy-digitalocean/`,
 `postgres-ha-digitalocean/`, `posthog-digitalocean/`, `posthog-vultr/`, `rybbit-digitalocean/`,
 `rybbit-vultr/`, `signoz-vultr/`, `signoz-digitalocean/`, `umami-digitalocean/`,
+`doks-dev/`, `redis-operator-doks/`,
 `dotfiles-colors/`, and `dotfiles-ubuntu/`. Each holds a `colors.yml`, one or
 more installed launchers, `.envrc`, and `devenv.nix`; everything else is
 generated (`.colors/`) or secret (`.envrc.private`).
@@ -163,7 +168,7 @@ Rama, K3s, K8s, DBOS, Restate, Temporal, GitHub DWH, WaveHouse, ClickStack,
 NetBird, Agent Network, Agent Network K8s, Agent Network DOKS, Walter Vultr, Walter Many, both MySQL and both
 Postgres deployments, Rybbit Vultr, Redis Vultr, Redis AWS, both SigNoz deployments, both Agent
 Network deployments, ClickStack DigitalOcean, PostHog Vultr, AutoMQ Vultr,
-Neon Vultr, n8n Vultr, n8n AWS, Langfuse Vultr, and both dotfiles
+Neon Vultr, n8n Vultr, n8n AWS, Langfuse Vultr, DOKS Dev, Redis Operator DOKS, and both dotfiles
 deployments also track `skills-lock.json`. Alice, the three OCI Walter deployments, ClickHouse,
 Vaultwarden, PostHog, Rybbit DigitalOcean, and Umami track hand-copied
 payloads with no lockfile. A lockfile proves an install; never fabricate one
@@ -259,7 +264,7 @@ Each repo, from its own directory:
 | `blue/` | `uv sync && uv run pytest` (one test: `-k <name>`) |
 | `once/` | per-colour suites, then `./scripts/parity.sh` and `./scripts/launcher.sh` |
 | `airflow/`, `neon/`, `neon-multi-node/`, `n8n/`, `langfuse/`, `netbird/`, `agent-network/`, `agent-network-k8s/`, `agent-network-doks/`, `k3s/`, `k8s/`, `clickhouse/`, `clickstack/`, `dbos/`, `restate/`, `temporal/`, `vaultwarden/`, `wavehouse/`, `mysql-agy/`, `mysql-ha/`, `postgres-agy/`, `postgres-ha/`, `posthog/`, `rybbit/`, `signoz/`, `umami/` | `cd green && bb test && bb golden` · red/blue suites · `./scripts/parity.sh` · `./scripts/launcher.sh` |
-| `walter/`, `rama/`, `alice/`, `automq/`, `dotfiles/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
+| `walter/`, `rama/`, `alice/`, `automq/`, `doks/`, `redis-operator/`, `dotfiles/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
 | `github-dwh/` | `uv run pytest` · `./scripts/golden.sh` · `./scripts/launcher.sh` |
 | `redis/` | `cd green && bb test && bb golden && bb syntax` · `cd red && bun test` · `cd blue && uv run pytest` · `./scripts/parity.sh` · `./scripts/launcher.sh` |
 | `colors-website/` | `pnpm typecheck` · `pnpm build` · `pnpm dev` |
@@ -328,7 +333,8 @@ at a working tree: `GREEN_LIB_ROOT`, `RED_LIB_ROOT`, `BLUE_LIB_ROOT`,
 `AUTOMQ_LIB_ROOT`, `N8N_LIB_ROOT`, `NEON_LIB_ROOT`, `REDIS_LIB_ROOT`,
 `MYSQL_AGY_LIB_ROOT`, `MYSQL_HA_LIB_ROOT`, `POSTGRES_AGY_LIB_ROOT`,
 `POSTGRES_HA_LIB_ROOT`, `POSTHOG_LIB_ROOT`, `RYBBIT_LIB_ROOT`,
-`SIGNOZ_LIB_ROOT`, `UMAMI_LIB_ROOT`. A change that spans two
+`SIGNOZ_LIB_ROOT`, `UMAMI_LIB_ROOT`, `DOKS_LIB_ROOT`,
+`REDIS_OPERATOR_LIB_ROOT`. A change that spans two
 repos is two commits in two repos, upstream pushed first.
 
 **Installed launchers are copies, not symlinks.** In a deployment repo, the root
@@ -361,7 +367,7 @@ SSH-keypair modes elsewhere). `bb golden` in
 `restate`, `temporal`, `vaultwarden`, `github-dwh`, `wavehouse`, `netbird`,
 `automq`, `n8n`,
 `agent-network`, `agent-network-k8s`, `agent-network-doks`, `mysql-agy`, `mysql-ha`, `postgres-agy`, `postgres-ha`,
-`posthog`, `rybbit`, `signoz`, `umami`, and `dotfiles` protects provider
+`posthog`, `rybbit`, `signoz`, `umami`, `doks`, `redis-operator`, and `dotfiles` protects provider
 templates, state/resource addresses, and any ONCE internals each package reuses.
 `clickstack`, `signoz`, `netbird`, `agent-network`, `neon`, `n8n`, and `langfuse` render
 two fixtures rather than one, because the SSH
