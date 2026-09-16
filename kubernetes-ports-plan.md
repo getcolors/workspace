@@ -23,3 +23,7 @@ Green, Red, Blue, DOKS, Redis operator, workspace and both deployment checkouts 
 ## Website catalog follow-up
 
 Update the main website recipes and featured copy to list Green, Red and Blue for DOKS and Redis Operator. Refresh these packages' discovery pins from their published main branches, regenerate skill bundles and social cards, and run the website checks. Push main, verify the production deployment and all six skill routes, then record the correction in the handoff.
+
+## Slides follow-up
+
+Update `/slides/green-kubernetes/` and its speaker notes for the three Kubernetes SDKs and both three-color packages. Preserve the original live run as historical evidence, add the verified port deployment results, and explain launcher versus controller image selection. Refresh the slides listing and social card, rebuild HTML and PDF, validate the site and rendered deck, push main and verify production. Record the final results in the handoff.
