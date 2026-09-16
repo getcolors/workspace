@@ -136,8 +136,8 @@
   },
   "doks": {
     "category": "package",
-    "description": "Provision one managed Kubernetes cluster (DigitalOcean DOKS or Vultr VKE) named after the profile, with an optional deployment-owned DigitalOcean container registry integrated with the cluster, using Green and colors-compute.",
-    "homepage": ""
+    "description": "Provision a DigitalOcean DOKS or Vultr VKE cluster with Green, Red or Blue, plus an optional DigitalOcean container registry.",
+    "homepage": "https://getcolors.github.io/doks/"
   },
   "doks-dev": {
     "category": "deployment",
@@ -376,8 +376,8 @@
   },
   "redis-operator": {
     "category": "package",
-    "description": "A Green Kubernetes controller that provisions and heals one Redis Droplet from a RedisDeployment custom resource, and the Package Skill that installs it — build, create, check, rehearse, drill, restart, delete.",
-    "homepage": ""
+    "description": "Green, Red and Blue Kubernetes controllers and Package Skills that provision and heal a Redis Droplet from a RedisDeployment custom resource.",
+    "homepage": "https://getcolors.github.io/redis-operator/"
   },
   "redis-operator-doks": {
     "category": "deployment",

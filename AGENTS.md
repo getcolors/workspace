@@ -133,8 +133,8 @@ engine namespace (`:green/exit` → `"red/exit"` → `"blue/exit"`).
 | `rybbit/` | green, red, blue | one single-node Rybbit analytics service (PostgreSQL + ClickHouse) on DigitalOcean or Vultr |
 | `signoz/` | green, red, blue | one single-node SigNoz observability stack on Vultr or DigitalOcean: ClickHouse/Keeper, a Postgres metastore, the SigNoz app, and the OTel collector behind Caddy |
 | `umami/` | green, red, blue | one single-node Umami web analytics service with colocated PostgreSQL on DigitalOcean |
-| `doks/` | green only | one managed Kubernetes cluster (DigitalOcean DOKS or Vultr VKE) named after the profile through colors-compute's `managed-kubernetes` kind, plus an optional deployment-owned DigitalOcean container registry integrated with the cluster; a platform package whose kubeconfig is consumed by other deployments |
-| `redis-operator/` | green only | a `green.kubernetes` controller image and the Package Skill that installs it: the `RedisDeployment` CRD, the controller that runs the `redis` package workflow to keep one Redis Droplet converged and heals confirmed Droplet loss, with `rehearse`, `drill` (owned-Droplet deletion recovery test) and `restart` verbs |
+| `doks/` | green, red, blue | one managed Kubernetes cluster (DigitalOcean DOKS or Vultr VKE) named after the profile through colors-compute's `managed-kubernetes` kind, plus an optional deployment-owned DigitalOcean container registry integrated with the cluster; a platform package whose kubeconfig is consumed by other deployments |
+| `redis-operator/` | green, red, blue | native `green.kubernetes`, `red/kubernetes` and `blue.kubernetes` controller images and the Package Skill that installs it: the `RedisDeployment` CRD, the controller that runs the `redis` package workflow to keep one Redis Droplet converged and heals confirmed Droplet loss, with `rehearse`, `drill` (owned-Droplet deletion recovery test) and `restart` verbs |
 | `dotfiles/` | green only | Ubuntu or macOS home configuration on the local machine |
 
 `dotfiles/` is the one package that provisions no infrastructure: it renders a
