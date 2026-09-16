@@ -73,3 +73,11 @@ The launcher selects the CLI implementation. The `image` value in `colors.yml` s
 Credentials were reused from sibling deployments' ignored `.envrc.private` files and supplied to the Kubernetes Secret through stdin. No credential values or Terraform state were committed. The kubeconfig remains generated under `doks-dev/.colors/doks-dev/kubeconfig`.
 
 With each deployment's normal environment loaded, use `./red check` in `redis-operator-doks` and any colour's `check` in `doks-dev` to inspect the running services.
+
+## Website catalog correction
+
+The original implementation updated the package repository pages but missed the main website catalog. This is now corrected and deployed in `colors-website` commit `369cde28d71017b4b57f38e3e1c9f9fbda2632ff`.
+
+Both https://www.getcolors.ai/getcolors/doks and https://www.getcolors.ai/getcolors/redis-operator list Green, Red and Blue. The featured page describes all three runtimes. Discovery pins and archives were regenerated from the published package commits, and the new routes have social cards.
+
+Validation: `pnpm typecheck` passed with zero diagnostics; `pnpm build` produced 172 pages. All six live skill pages, both source pages, the featured runtime notes and all six downloadable archive SHA256 digests were verified. GitHub Actions run https://github.com/getcolors/colors-website/actions/runs/35118067601 completed successfully, including production deployment. Its first AMD64 attempt failed downloading BuildKit because Docker Hub reset the connection; the failed-job retry passed without code changes.

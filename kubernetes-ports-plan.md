@@ -19,3 +19,7 @@ The primary agent owns integration, live deployment checks, dependency sequencin
 ## Initial state
 
 Green, Red, Blue, DOKS, Redis operator, workspace and both deployment checkouts were fetched and synchronized. DOKS required disabling pull.rebase for its fast-forward check because three launcher files already had edits. Red and Blue Kubernetes modules and DOKS ports already exist. Redis operator contains untracked partial Red and Blue implementations. These are inputs to review and complete.
+
+## Website catalog follow-up
+
+Update the main website recipes and featured copy to list Green, Red and Blue for DOKS and Redis Operator. Refresh these packages' discovery pins from their published main branches, regenerate skill bundles and social cards, and run the website checks. Push main, verify the production deployment and all six skill routes, then record the correction in the handoff.
