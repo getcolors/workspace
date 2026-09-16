@@ -77,8 +77,8 @@ SDK            green ──┬── once ──┬── once-colors          (
                                    ├── signoz    ─┬─ signoz-vultr          (Vultr SigNoz)
                                    │              └─ signoz-digitalocean   (DigitalOcean SigNoz)
                                    ├── umami     ─── umami-digitalocean    (DigitalOcean Umami)
-                                   ├── doks      ─── doks-dev           (DigitalOcean DOKS cluster + registry, private)
-                                   ├── redis-operator ─ redis-operator-doks (Redis operator on that cluster, private)
+                                   ├── doks      ─── doks-dev           (DigitalOcean DOKS cluster + registry)
+                                   ├── redis-operator ─ redis-operator-doks (Redis operator on that cluster)
                                    └── dotfiles  ─┬─ dotfiles-colors    (this machine's home)
                                                   └─ dotfiles-ubuntu    (Ubuntu home)
 ```
