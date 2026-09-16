@@ -194,17 +194,12 @@ add an `index.html` merely to satisfy this convention.
 
 **`workspace/`** — cross-repository documentation for this multi-repository
 workspace; it is documentation, not a build root. `repositories.json` is the
-canonical organization-wide description/homepage inventory. Run
-`./scripts/github-metadata.py` to check GitHub, and add `--apply` to
-synchronize it. `./scripts/package-copies.py` runs the executable copy contracts and reports
-package-specific adapters. `scripts/compute-copy-contracts.py` discovers package
-skills and checks their direct immutable compute dependencies in every color.
-For VM consumers it checks the package-owned local play against the canonical
-SSH updater, its local-only Ansible envelope, and the documented singleton or
-joined-inventory adapter. It checks the explicit Alice policy and Walter legacy
-marker variants without accepting arbitrary executable differences. Whole
-language-specific preflight modules are watched because their adapters differ.
-Run these checks after changing a local play, an updater, or compute dependencies.
+canonical organization-wide description/homepage inventory. This repository
+holds durable instructions, standards, and repository metadata. Executable
+tooling and its tests belong in the package or library that owns the behavior.
+Run the owning repository's checks when changing SSH configuration, compute
+dependencies, or package integration. Keep GitHub descriptions and homepages
+consistent with `repositories.json`.
 
 `standards/` holds the normative cross-package contracts. Shared compute lives
 in `colors-compute/`, implemented in Green, Red, and Blue. Compute package
