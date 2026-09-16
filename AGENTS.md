@@ -134,7 +134,7 @@ engine namespace (`:green/exit` → `"red/exit"` → `"blue/exit"`).
 | `signoz/` | green, red, blue | one single-node SigNoz observability stack on Vultr or DigitalOcean: ClickHouse/Keeper, a Postgres metastore, the SigNoz app, and the OTel collector behind Caddy |
 | `umami/` | green, red, blue | one single-node Umami web analytics service with colocated PostgreSQL on DigitalOcean |
 | `doks/` | green, red, blue | one managed Kubernetes cluster (DigitalOcean DOKS or Vultr VKE) named after the profile through colors-compute's `managed-kubernetes` kind, plus an optional deployment-owned DigitalOcean container registry integrated with the cluster; a platform package whose kubeconfig is consumed by other deployments |
-| `redis-operator/` | green, red, blue | native `green.kubernetes`, `red/kubernetes` and `blue.kubernetes` controller images and the Package Skill that installs it: the `RedisDeployment` CRD, the controller that runs the `redis` package workflow to keep one Redis Droplet converged and heals confirmed Droplet loss, with `rehearse`, `drill` (owned-Droplet deletion recovery test) and `restart` verbs |
+| `redis-operator/` | green, red, blue | native `green.kubernetes`, `red/kubernetes` and `blue.kubernetes` controller images and Package Skills that install them: the `RedisDeployment` CRD and controllers that run the `redis` package workflow to keep one Redis Droplet converged and heal confirmed Droplet loss, with `rehearse`, `drill` (owned-Droplet deletion recovery test) and `restart` verbs |
 | `dotfiles/` | green only | Ubuntu or macOS home configuration on the local machine |
 
 `dotfiles/` is the one package that provisions no infrastructure: it renders a
@@ -259,7 +259,8 @@ Each repo, from its own directory:
 | `blue/` | `uv sync && uv run pytest` (one test: `-k <name>`) |
 | `once/` | per-colour suites, then `./scripts/parity.sh` and `./scripts/launcher.sh` |
 | `airflow/`, `neon/`, `neon-multi-node/`, `n8n/`, `langfuse/`, `netbird/`, `agent-network/`, `agent-network-k8s/`, `agent-network-doks/`, `k3s/`, `k8s/`, `clickhouse/`, `clickstack/`, `dbos/`, `restate/`, `temporal/`, `vaultwarden/`, `wavehouse/`, `mysql-agy/`, `mysql-ha/`, `postgres-agy/`, `postgres-ha/`, `posthog/`, `rybbit/`, `signoz/`, `umami/` | `cd green && bb test && bb golden` · red/blue suites · `./scripts/parity.sh` · `./scripts/launcher.sh` |
-| `walter/`, `rama/`, `alice/`, `automq/`, `doks/`, `redis-operator/`, `dotfiles/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
+| `walter/`, `rama/`, `alice/`, `automq/`, `dotfiles/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
+| `doks/`, `redis-operator/` | `bb test` · `bb golden` · `bun test --cwd red` · `bun run --cwd red typecheck` · `uv run --project blue pytest blue/tests` · `./scripts/parity.sh` · `./scripts/launcher.sh` |
 | `github-dwh/` | `uv run pytest` · `./scripts/golden.sh` · `./scripts/launcher.sh` |
 | `redis/` | `cd green && bb test && bb golden && bb syntax` · `cd red && bun test` · `cd blue && uv run pytest` · `./scripts/parity.sh` · `./scripts/launcher.sh` |
 | `colors-website/` | `pnpm typecheck` · `pnpm build` · `pnpm dev` |
