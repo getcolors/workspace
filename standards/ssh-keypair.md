@@ -1,13 +1,88 @@
 # SSH keypair standard for package skills
 
-Status: normative target, revised 2026-09-09. Shared SSH implementation belongs
-to `colors-compute` in Green, Red, and Blue. This revision supersedes ONCE
-ownership and the previous single-state create matrix. It does not claim that
-existing consumers have migrated.
+Status: versioned normative contracts, revised 2026-09-22. The current
+`colors-compute` v2 API separates SSH resources, provider registrations, compute,
+and scoped agents. Alice is the first integrated package. Other packages retain
+the contract of their existing immutable library pins; this revision does not
+change their key files, access modes, state, or launchers.
 
-Consumers: every package skill that creates compute machines. Packages that
-create no machines have no keypair requirement. `no-infra` compute is not a
-supported selection under [compute-provider.md](compute-provider.md).
+## Current v2 contract: named encrypted SSH resources
+
+The following requirements apply to v2 consumers, including Alice. Exact API and
+storage definitions live in the owning library's
+[SSH resource contract](https://github.com/getcolors/colors-compute/blob/main/contracts/ssh-resource.md)
+and [compute contract](https://github.com/getcolors/colors-compute/blob/main/contracts/node.md).
+Package documentation MUST link to the corresponding immutable library revision.
+
+1. An SSH resource MUST have an explicit stable name within its profile and an
+   explicit per-resource `COLORS_PAR_*` passphrase binding. Multiple resources
+   MAY share a binding deliberately. There is no implicit keygen/opt-out switch
+   in the v2 compute API. Build and dry-run MUST NOT resolve the passphrase or
+   touch SSH authority.
+2. The backend is inherited from the workflow unless explicitly overridden for
+   the resource. Local authority is
+   `<SDK workdir>/<profile>/ssh/<name>/resource.json`; remote authority is
+   `<s3-prefix>/<profile>/ssh/<name>/resource.json`. The profile MUST remain in
+   either path. Remote references MUST be independent of the workstation path;
+   local references identify the absolute authority location.
+3. The authority record MUST durably contain an encrypted ED25519 OpenSSH key,
+   public key, fingerprint, and ownership identity before dependent machines
+   can be created. New keys MUST be encrypted at generation. The current KDF
+   policy is bcrypt with 64 rounds. No plaintext private key or passphrase may
+   enter compute state, plans, templates, results, logs, or command arguments.
+   No decrypted local access copy is permitted.
+4. Creation, rotation, deletion, and agent loading MUST serialize per resource.
+   Local operations use an OS file lock; remote operations use conditional
+   ETag/generation writes on the authority record. Failed reads MUST NOT imply
+   absence. Busy or interrupted ownership MUST NOT be stolen or automatically
+   expired. Recovery requires the exact lock token and the existing encrypted
+   identity; it MUST NOT generate a replacement. A reservation interrupted
+   before ciphertext was durable requires an explicit decision to abandon that
+   name. Missing authority with an expected identity MUST fail closed.
+5. Compute MUST consume only an explicit public identity reference and matching
+   fingerprint. AWS, DigitalOcean, Hetzner Cloud, and Vultr registrations MUST
+   be separate explicitly owned resources, shared by reference rather than
+   declared independently by each node. Other providers consume public-key
+   content directly. Registration ownership MUST remain in one state per
+   provider account/project/region scope. Names or matching keys do not authorize
+   automatic adoption of an existing registration.
+6. The SDK/caller MUST own the graph and a dedicated agent per workflow scope.
+   One agent MAY load several independently passphrased resources. Its socket is a runtime capability. Public-only identity selection files
+   MAY persist as disposable caches refreshed from verified authority under the
+   resource lock; they MUST NOT become private-key authority or recovery input. SSH and Ansible MUST explicitly select the socket and
+   public identity, use `IdentitiesOnly=yes`, and disable agent forwarding.
+   The operator's agent and global environment MUST remain untouched.
+7. Scope cleanup MUST stop/await owned dependent processes before terminating
+   the agent on success, failure, or cancellation. It cannot run after SIGKILL;
+   bounded identity lifetime limits orphan authority. Renewal is allowed only
+   while the owning scope remains alive. A final success-path graph node is
+   insufficient cleanup.
+8. Compute deletion MUST NOT delete SSH authority or require its passphrase.
+   Delete consuming machines first and then their provider registrations.
+   Deleting the SSH resource is a separate explicit operation requiring caller
+   confirmation that every consumer is gone. It leaves a ciphertext-free
+   tombstone. Alice's ordinary delete retains its named SSH resource.
+9. Passphrase rotation MUST be explicit, require old and new bindings, and
+   preserve the public identity. Changing a secret alone MUST NOT rotate,
+   regenerate, or adopt a key.
+10. V2 is greenfield. It supplies no legacy compatibility, key adoption, or state
+    transfer tooling. Updating a pin does not transfer ownership. Existing
+    deployments MUST NOT be applied against fresh v2 state as an implicit
+    migration. Preserve all authority and ownership history outside this API;
+    removing every record cannot be detected by a fresh caller.
+
+Tests belong in the library and consuming package. They MUST cover native
+three-color plans, actual encrypted key generation/loading, multiple identities,
+resource locking and interrupted writes, wrong secrets/fingerprints, independent
+registration deletion, and agent cleanup. Synthetic plan parity does not prove
+live SSH/Ansible authentication or remote backend permissions.
+
+## Earlier contract for still-pinned consumers
+
+The remaining sections preserve the 2026-09-09 contract used by older package
+pins. Their deployment-local unencrypted keys, keygen/opt-out settings, and
+migration requirements MUST NOT be applied to the v2 API above. Packages creating
+no machines have no machine-key requirement under either contract.
 
 ## 1. The deployment owns its key by default
 

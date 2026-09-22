@@ -201,30 +201,50 @@ Run the owning repository's checks when changing SSH configuration, compute
 dependencies, or package integration. Keep GitHub descriptions and homepages
 consistent with `repositories.json`.
 
-`standards/` holds the normative cross-package contracts. Shared compute lives
-in `colors-compute/`, implemented in Green, Red, and Blue. Compute package
-skills, including ONCE, depend directly on that library. It owns the eight VM
-providers, R2/S3 compute state, normalized node results, machine SSH keypairs,
-networks, lifecycle coordination, and native Colors node fan-out and joins.
-Application installation and the local SSH config play remain package-owned.
-Provider additions require a library dependency bump, not application changes.
+`standards/` holds versioned normative cross-package contracts. Shared compute
+lives in `colors-compute/`, implemented in Green, Red, and Blue. Compute package
+skills, including ONCE, pin that library directly. The current v2 API owns
+provider templates, guarded independent node lifecycle, normalized results,
+separate public-key registrations, and named encrypted SSH resources. The
+SDK/caller owns topology, fan-out, joins and resource-scope cleanup. Application
+installation and the local SSH config play remain package-owned. Provider
+additions within the same API require a dependency bump, not application changes.
 
-`standards/compute-provider.md` defines provider selection and state ownership;
-`standards/compute-cluster.md` defines topology and the joined inventory;
-`standards/compute-name.md` defines stable names;
-`standards/ssh-keypair.md` defines machine-key ownership; and
-`standards/ssh-config.md` defines the operator's aliases and migration rules.
-Local SSH configuration must complete before application convergence. Delete
-removes owned aliases before compute destruction and removes owned keys only
-after the owned resources are destroyed. Application deployment keys are
-separate from the machine keypair.
+Alice is the first v2 integration. Other packages retain their older immutable
+pins and their existing keygen/opt-out behavior, key paths and state ownership.
+Do not apply current v2 instructions as an implicit upgrade of those consumers.
+The v2 implementation is greenfield: no compatibility layer, private-key adoption,
+or legacy state-transfer tooling is supplied.
 
-Package source migration and deployment payload refresh do not transfer live
-state. Preserve existing state and review ownership mappings and replacement
-plans before applying the new library layout. `compute-require-existing-state:
-true` prevents a create against absent, uninitialized, or retired ownership;
-it is appropriate when preparing an existing local-state deployment for R2 or
-S3. It does not import resources or perform the transfer.
+`standards/compute-provider.md` defines provider selection and versioned state
+ownership; `standards/compute-cluster.md` defines topology and joined inventory;
+`standards/compute-name.md` defines stable names; `standards/ssh-keypair.md` defines
+versioned machine-key ownership; and `standards/ssh-config.md` defines the
+operator's aliases and scoped authentication. Local SSH configuration completes
+before application convergence. Delete removes owned aliases before compute
+teardown. V2 compute deletion does not delete SSH authority: destroy all consuming
+machines and their separately owned registrations before a separate explicit SSH
+resource deletion. Older pinned consumers retain their documented key cleanup.
+Application deployment keys remain separate from machine access identities.
+
+V2 SSH authority is an encrypted resource under
+`<SDK workdir>/<profile>/ssh/<name>/resource.json` locally or
+`<s3-prefix>/<profile>/ssh/<name>/resource.json` remotely. Each resource binds its
+own `COLORS_PAR_*` passphrase at runtime. Do not treat local authority as disposable
+generated output, write a decrypted key copy, or place private material in compute
+state. One temporary agent per workflow scope supplies explicit public IdentityFile
+selection and an IdentityAgent socket. Public `identity.pub` caches are disposable
+and refreshed from verified authority; the socket expires with the scope. Stop
+dependent processes before the agent;
+never mutate the operator's agent. Alice operator commands establish a fresh scope;
+a bare alias outside that scope is not an authentication mechanism.
+
+Package source changes and deployment payload refresh do not transfer live state.
+Preserve old ownership and do not point a new empty v2 root at existing resources.
+`compute-require-existing-state: true` refuses a first create without compatible
+ownership; it does not import resources, transfer local state into R2/S3, or recover
+missing SSH authority. Backend changes require a separately reviewed operation or
+fresh explicitly authorized resource identities, never a silent state redirect.
 
 `standards/context-skill.md` defines Context Skills, which capture a verified
 build and are separate from Package Skills and generic Agent Skills.

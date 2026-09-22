@@ -1,12 +1,60 @@
 # SSH config standard for package skills
 
-Status: normative target, revised 2026-09-09. Packages retain ownership of the
-local SSH config play. Connection data comes from `colors-compute` node
-results or the Colors cluster join. Existing package copies require migration
-where they differ from this contract.
-
-Consumers: packages that create hosts the operator can reach over SSH.
+Status: versioned normative contracts, revised 2026-09-22. Packages retain
+ownership of their local SSH config play. Alice uses the `colors-compute` v2
+scoped-agent integration; other packages retain the behavior of their immutable
+library pins. This document does not upgrade those pins or migrate their aliases.
 Key ownership is specified in [ssh-keypair.md](ssh-keypair.md).
+
+## Current v2 connection selection
+
+For v2, compute returns address/user and public identity metadata, never a private
+identity-file path. A package MUST establish a caller-owned agent scope before
+SSH/Ansible access. Each dependent process receives the dedicated socket and the
+matching **public-only** identity file, explicitly selecting:
+
+```text
+IdentityAgent <scope socket>
+IdentityFile <verified public identity file>
+IdentitiesOnly yes
+ForwardAgent no
+```
+
+The public file selects a key already loaded in the scoped agent; it is not a
+decrypted access copy. Different public files MUST select the corresponding
+identity in a multi-key scope. Socket paths MUST NOT be
+reused after scope cleanup. The public identity MAY persist as a disposable cache
+at `<workdir>/<profile>/ssh/<name>/identity.pub`, refreshed from verified authority
+under the resource lock; it is neither a secret nor an authority record. Deleting
+SSH authority removes that cache only after publishing its tombstone. Ansible process
+configuration and operator commands MUST establish a fresh scope when needed;
+merely inheriting the operator's agent is insufficient.
+
+The package still owns alias validation, markers, host-key policy, serialized
+config writes, and application ordering described below. Its persistent aliases
+provide addressing metadata; scoped package commands supply authentication.
+A stopped scope MUST NOT leave an operator alias implicitly using another agent.
+Alice's alias disables agent use by default (`IdentityAgent none`); its package
+commands explicitly select the new scope. A bare `ssh <profile>` outside that
+scope is not a supported authentication path. Do not start a persistent agent or
+write a decrypted private key merely to make the alias standalone.
+
+Create MUST wait for complete compute results and agent readiness before access,
+write the package-owned block before application convergence, and register
+cleanup with the SDK scope. Delete removes owned aliases before compute
+teardown. SSH authority outlives compute deletion and is destroyed only by a
+separate explicit resource operation after all consumers are gone.
+
+The keygen-only identity directives and `~/.ssh/<profile>` paths in §§1–9 below
+apply to the earlier contract, not v2. The remaining alias ownership, injection
+validation, host-key checks, config locking, build determinism, and package-owned
+play requirements still apply to v2. A v2 integration MUST test real scoped
+SSH/Ansible selection and cleanup as well as the alias updater.
+
+## Earlier connection contract for still-pinned consumers
+
+The following sections preserve earlier consumers' keygen/opt-out behavior.
+An ordinary dependency refresh MUST NOT reinterpret their keys or markers.
 
 ## 1. Scope
 

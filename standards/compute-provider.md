@@ -1,15 +1,65 @@
 # Compute provider standard for package skills
 
-Status: normative target, revised 2026-09-09. This revision defines the
-`colors-compute` library contract. It does not claim that the library or its
-package migrations have shipped. It supersedes the package-owned registries
-and ONCE compute delegation required by the previous revision.
+Status: versioned normative contracts, revised 2026-09-22. `colors-compute`
+v2 implements independent public-identity compute nodes, separate provider key
+registrations, encrypted SSH resources, and scoped agent sessions. Alice is the
+first integrated package. Other packages remain on their existing immutable
+library pins; this is not an organization-wide rollout or state migration.
 
-Consumers: every package skill that creates compute machines, including
-single-host packages and packages that create machines for clusters.
-Managed control-plane services are outside this machine API; any machine
-provisioning they perform is subject to it. Packages that create no machines
-have no compute dependency requirement.
+## Current v2 machine API
+
+The library owns provider templates, validation, credential mappings, normalized
+outputs, backend access and guarded single-resource lifecycle. The SDK/caller
+owns topology, fan-out, joins, application ordering, and resource-scope cleanup.
+No node call owns a shared SSH private key or an agent lifetime.
+
+The exact contract lives in
+[colors-compute/contracts/node.md](https://github.com/getcolors/colors-compute/blob/main/contracts/node.md).
+Consumers MUST pin the matching color and refer to documentation at that pin.
+A request supplies `node_id`, `state_filename`, absolute `workdir`, security and
+network requirements, and an explicit public `ssh_resource` reference with key
+and fingerprint. Where required, it also supplies the ready result of an
+independently owned provider registration. The registry still owns provider
+selection; package code MUST NOT recreate the provider matrix.
+
+`node_plan` and build are credential-free. Real node operations are create,
+inspect, and delete. There is no compute `prepare-access` operation and no
+`ssh_identity_file` in node results. The package joins normalized machine data
+with the scoped agent's socket/public-identity selection for SSH and Ansible.
+See [ssh-keypair.md](ssh-keypair.md) and [ssh-config.md](ssh-config.md).
+
+Each persistent root lives at `<workdir>/<profile>/<node_id>`. Local state is
+`<workdir>/<profile>/<node_id>/<state_filename>`; remote state uses
+`<s3-prefix>/<profile>/<state_filename>`. Local, S3, R2, OCI and GCS compute
+backends are supported. Local storage is a real supported backend, not only a
+test fixture. Provider registrations have distinct state files and
+`registration-<name>` roots. Their state owns only the provider's public-key
+object. Encrypted SSH authority has its own profile/name path and never enters
+compute state or plans.
+
+Compute identity pins profile, node, state filename, provider, SSH resource
+reference and fingerprint. Existing root identity/backend changes MUST be
+refused. Native backend locks protect state mutations; the caller serializes
+operations sharing a local root. Create refuses deletion/replacement plans;
+delete requires authorization and refuses create/update plans. Missing or
+unreadable ownership cannot authorize deletion. A strictly empty readable state
+can be inspected as destroyed. Compute and backend credentials are validated
+before provider commands, with no secret embedded in generated templates.
+
+The greenfield v2 API supplies no old-state compatibility or migration tooling.
+Fresh v2 state MUST NOT be applied over resources owned by an older API. Existing
+consumers keep their pinned contract and operational behavior until a separate
+explicit integration/rebuild is authorized. A provider addition within the same
+API remains a dependency update; a breaking ownership contract does not.
+
+## Earlier contract for still-pinned consumers
+
+The remaining 2026-09-09 sections record the preceding cross-package target.
+Their deployment coordination, optional private-key path, keygen/opt-out matrix,
+remote-only backend requirement and migration process are not requirements of
+v2. Shared provider ownership, credential isolation, normalized results and
+no-implicit-adoption principles remain applicable to both versions. Packages
+that create no machines have no machine API requirement.
 
 ## 1. Scope and ownership
 
