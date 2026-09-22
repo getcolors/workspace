@@ -24,7 +24,7 @@ The public file selects a key already loaded in the scoped agent; it is not a
 decrypted access copy. Different public files MUST select the corresponding
 identity in a multi-key scope. Socket paths MUST NOT be
 reused after scope cleanup. The public identity MAY persist as a disposable cache
-at `<workdir>/<profile>/ssh/<name>/identity.pub`, refreshed from verified authority
+at `<workdir>/<profile>/ssh/<name>/identity-<reference-sha256>.pub`, refreshed from verified authority
 under the resource lock; it is neither a secret nor an authority record. Deleting
 SSH authority removes that cache only after publishing its tombstone. Ansible process
 configuration and operator commands MUST establish a fresh scope when needed;

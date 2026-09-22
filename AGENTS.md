@@ -233,7 +233,7 @@ V2 SSH authority is an encrypted resource under
 own `COLORS_PAR_*` passphrase at runtime. Do not treat local authority as disposable
 generated output, write a decrypted key copy, or place private material in compute
 state. One temporary agent per workflow scope supplies explicit public IdentityFile
-selection and an IdentityAgent socket. Public `identity.pub` caches are disposable
+selection and an IdentityAgent socket. Public `identity-<reference-sha256>.pub` caches are disposable
 and refreshed from verified authority; the socket expires with the scope. Stop
 dependent processes before the agent;
 never mutate the operator's agent. Alice operator commands establish a fresh scope;
