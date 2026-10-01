@@ -210,11 +210,17 @@ SDK/caller owns topology, fan-out, joins and resource-scope cleanup. Application
 installation and the local SSH config play remain package-owned. Provider
 additions within the same API require a dependency bump, not application changes.
 
-Alice is the first v2 integration. Other packages retain their older immutable
-pins and their existing keygen/opt-out behavior, key paths and state ownership.
-Do not apply current v2 instructions as an implicit upgrade of those consumers.
-The v2 implementation is greenfield: no compatibility layer, private-key adoption,
-or legacy state-transfer tooling is supplied.
+**For every Package Skill, adopting colors-compute v2 is a breaking,
+greenfield-only implementation for new deployments.** Existing deployments keep
+their pinned launchers and remain untouched, including their installed skill
+payloads, configuration, keys and state. Updating a package's source or bundled
+launchers does not authorize refreshing existing deployments.
+
+No migration, adoption, state-transfer tooling or compatibility layer is needed
+for this transition; do not add one. New deployments use fresh identities and
+state roots. Require explicit v2 configuration and refuse legacy configuration
+rather than interpreting it as v2. Existing deployments continue using the
+behavior and ownership contracts of their older immutable pins.
 
 `standards/compute-provider.md` defines provider selection and versioned state
 ownership; `standards/compute-cluster.md` defines topology and joined inventory;
