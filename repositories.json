@@ -69,6 +69,16 @@
     "description": "Desired state for three AutoMQ 1.7.4 nodes on AWS EC2, with the state, data and ops S3 buckets owned by the deployment; verified live and then deleted.",
     "homepage": ""
   },
+  "automq-gcloud": {
+    "category": "deployment",
+    "description": "Three-node AutoMQ on Google Cloud with managed GCS storage",
+    "homepage": ""
+  },
+  "automq-oci": {
+    "category": "deployment",
+    "description": "Three-node AutoMQ deployment on OCI with lifecycle-owned OCI object storage",
+    "homepage": ""
+  },
   "automq-vultr": {
     "category": "deployment",
     "description": "Desired state for a three-node AutoMQ cluster on Vultr, run by the automq Package Skill",
@@ -123,6 +133,11 @@
     "category": "application",
     "description": "Astro website and Package Skills catalog for Colors.",
     "homepage": "https://www.getcolors.ai"
+  },
+  "context-sql": {
+    "category": "package",
+    "description": "A Postgres specification and reproducible Context Skill corpus for SQL-managed agent context",
+    "homepage": "https://getcolors.github.io/context-sql/"
   },
   "dbos": {
     "category": "package",
@@ -453,6 +468,16 @@
     "category": "deployment",
     "description": "Desired state for a production-oriented single-node Umami analytics service on DigitalOcean.",
     "homepage": "https://getcolors.github.io/umami-digitalocean/"
+  },
+  "valkey": {
+    "category": "package",
+    "description": "Green Package Skill for single-node Valkey with verified R2 backups",
+    "homepage": ""
+  },
+  "valkey-vultr": {
+    "category": "deployment",
+    "description": "Valkey Vultr deployment and live verification evidence",
+    "homepage": ""
   },
   "vaultwarden": {
     "category": "package",

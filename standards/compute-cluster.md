@@ -1,13 +1,45 @@
 # Compute cluster standard for package skills
 
-Status: normative target, revised 2026-09-09. This revision replaces ONCE's
-cluster-specific provisioning contract with Colors orchestration over
-`colors-compute`. Existing packages require migration; this document does not
-claim adoption is complete.
+Status: versioned normative contracts, revised 2026-10-01. The current
+`colors-compute` v2 API is greenfield-only. Existing deployments retain the
+behavior and ownership contracts of their immutable pins; this document does
+not authorize updating their launchers, installed skills, configuration, keys,
+or state.
 
 Consumers: every package that creates multiple compute machines. A single
 machine with a private network uses the same library network contract without
 needing a cluster-specific compute implementation.
+
+## Current v2 contract
+
+The SDK/caller owns topology, fan-out, joins, application ordering, and scope
+cleanup. Each node uses the independent machine API described in
+[compute-provider.md](compute-provider.md#current-v2-machine-api). Consumers
+MUST use the exact contract at their pinned library revision. Stable node
+identities, isolated branch inputs, complete ordered joins, and explicit
+resource ownership remain required.
+
+The caller prepares named encrypted SSH resources and separately owned provider
+registrations before dependent nodes. Node results contain no
+`ssh_identity_file`; the package joins machine results with scoped agent access
+for SSH and Ansible. Delete removes owned aliases before compute teardown,
+destroys consuming machines before their registrations, and retains SSH
+authority for a separate explicit deletion after all consumers are gone. See
+[ssh-keypair.md](ssh-keypair.md) and [ssh-config.md](ssh-config.md).
+
+Adopting v2 MUST use fresh deployment identities and state roots with explicit
+v2 configuration. Legacy configuration MUST be refused. Do not add migration,
+adoption, state-transfer tooling, or compatibility layers for this transition,
+and never apply fresh v2 state over resources owned by an older contract.
+
+## Earlier contract for still-pinned consumers
+
+The numbered sections below preserve the 2026-09-09 cluster target. Their
+migration mappings, legacy output translations, deployment-key cleanup, and
+deployment coordination requirements belong to that earlier contract; they
+MUST NOT be read as requirements to migrate existing deployments to v2.
+Current v2 ownership, backend, result, and SSH lifecycle rules take precedence
+for v2 consumers. This document does not claim cluster adoption is complete.
 
 ## 1. Scope and execution model
 

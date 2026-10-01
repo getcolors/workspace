@@ -1,10 +1,37 @@
 # Compute name standard for package skills
 
-Status: normative target, revised 2026-09-09. Naming rules belong to
-`colors-compute` in Green, Red, and Blue. Existing names require migration
-mapping where they differ; this document does not authorize resource renames.
+Status: versioned normative contracts, revised 2026-10-01. Naming rules belong
+to `colors-compute` in Green, Red, and Blue. The current v2 API is
+greenfield-only; this document does not authorize renaming or migrating
+existing resources.
 
 Consumers: every package skill that creates a named compute machine.
+
+## Current v2 contract
+
+Display names MUST remain distinct from ownership identity. Stable node
+identities, provider name validation, and provider-observed result names remain
+required. Consumers MUST use the exact naming and identity contract at their
+pinned library revision, as described in
+[compute-provider.md](compute-provider.md#current-v2-machine-api).
+
+Existing root identity or backend changes MUST be refused. Adopting v2 requires
+fresh deployment identities and state roots with explicit v2 configuration;
+legacy configuration MUST NOT be translated or adopted. No migration mappings,
+state-transfer tooling, or compatibility layers are required for this
+transition. Existing deployments keep their pinned launchers, configuration,
+names, keys, and state untouched.
+
+SSH resources and provider registrations have their own explicit names and
+ownership under [ssh-keypair.md](ssh-keypair.md). A display-name override MUST
+NOT rename those resources or deployment SSH aliases.
+
+## Earlier contract for still-pinned consumers
+
+The numbered sections below preserve the 2026-09-09 naming target. Their
+migration requirements and profile-based keypair naming belong to the earlier
+contract; they MUST NOT be applied to the greenfield v2 transition. Current v2
+identity and SSH resource rules take precedence for v2 consumers.
 
 ## 1. Deployment identity and defaults
 

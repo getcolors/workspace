@@ -1,6 +1,6 @@
 # Kubernetes ports handoff
 
-Completed on 2026-09-16. The [plan](kubernetes-ports-plan.md) is implemented. All changes are committed and pushed to main.
+Completed on 2026-09-16. The [original plan](https://github.com/getcolors/workspace/blob/44f42f7370496f0a51e6ebfaa20143bbabe41ffe/kubernetes-ports-plan.md) is implemented and retained in Git history. All changes are committed and pushed to main.
 
 ## Delivered
 
