@@ -1,23 +1,11 @@
 {
   "version": 1,
   "skills": {
-    "agent-network-single-node": {
-      "source": "getcolors/skills",
-      "sourceType": "github",
-      "skillPath": "agent-network-single-node/SKILL.md",
-      "computedHash": "528e06e268ae80563e32d1761dee2c47df8ff66f431c20aa598b89339a64c5d6"
-    },
-    "claudex-loop": {
-      "source": "amiorin/claudex-loop",
-      "sourceType": "github",
-      "skillPath": "skills/claudex-loop/SKILL.md",
-      "computedHash": "86516a68f05abcea24808c34ae5f185559932fbfb69a94c0405559f5d0ee43b3"
-    },
     "clipboard-screenshot": {
       "source": "getcolors/skills",
       "sourceType": "github",
       "skillPath": "clipboard-screenshot/SKILL.md",
-      "computedHash": "fe562ed7605b756f22c69cdb9b94d9606cd4c272f9e6652a8dd18ee5ae2561bf"
+      "computedHash": "b507244f6a1a27182a2e829dc4e6a8aa28fe80376abacbf4e88efc4e1bb116c8"
     },
     "create-context-skill": {
       "source": "getcolors/skills",
@@ -29,7 +17,7 @@
       "source": "getcolors/skills",
       "sourceType": "github",
       "skillPath": "create-package-skill/SKILL.md",
-      "computedHash": "c5b278de0bfc9a874db8c11aac720b04f57a188d315b96677d7a1ea10d5338c1"
+      "computedHash": "1ed83117bb86d979908ce2cf4da2aa01696dccfad7b39410871dc140996539d2"
     },
     "refresh-oci-token": {
       "source": "getcolors/skills",
@@ -37,11 +25,17 @@
       "skillPath": "refresh-oci-token/SKILL.md",
       "computedHash": "48494517e044682acfa4ee34a5600418dd738145872ce12056432c2daa5cbec0"
     },
+    "submit-context-skill": {
+      "source": "getcolors/skills",
+      "sourceType": "github",
+      "skillPath": "submit-context-skill/SKILL.md",
+      "computedHash": "3e7784ad8135185ce401b9bf0be81490650500f8bde8d85c015d5d25444092e8"
+    },
     "submit-package-skill": {
       "source": "getcolors/skills",
       "sourceType": "github",
       "skillPath": "submit-package-skill/SKILL.md",
-      "computedHash": "a17c372ecfc28765b04268aa8d190aa97583ce1bbbabda648072a678ec6e2a6a"
+      "computedHash": "75ad4713402826a25e1e5769d2a3719e6e09bf595ec011c2e65476c4b679e059"
     }
   }
 }
