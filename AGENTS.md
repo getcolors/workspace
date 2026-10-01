@@ -318,6 +318,8 @@ These hold in every package and deployment; do not relitigate them per repo.
 
 - **`colors.yml` is the only file you edit.** Keys are kebab-case and it holds
   **non-secret values only**.
+- **Whenever creating or modifying any `.envrc*` file**, ensure its first line
+  is exactly `# -*- mode: sh; -*-`.
 - **Credentials are `COLORS_PAR_<UPPER_SNAKE_KEY>` environment variables**,
   overlaid onto the matching flat key at run time. One namespace shared by all
   three colours — no per-colour prefix. They live in the gitignored
