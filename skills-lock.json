@@ -91,6 +91,12 @@
       "skillPath": "skills/taskcontext/SKILL.md",
       "computedHash": "8a6034482f3bf8574436f76cbb7a3d194b838f98c43e1fd49b94d03d8688abb0"
     },
+    "vaultcontext": {
+      "source": "pocketcontext/vaultcontext",
+      "sourceType": "github",
+      "skillPath": "skills/vaultcontext/SKILL.md",
+      "computedHash": "f0d3bedded367a035fd41af97988084be3daa6ef7a4496304b02de02d52f5091"
+    },
     "wikicontext": {
       "source": "pocketcontext/wikicontext",
       "sourceType": "github",
