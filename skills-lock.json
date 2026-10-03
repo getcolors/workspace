@@ -1,11 +1,41 @@
 {
   "version": 1,
   "skills": {
+    "accountcontext": {
+      "source": "pocketcontext/accountcontext",
+      "sourceType": "github",
+      "skillPath": "skills/accountcontext/SKILL.md",
+      "computedHash": "0af59059d8efabdfc94664e4a8624961e16e7f401b84284f64562a6e406bdccf"
+    },
+    "add-context-app-to-website": {
+      "source": "pocketcontext/workspace",
+      "sourceType": "github",
+      "skillPath": "skills/add-context-app-to-website/SKILL.md",
+      "computedHash": "a6f391f26444186dbdbd9dd6b640bc51b00403b55c91c2ee95d574ebd5596a8d"
+    },
+    "analytics-dashboard": {
+      "source": "pocketcontext/workspace",
+      "sourceType": "github",
+      "skillPath": "skills/analytics-dashboard/SKILL.md",
+      "computedHash": "a2bd56c942a9e71410cb3a086b2c432858b544a99f58b1d321589afb9a29ff18"
+    },
+    "chatcontext": {
+      "source": "pocketcontext/chatcontext",
+      "sourceType": "github",
+      "skillPath": "skills/chatcontext/SKILL.md",
+      "computedHash": "44550bc200bf1eb2eab9ad1d5cb3a07dce8361ec498afcc748bd4e5f33615caa"
+    },
     "clipboard-screenshot": {
       "source": "getcolors/skills",
       "sourceType": "github",
       "skillPath": "clipboard-screenshot/SKILL.md",
       "computedHash": "b507244f6a1a27182a2e829dc4e6a8aa28fe80376abacbf4e88efc4e1bb116c8"
+    },
+    "create-context-app": {
+      "source": "pocketcontext/workspace",
+      "sourceType": "github",
+      "skillPath": "skills/create-context-app/SKILL.md",
+      "computedHash": "9c6d1ec9284073cf0775c22bd15a5e64bcc6d1085085a32977473904a05f631f"
     },
     "create-context-skill": {
       "source": "getcolors/skills",
@@ -19,11 +49,29 @@
       "skillPath": "create-package-skill/SKILL.md",
       "computedHash": "1ed83117bb86d979908ce2cf4da2aa01696dccfad7b39410871dc140996539d2"
     },
-    "refresh-oci-token": {
-      "source": "getcolors/skills",
+    "dealcontext": {
+      "source": "pocketcontext/dealcontext",
       "sourceType": "github",
-      "skillPath": "refresh-oci-token/SKILL.md",
-      "computedHash": "48494517e044682acfa4ee34a5600418dd738145872ce12056432c2daa5cbec0"
+      "skillPath": "skills/dealcontext/SKILL.md",
+      "computedHash": "d4f5360381878b5f0cf2d209c09f519babf3270fb5640a932fa8b71928eb0482"
+    },
+    "observecontext": {
+      "source": "pocketcontext/observecontext",
+      "sourceType": "github",
+      "skillPath": "skills/observecontext/SKILL.md",
+      "computedHash": "ff7ebf38cc3552b792774b586207773b9a679dfb9edd3fc8fdfd157411f4c78d"
+    },
+    "peoplecontext": {
+      "source": "pocketcontext/peoplecontext",
+      "sourceType": "github",
+      "skillPath": "skills/peoplecontext/SKILL.md",
+      "computedHash": "86ff65094cacfabe0a6a1b74f2b3ca84a0acb4cb9ffb0c6109fbc1a1a173401a"
+    },
+    "raisecontext": {
+      "source": "pocketcontext/raisecontext",
+      "sourceType": "github",
+      "skillPath": "skills/raisecontext/SKILL.md",
+      "computedHash": "57b0750b5e5b2d329abfae2c5ae62e0528538665999bb387401066876699edbc"
     },
     "submit-context-skill": {
       "source": "getcolors/skills",
@@ -36,6 +84,18 @@
       "sourceType": "github",
       "skillPath": "submit-package-skill/SKILL.md",
       "computedHash": "75ad4713402826a25e1e5769d2a3719e6e09bf595ec011c2e65476c4b679e059"
+    },
+    "taskcontext": {
+      "source": "pocketcontext/taskcontext",
+      "sourceType": "github",
+      "skillPath": "skills/taskcontext/SKILL.md",
+      "computedHash": "8a6034482f3bf8574436f76cbb7a3d194b838f98c43e1fd49b94d03d8688abb0"
+    },
+    "wikicontext": {
+      "source": "pocketcontext/wikicontext",
+      "sourceType": "github",
+      "skillPath": "skills/wikicontext/SKILL.md",
+      "computedHash": "a10737130ca3cc7d96ad32b35601107de10994cdeb7446b6d67d61d2b85a4b9c"
     }
   }
 }
