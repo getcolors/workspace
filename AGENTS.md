@@ -1,6 +1,6 @@
-# CLAUDE.md
+# Workspace instructions
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Shared guidance for coding agents working across the getcolors checkouts.
 
 ## What this directory is
 
@@ -9,178 +9,51 @@ own; almost every subdirectory is a separate clone of
 `git@github.com:getcolors/<name>`. Nothing here builds as a whole and there is
 no root manifest, task runner, or test command.
 
-The workspace currently contains more than a hundred checkouts, all from the `getcolors` GitHub
-organisation. Audit the directories rather than relying on a hard-coded count:
-new Package Skills and deployments are added independently.
+Audit the directories rather than relying on a fixed checkout count or an
+exhaustive list here. Packages and deployments are added independently.
 
-The workspace-root `~/code/getcolors/CLAUDE.md` is a symlink to
-`workspace/CLAUDE.md`. Cross-repository instruction changes made through either
-path therefore belong to the `workspace/` repository and must be committed and
-pushed from there; do not treat the root path as untracked merely because the
-workspace root has no `.git`.
+The workspace-root `~/code/getcolors/AGENTS.md` is a symlink to
+`workspace/AGENTS.md`. Inside `workspace/`, `CLAUDE.md` is a compatibility
+symlink to `AGENTS.md`; the workspace root need not have a `CLAUDE.md`.
+Changes through the root link belong to the `workspace/` repository. When
+committing or pushing is authorized, do so from that repository.
 
-Every checkout but the DAGs-only `airflow-dags` has its own `CLAUDE.md` and
-most have a `README.md`. **Read the one for the directory you are working
-in** — this file only covers what spans repositories and what a reader of any
-single one would not know.
+Before working in a checkout, read its `AGENTS.md` and README when present;
+read `CLAUDE.md` if it provides additional or legacy instructions. Do not assume
+both names exist or create a missing compatibility file. Repository instructions
+define implementation details and exceptions to the shared conventions below.
 
-## Repository map
+## Repository roles and discovery
 
-The stack is four layers. An arrow means "is built on and pins by git SHA".
+Use the actual checkouts to discover available repositories. Use
+`workspace/repositories.json` for the organization-wide description/homepage
+inventory, and each repository's instructions and README for its current
+architecture, providers, dependencies and commands. The inventory can include
+repositories that are not cloned on this machine.
 
-```text
-SDK            green ──┬── once ──┬── once-colors          (OCI VM, www.getcolors.ai)
-(engine)       red   ──┤           ├── airflow (3 colours) ── airflow-digitalocean
-               blue  ──┘           │
-               green ──────────────┼── walter    ─┬─ walter-oci        (OCI dev machine)
-                                   │              ├─ walter-ada        (OCI dev machine)
-                                   │              ├─ walter-liliana    (OCI dev machine)
-                                   │              ├─ walter-vultr      (Vultr dev machine)
-                                   │              └─ walter-many       (Vultr dev machine, seats)
-                                   ├── automq    ─┬─ automq-vultr        (Vultr AutoMQ cluster)
-                                   │              └─ automq-aws          (AWS AutoMQ cluster, owned S3 buckets)
-                                   ├── neon (3 colours) ─┬─ neon-vultr    (Vultr self-hosted Neon)
-                                   │                     └─ n8n (3 colours) ─┬─ n8n-vultr (Vultr n8n on that tier)
-                                   │                                          └─ n8n-aws   (AWS n8n, owned S3 buckets)
-                                   ├── langfuse (3 colours) ─┬─ langfuse-vultr (Vultr Langfuse on Neon, Redis, ClickHouse ×3)
-                                   │                        └─ langfuse-aws   (AWS Langfuse, owned S3 buckets)
-                                   ├── neon-multi-node (3 colours) ─ neon-multi-node-aws (AWS five-machine Neon)
-                                   ├── redis (3 colours) ─┬─ redis-vultr    (Vultr Redis, loopback only, SSH tunnel)
-                                   │                      └─ redis-aws      (AWS Redis, owned S3 state and backup buckets)
-                                   ├── alice     ─── alice-digitalocean (ephemeral Transmission)
-                                   ├── rama      ─── rama-digitalocean  (DigitalOcean Rama)
-                                   ├── k3s       ─── k3s-hetzner        (Hetzner K3s)
-                                   ├── k8s       ─── k8s-digitalocean   (DigitalOcean Kubernetes)
-                                   ├── clickhouse ─┬─ clickhouse-hetzner  (Hetzner data stack)
-                                   │              └─ clickhouse-aws      (AWS data stack, owned S3 buckets)
-                                   ├── clickstack ─┬─ clickstack-vultr        (Vultr observability stack)
-                                   │              └─ clickstack-digitalocean (DigitalOcean observability stack)
-                                   ├── dbos      ─── dbos-digitalocean  (DigitalOcean DBOS)
-                                   ├── restate   ─── restate-digitalocean (DigitalOcean Restate)
-                                   ├── temporal  ─── temporal-digitalocean (DigitalOcean Temporal)
-                                   ├── vaultwarden ─ vaultwarden-digitalocean (DigitalOcean Vaultwarden)
-                                   ├── github-dwh ── github-dwh-vultr (Vultr GitHub warehouse)
-                                   ├── wavehouse ─── wavehouse-vultr (Vultr WaveHouse demo)
-                                   ├── netbird (3 colours) ─ netbird-vultr (Vultr NetBird control plane)
-                                   ├── agent-network (3 colours) ─┬─ agent-network-vultr        (Vultr Agent Network demo)
-                                   │                             └─ agent-network-digitalocean (DigitalOcean Agent Network demo)
-                                   ├── agent-network-k8s (3 colours) ─ agent-network-k8s-vultr (Vultr VKE Agent Network demo)
-                                   ├── agent-network-doks (3 colours) ─ agent-network-doks-digitalocean (DigitalOcean DOKS Agent Network demo)
-                                   ├── mysql-agy ─── mysql-agy-digitalocean (DigitalOcean MySQL HA)
-                                   ├── mysql-ha  ─── mysql-ha-digitalocean  (DigitalOcean MySQL HA)
-                                   ├── postgres-agy ─ postgres-agy-digitalocean (DigitalOcean Postgres HA)
-                                   ├── postgres-ha ── postgres-ha-digitalocean  (DigitalOcean Postgres HA)
-                                   ├── posthog   ─┬─ posthog-digitalocean  (DigitalOcean PostHog)
-                                   │              └─ posthog-vultr         (Vultr PostHog)
-                                   ├── rybbit    ─┬─ rybbit-digitalocean   (DigitalOcean Rybbit)
-                                   │              └─ rybbit-vultr          (Vultr Rybbit)
-                                   ├── signoz    ─┬─ signoz-vultr          (Vultr SigNoz)
-                                   │              └─ signoz-digitalocean   (DigitalOcean SigNoz)
-                                   ├── umami     ─── umami-digitalocean    (DigitalOcean Umami)
-                                   ├── doks      ─── doks-dev           (DigitalOcean DOKS cluster + registry)
-                                   ├── redis-operator ─ redis-operator-doks (Redis operator on that cluster)
-                                   └── dotfiles  ─┬─ dotfiles-colors    (this machine's home)
-                                                  └─ dotfiles-ubuntu    (Ubuntu home)
-```
-
-**SDK — the workflow engine, three implementations of one model.**
-
-| Repo | Runtime | Notes |
-|---|---|---|
-| `green/` | Clojure / Babashka | **canonical**; spec in `index.html` |
-| `red/` | TypeScript / Bun | spec in `SPEC.md` |
-| `blue/` | Python / uv | behavioural port of green |
-
-A step is `opts -> opts`; a workflow is a `wire-fn` graph plus a dynamic
-`next-fn`; behaviour is layered with Emacs-`nadvice`-style advice; OpenTofu and
-Ansible are event-aware steps. The three use the same key names under their own
-engine namespace (`:green/exit` → `"red/exit"` → `"blue/exit"`).
-
-**Packages — agent-installable CLIs ("Package Skills") on the SDK.**
-
-| Repo | Colours | What it provisions |
-|---|---|---|
-| `once/` | green, red, blue | Basecamp ONCE single-server PaaS |
-| `walter/` | green only | one remote development machine (+`stop`/`start`) |
-| `airflow/` | green, red, blue | one Apache Airflow server |
-| `rama/` | green only | one private single-node Rama cluster |
-| `k3s/` | green, red, blue | one Hetzner K3s + Flux node |
-| `k8s/` | green, red, blue | two-node kubeadm Kubernetes on DigitalOcean |
-| `clickhouse/` | green, red, blue | three ClickHouse/Keeper nodes + Metabase on Hetzner |
-| `clickstack/` | green, red, blue | one ClickStack observability server on Vultr or DigitalOcean: ClickHouse, MongoDB, the HyperDX OTel collector and UI — reference implementation of `standards/compute-provider.md` |
-| `alice/` | green only | ephemeral Transmission server on DigitalOcean (+`sync`/`tunnel`) |
-| `automq/` | green only | three AutoMQ nodes on Vultr: Kafka 3.9.1 wire protocol with Cloudflare R2 as the storage tier, a public SASL_SSL endpoint, and the KRaft quorum confined to a VPC |
-| `dbos/` | green, red, blue | one DBOS TypeScript service with colocated PostgreSQL |
-| `restate/` | green, red, blue | one Restate server and TypeScript workflow application |
-| `temporal/` | green, red, blue | one Temporal stack and TypeScript worker/application |
-| `vaultwarden/` | green, red, blue | one Vaultwarden service with Litestream replication |
-| `github-dwh/` | blue only | one GitHub organization warehouse with ClickHouse and PocketBase |
-| `wavehouse/` | green, red, blue | one WaveHouse analytics demo: ClickHouse, the WaveHouse gateway, and a live GitHub stats dashboard on Vultr |
-| `neon/` | green, red, blue | one self-hosted Neon on Vultr — storage broker, pageserver, one safekeeper, and a Postgres 17 compute node under `compute_ctl`, with layers and WAL in Cloudflare R2; no DNS and no public port, reached over an SSH tunnel |
-| `n8n/` | green, red, blue | one n8n workflow automation server on Vultr or AWS behind Caddy, with Code nodes in an external task runner, on a colocated self-hosted Neon storage tier whose layers, WAL and backups live in R2 or S3; on AWS the deployment can own its state, Neon and backup buckets as lifecycle resources — the one package that renders **another package's** templates rather than owning them |
-| `neon-multi-node/` | green, red, blue | self-hosted Neon Postgres 17 across **five** AWS machines: one compute node, a pageserver with the storage broker, three safekeepers with WAL quorum, native PostgreSQL TLS, Cloudflare DNS and a deployment-owned S3 bucket |
-| `langfuse/` | green, red, blue | self-hosted Langfuse v4 on **six** Vultr machines in one VPC — a `neon`-rendered storage tier, a Redis host, three ClickHouse replicas with Keeper (templates derived from `clickhouse`, owned here), and the app host behind Caddy and Cloudflare; Cloudflare R2 for events, media, Neon layers/WAL and backups; the second package that renders `neon`'s templates rather than owning them |
-| `redis/` | green, red, blue | one Redis 7.2 server on one Vultr instance, DigitalOcean droplet or AWS EC2 instance — published on loopback only, reached over an SSH tunnel, an append-only file for persistence, and RDB backup sets in Cloudflare R2 or, on AWS, in an S3 bucket the deployment creates and destroys as a lifecycle resource beside the managed state bucket, with a completion protocol and a `rehearse` verb that restores one into a scratch instance of the pinned image |
-| `netbird/` | green, red, blue | one self-hosted NetBird control plane on Vultr — Traefik, the combined `netbird-server` (management, signal, relay, STUN), the dashboard, and Authentik as the identity provider |
-| `agent-network/` | green, red, blue | one minimal NetBird Agent Network demo on Vultr or DigitalOcean: a keyless, policy-gated LLM endpoint (private reverse proxy, model allowlist, budget caps) and a network-isolated agent container running headless Claude Code |
-| `agent-network-k8s/` | green, red, blue | one NetBird Agent Network demo on Vultr Kubernetes Engine: the gateway on VKE behind a TCP-mode load balancer, an in-cluster kaniko image build, and a two-pod application — the NetBird client in netstack/SOCKS5 mode and a network-isolated agent pod running headless Claude Code |
-| `agent-network-doks/` | green, red, blue | one NetBird Agent Network demo on DigitalOcean Kubernetes (DOKS): the gateway behind a TCP-mode regional load balancer, an in-cluster kaniko build pushed to a created-or-adopted DigitalOcean Container Registry, and the two-pod application — the NetBird client in netstack/SOCKS5 mode and a network-isolated agent pod running headless Claude Code |
-| `mysql-agy/` | green, red, blue | three-node MySQL Group Replication cluster on DigitalOcean with a reserved-IP endpoint, binary-log archiving to R2, and an automated restore-verification drill |
-| `mysql-ha/` | green, red, blue | three-member MySQL Group Replication cluster on DigitalOcean with daily snapshots, continuous binary-log archiving to R2, and a scheduled verified restore |
-| `postgres-agy/` | green, red, blue | three-node PostgreSQL 17 Patroni failover cluster on DigitalOcean with colocated etcd, HAProxy routing, and pgBackRest backups to R2 |
-| `postgres-ha/` | green, red, blue | three-node Patroni PostgreSQL failover cluster on DigitalOcean with quorum synchronous replication, an HAProxy endpoint, and pgBackRest point-in-time recovery to R2 |
-| `posthog/` | green, red, blue | one single-node PostHog product analytics suite on DigitalOcean or Vultr (a ten-container Compose stack, none optional) |
-| `rybbit/` | green, red, blue | one single-node Rybbit analytics service (PostgreSQL + ClickHouse) on DigitalOcean or Vultr |
-| `signoz/` | green, red, blue | one single-node SigNoz observability stack on Vultr or DigitalOcean: ClickHouse/Keeper, a Postgres metastore, the SigNoz app, and the OTel collector behind Caddy |
-| `umami/` | green, red, blue | one single-node Umami web analytics service with colocated PostgreSQL on DigitalOcean |
-| `doks/` | green, red, blue | one managed Kubernetes cluster (DigitalOcean DOKS or Vultr VKE) named after the profile through colors-compute's `managed-kubernetes` kind, plus an optional deployment-owned DigitalOcean container registry integrated with the cluster; a platform package whose kubeconfig is consumed by other deployments |
-| `redis-operator/` | green, red, blue | native `green.kubernetes`, `red/kubernetes` and `blue.kubernetes` controller images and Package Skills that install them: the `RedisDeployment` CRD and controllers that run the `redis` package workflow to keep one Redis Droplet converged and heal confirmed Droplet loss, with `rehearse`, `drill` (owned-Droplet deletion recovery test) and `restart` verbs |
-| `dotfiles/` | green only | Ubuntu or macOS home configuration on the local machine |
-
-`dotfiles/` is the one package that provisions no infrastructure: it renders a
-profile under `.colors/` and copies the managed files into a configured local
-target, so its verbs are `build`, `diff` and `create` — there is no `delete`.
-
-**Deployments — desired state only, no source code.** `once-colors/`,
-`once-aws/`, `once-azure/`, `once-google/`, `once-vultr/`, `walter-oci/`,
-`walter-ada/`, `walter-liliana/`, `walter-vultr/`, `walter-many/`,
-`airflow-digitalocean/`, `alice-digitalocean/`, `automq-vultr/`, `automq-aws/`,
-`rama-digitalocean/`,
-`k3s-hetzner/`, `k8s-digitalocean/`, `clickhouse-hetzner/`, `clickhouse-aws/`, `clickstack-vultr/`,
-`clickstack-digitalocean/`,
-`dbos-digitalocean/`, `restate-digitalocean/`, `temporal-digitalocean/`,
-`vaultwarden-digitalocean/`, `github-dwh-vultr/`, `wavehouse-vultr/`,
-`neon-vultr/`, `neon-multi-node-aws/`, `n8n-vultr/`, `n8n-aws/`, `langfuse-vultr/`, `langfuse-aws/`, `redis-vultr/`, `redis-aws/`, `netbird-vultr/`, `agent-network-vultr/`,
-`agent-network-digitalocean/`, `agent-network-k8s-vultr/`,
-`agent-network-doks-digitalocean/`,
-`mysql-agy-digitalocean/`,
-`mysql-ha-digitalocean/`, `postgres-agy-digitalocean/`,
-`postgres-ha-digitalocean/`, `posthog-digitalocean/`, `posthog-vultr/`, `rybbit-digitalocean/`,
-`rybbit-vultr/`, `signoz-vultr/`, `signoz-digitalocean/`, `umami-digitalocean/`,
-`doks-dev/`, `redis-operator-doks/`,
-`dotfiles-colors/`, and `dotfiles-ubuntu/`. Each holds a `colors.yml`, one or
-more installed launchers, `.envrc`, and `devenv.nix`; everything else is
-generated (`.colors/`) or secret (`.envrc.private`).
-
-Every current deployment tracks an `.agents/skills/package-*/` payload, but
-launcher provenance is **not** uniform. The five ONCE deployments, Airflow,
-Rama, K3s, K8s, DBOS, Restate, Temporal, GitHub DWH, WaveHouse, ClickStack,
-NetBird, Agent Network, Agent Network K8s, Agent Network DOKS, Walter Vultr, Walter Many, both MySQL and both
-Postgres deployments, Rybbit Vultr, Redis Vultr, Redis AWS, both SigNoz deployments, both Agent
-Network deployments, ClickStack DigitalOcean, PostHog Vultr, AutoMQ Vultr,
-Neon Vultr, n8n Vultr, n8n AWS, Langfuse Vultr, DOKS Dev, Redis Operator DOKS, and both dotfiles
-deployments also track `skills-lock.json`. Alice, the three OCI Walter deployments, ClickHouse,
-Vaultwarden, PostHog, Rybbit DigitalOcean, and Umami track hand-copied
-payloads with no lockfile. A lockfile proves an install; never fabricate one
-for a manual copy. In every case the root launcher remains a separate copy and
-must be compared with the payload after an update.
-
-**Applications — container images and GitOps sources the deployments run.**
-`colors-website/` (Astro landing page for www.getcolors.ai), `colors-redirect/`
-(Caddy 301 for the apex), `airflow-dags/` (the DAG sources its CI rsyncs to
-the Airflow server), `k3s-helloworld/` (the public fixture `k3s-hetzner`
-reconciles), and `k8s-helloworld/` (the public Flux source and application
-`k8s-digitalocean` reconciles).
+- **Workflow SDKs:** `green/` (Clojure/Babashka, canonical), `red/`
+  (TypeScript/Bun), and `blue/` (Python/uv) implement the same workflow model.
+  A step is `opts -> opts`; workflows combine a `wire-fn` graph with a dynamic
+  `next-fn`, layered advice, and event-aware OpenTofu/Ansible steps. Engine keys
+  use the corresponding namespace (`:green/exit`, `"red/exit"`, `"blue/exit"`).
+- **Packages:** installable CLIs own application behavior and templates.
+  Many use the three SDK colours and `colors-compute/`; others have a different
+  runtime or scope. AutoMQ has Green, Red and Blue implementations. Valkey is
+  Green-only. Current Walter (Google development machines) and Alice
+  (DigitalOcean Transmission) are Python controllers using PocketDeploy, not
+  the older Green implementations. Context SQL is a Blue package for local
+  PostgreSQL-backed agent context. Dotfiles manages local home configuration.
+  Read the owning repository before choosing a toolchain or lifecycle command.
+- **Deployments:** desired state and installed, pinned launchers, rather than
+  application source. Inspect tracked files to identify the configuration,
+  skill payload, lockfile and launcher layout. Do not infer the running package
+  version from a sibling source checkout; older deployments retain older pins.
+- **Applications:** container images, websites and GitOps sources, such as
+  `colors-website/`, `colors-redirect/`, `airflow-dags/`, `k3s-helloworld/`
+  and `k8s-helloworld/`.
+- **Workspace and skills:** `workspace/` owns shared documentation and
+  standards; `skills/` owns reusable Agent Skills. Neither is a workspace-wide
+  build root.
 
 **Repository landing pages.** Every tracked root `index.html` carries two
 analytics tags: GA4 measurement ID `G-4VKP1WY4QJ`, and the self-hosted Rybbit
@@ -201,10 +74,16 @@ Run the owning repository's checks when changing SSH configuration, compute
 dependencies, or package integration. Keep GitHub descriptions and homepages
 consistent with `repositories.json`.
 
+## Shared compute and state ownership
+
 `standards/` holds versioned normative cross-package contracts. Shared compute
-lives in `colors-compute/`, implemented in Green, Red, and Blue. Compute package
-skills, including ONCE, pin that library directly. The current v2 API owns
-provider templates, guarded independent node lifecycle, normalized results,
+lives in `colors-compute/`, implemented in Green, Red, and Blue. SDK-based
+compute package skills, including ONCE, pin that library directly.
+PocketDeploy-based controllers have their own ownership contracts; do not apply
+colors-compute internals to them.
+
+The colors-compute v2 API owns provider templates, guarded independent node
+lifecycle, normalized results,
 separate public-key registrations, and named encrypted SSH resources. The
 SDK/caller owns topology, fan-out, joins and resource-scope cleanup. Application
 installation and the local SSH config play remain package-owned. Provider
@@ -242,8 +121,8 @@ state. One temporary agent per workflow scope supplies explicit public IdentityF
 selection and an IdentityAgent socket. Public `identity-<reference-sha256>.pub` caches are disposable
 and refreshed from verified authority; the socket expires with the scope. Stop
 dependent processes before the agent;
-never mutate the operator's agent. Alice operator commands establish a fresh scope;
-a bare alias outside that scope is not an authentication mechanism.
+never mutate the operator's agent. For consumers of this v2 authority, a bare
+alias outside that scope is not an authentication mechanism.
 
 Package source changes and deployment payload refresh do not transfer live state.
 Preserve old ownership and do not point a new empty v2 root at existing resources.
@@ -255,69 +134,51 @@ fresh explicitly authorized resource identities, never a silent state redirect.
 `standards/context-skill.md` defines Context Skills, which capture a verified
 build and are separate from Package Skills and generic Agent Skills.
 
-**`skills/`** — Agent Skills. `refresh-oci-token` renews the shared OCI session,
-while `create-package-skill` governs the phased workflow for creating a Package
-Skill and its deployment. Use the latter directly with
-`npx skills use "https://github.com/getcolors/skills" --skill
-"create-package-skill"`; only skills that need
-persistent local files are copied into `~/.claude/skills/`. They are not Package
-Skills themselves. See that repo's `CLAUDE.md` and each skill's `SKILL.md`.
+## Skills and package names
 
-## Two name collisions worth knowing before you read anything
+`once/green/`, `once/red/` and `once/blue/` implement the ONCE package; the
+sibling `green/`, `red/` and `blue/` repositories implement the SDKs. Instructions
+in one are not instructions for the other.
 
-- `once/green/`, `once/red/`, `once/blue/` are the **ONCE package** in three
-  languages. The **SDK** repositories are the sibling `green/`, `red/`, `blue/`
-  checkouts. Instructions in one are not instructions for the other.
-- "Skill" means two unrelated things: a Package Skill (`package-once-green`,
-  `package-walter-green`, …, optionally installed into a project with
-  `npx skills add`, SHA-pinned, recorded in `skills-lock.json`) and an Agent Skill
-  (`skills/`, normally used on demand with `npx skills use`, no library pin or
-  desired-state lifecycle).
+Package Skills ship pinned application launchers, such as `package-once-green`.
+Agent Skills capture agent workflows, such as `skills/create-package-skill`.
+Context Skills capture verified builds under `standards/context-skill.md`.
+Read the owning repository's instructions and the relevant `SKILL.md`; do not
+assume that every skill uses the same installer, directory layout or lifecycle.
 
-## Commands
+## Commands and validation
 
-Each repo, from its own directory:
+Run checks from the owning repository, using its current instructions, README
+and task definitions. There is no workspace-wide test command. Do not maintain
+a duplicate per-repository command matrix here: runtime changes can invalidate it.
+In particular, current Walter and Alice use Python/uv checks, not `bb` tasks.
 
-| Repo | Test / check |
-|---|---|
-| `green/` | `bb test` · `clojure -X:test` (one ns: `clojure -X:test :nses '[green.advice-test]'`) |
-| `red/` | `bun test` · `bun run typecheck` |
-| `blue/` | `uv sync && uv run pytest` (one test: `-k <name>`) |
-| `once/` | per-colour suites, then `./scripts/parity.sh` and `./scripts/launcher.sh` |
-| `airflow/`, `neon/`, `neon-multi-node/`, `n8n/`, `langfuse/`, `netbird/`, `agent-network/`, `agent-network-k8s/`, `agent-network-doks/`, `k3s/`, `k8s/`, `clickhouse/`, `clickstack/`, `dbos/`, `restate/`, `temporal/`, `vaultwarden/`, `wavehouse/`, `mysql-agy/`, `mysql-ha/`, `postgres-agy/`, `postgres-ha/`, `posthog/`, `rybbit/`, `signoz/`, `umami/` | `cd green && bb test && bb golden` · red/blue suites · `./scripts/parity.sh` · `./scripts/launcher.sh` |
-| `walter/`, `rama/`, `alice/`, `automq/`, `dotfiles/` | `bb test` · `bb golden` · `bb golden:accept` · `./scripts/launcher.sh` |
-| `doks/`, `redis-operator/` | `bb test` · `bb golden` · `bun test --cwd red` · `bun run --cwd red typecheck` · `uv run --project blue pytest blue/tests` · `./scripts/parity.sh` · `./scripts/launcher.sh` |
-| `github-dwh/` | `uv run pytest` · `./scripts/golden.sh` · `./scripts/launcher.sh` |
-| `redis/` | `cd green && bb test && bb golden && bb syntax` · `cd red && bun test` · `cd blue && uv run pytest` · `./scripts/parity.sh` · `./scripts/launcher.sh` |
-| `colors-website/` | `pnpm typecheck` · `pnpm build` · `pnpm dev` |
-| `colors-redirect/` | `caddy validate --config Caddyfile --adapter caddyfile` |
+For a deployment configuration edit, use the pinned launcher's documented
+render, validation or dry-run command before any authorized live operation.
+Traditional SDK launchers commonly provide `./green build` and
+`./green create --dry-run`; confirm support and side effects in that deployment's
+instructions. Do not assume every package has `build`, `create`, `delete`, the
+same exit codes, or the same configuration discovery behavior.
 
-Deployment repos have no test suite. Their commands are the launcher itself:
+Use the repository's documented environment (`devenv`/`direnv`, uv, Bun or other
+required tools). Review non-secret `.envrc` configuration before enabling it;
+do not inspect or print private configuration or credentials.
 
-```sh
-./green build              # render .colors/<profile>/ — no provider calls, no credentials
-./green create --dry-run   # walk the DAG, skip every side effect
-./green create             # converge for real
-./green delete             # guarded; see below
-```
-
-`build` and `--dry-run` work on a fresh checkout with an empty environment, which
-makes them the safe way to check a `colors.yml` edit. Exit code 2 means
-validation or usage failure and lists every problem at once. The launcher walks
-up from the working directory to find `colors.yml`, so any subdirectory works.
-Package repos run the same verbs through their own launcher (`bb walter build`
-in `walter/`; `cd green && bb green build` in `airflow/`; `./green build` in
-`k3s/`, `k8s/`, `clickhouse/`, and `dotfiles/`).
-
-Toolchains come from `devenv` via `direnv` — run `direnv allow` once per
-deployment checkout. `blue/` is the exception and expects its tools on `PATH`.
+For multi-colour packages, shared behavior must land in all supported colours
+and pass the owning package's parity checks. Run its relevant unit, golden and
+launcher checks, including fixture axes for providers, state backends and SSH
+modes. Review golden differences after dependency changes. Snapshot acceptance
+(such as `bb golden:accept`) changes expected output; it is not a validation
+command and must never be run merely to make a failing check pass.
 
 ## Cross-cutting conventions
 
-These hold in every package and deployment; do not relitigate them per repo.
+Apply these within the owning package's documented configuration and lifecycle
+contract; legacy pins and newer controllers can differ.
 
-- **`colors.yml` is the only file you edit.** Keys are kebab-case and it holds
-  **non-secret values only**.
+- **For routine deployment configuration, edit `colors.yml`.** Keys are
+  kebab-case and values are non-secret. This does not prohibit authorized
+  changes to package source, tests, documentation, or installation metadata.
 - **Whenever creating or modifying any `.envrc*` file**, ensure its first line
   is exactly `# -*- mode: sh; -*-`.
 - **Credentials are `COLORS_PAR_<UPPER_SNAKE_KEY>` environment variables**,
@@ -331,76 +192,60 @@ These hold in every package and deployment; do not relitigate them per repo.
   refuse to run when it is set. That is the guard working — do not work around it.
 - **`.colors/` is generated output.** Never edit it, never read it as source,
   never commit it. Change `colors.yml` or the upstream template.
-- **`delete` is guarded** by `compute-prevent-destroy: true` in `colors.yml`,
-  liftable only with `COLORS_PAR_COMPUTE_PREVENT_DESTROY=false` for one run in
-  the conventional packages. Alice deliberately ignores that override: an
-  explicit `delete`, or `sync` only after its final checksummed copy, is the
-  authorization boundary. Never edit the committed flag. Never run a real
-  `create`/`delete` (or Alice `sync`) against a live deployment without explicit
-  authorization.
-- **Deployment `.gitignore`s are `.*` with narrow negations**, so a new dotfile
-  is invisible to git until negated. Check `git ls-files` rather than inferring
-  what is tracked from the working tree.
+- **Live lifecycle operations require explicit authorization.** Never run real
+  creation, convergence, destruction, or Alice `sync` against a live deployment
+  without it. Preserve the pinned package's destruction guard. Conventional
+  SDK deployments keep `compute-prevent-destroy: true` committed and allow a
+  one-run `COLORS_PAR_COMPUTE_PREVENT_DESTROY=false` override. Current Python
+  Alice instead requires explicit `compute-prevent-destroy: false` in YAML and
+  ignores the environment override; follow its instructions only within an
+  authorized operation. Its `sync` must stop Transmission and complete the final
+  checksummed copy before deletion. Never infer a legacy deployment's behavior
+  from the current source package.
+- **Inspect tracked files and ignore rules.** Many deployment `.gitignore`s
+  use `.*` with narrow negations. Check `git ls-files` rather than inferring
+  tracking from the working tree; keep credentials and private state ignored.
 
 ## The two coupling mechanisms, and how they fail
 
-**SHA pins.** Every downstream edge is a git SHA, not a version range. A commit
-in `green/` is invisible in `once/` until it is pushed *and* the pin moves;
-`bb pin` in a package repo stamps its launcher after a push. Never invent or
-hand-edit a SHA. To develop across a boundary without pinning, point the launcher
-at a working tree: `GREEN_LIB_ROOT`, `RED_LIB_ROOT`, `BLUE_LIB_ROOT`,
-`ONCE_LIB_ROOT`, `WALTER_LIB_ROOT`, `AIRFLOW_LIB_ROOT`, `K3S_LIB_ROOT`,
-`K8S_LIB_ROOT`, `CLICKHOUSE_LIB_ROOT`, `CLICKSTACK_LIB_ROOT`, `RAMA_LIB_ROOT`, `ALICE_LIB_ROOT`,
-`DBOS_LIB_ROOT`, `RESTATE_LIB_ROOT`, `TEMPORAL_LIB_ROOT`, `VAULTWARDEN_LIB_ROOT`,
-`WAVEHOUSE_LIB_ROOT`, `NETBIRD_LIB_ROOT`, `AGENT_NETWORK_LIB_ROOT`,
-`AGENT_NETWORK_K8S_LIB_ROOT`, `AGENT_NETWORK_DOKS_LIB_ROOT`,
-`AUTOMQ_LIB_ROOT`, `N8N_LIB_ROOT`, `NEON_LIB_ROOT`, `REDIS_LIB_ROOT`,
-`MYSQL_AGY_LIB_ROOT`, `MYSQL_HA_LIB_ROOT`, `POSTGRES_AGY_LIB_ROOT`,
-`POSTGRES_HA_LIB_ROOT`, `POSTHOG_LIB_ROOT`, `RYBBIT_LIB_ROOT`,
-`SIGNOZ_LIB_ROOT`, `UMAMI_LIB_ROOT`, `DOKS_LIB_ROOT`,
-`REDIS_OPERATOR_LIB_ROOT`. A change that spans two
-repos is two commits in two repos, upstream pushed first.
+**SHA pins.** A change to an upstream library is invisible to an immutable
+consumer pin until the upstream commit is published and the pin is updated.
+Never invent or hand-edit a SHA; use the owning package's pinning procedure
+(`bb pin` where provided). When publication is authorized, push upstream first,
+then update and verify downstream pins in their own repositories.
 
-**Installed launchers are copies, not symlinks.** In a deployment repo, the root
-`./green` is a copy of `.agents/skills/package-*/…`.
-`npx skills update -p` rewrites the payload and leaves the root file alone, so
-the project keeps running the old pin while `skills-lock.json` claims the new
-one. The copy is not optional:
+For development across repository boundaries, use the documented working-tree
+override or editable dependency installation. SDK launchers commonly expose
+`GREEN_LIB_ROOT`, `RED_LIB_ROOT`, `BLUE_LIB_ROOT` and package-specific overrides;
+Python controllers may use editable dependencies instead. Do not assume an old
+override remains supported after a runtime rewrite.
+
+**Installed launchers can be independent copies.** Inspect the actual root
+launcher, installed payload and lockfile before an authorized refresh. A skill
+update can change its payload while leaving the root launcher on the old pin.
+For the traditional ONCE layout, the corresponding copy step is:
 
 ```sh
-npx skills update -p
-cp .agents/skills/package-once-green/green green    # and red, blue
+cp .agents/skills/package-once-green/green green    # likewise for red and blue
 ```
 
-`npx skills use` intentionally does not install anything: it fetches a skill and
-prints instructions for an agent, which is the main interface for one-shot Agent
-Skills such as `create-package-skill`. The persistent installing verbs are `add`
-and `update`. `once-colors` CI diffs root against payload to catch a skipped
-launcher copy. Manually installed script-bearing Agent Skills such as
-`refresh-oci-token` have the same copy trap under `~/.claude/skills/`.
-
-**Three regression nets guard what dependencies do not promise.**
-`once/scripts/parity.sh` feeds one fixture through all three colours and diffs
-generated trees byte for byte — a change to shared behaviour lands in green,
-red, and blue in the same commit, and passes here or it is not done. Every
-other tri-colour package carries its own `scripts/parity.sh` for the same
-three-colour guarantee, diffing that package's own fixture axes (two fixtures
-for NetBird and Agent Network; state backends, compute providers, or
-SSH-keypair modes elsewhere). `bb golden` in
-`walter`, `airflow`, `rama`, `k3s`, `k8s`, `clickhouse`, `clickstack`, `alice`, `dbos`,
-`restate`, `temporal`, `vaultwarden`, `github-dwh`, `wavehouse`, `netbird`,
-`automq`, `n8n`,
-`agent-network`, `agent-network-k8s`, `agent-network-doks`, `mysql-agy`, `mysql-ha`, `postgres-agy`, `postgres-ha`,
-`posthog`, `rybbit`, `signoz`, `umami`, `doks`, `redis-operator`, and `dotfiles` protects provider
-templates, state/resource addresses, and any ONCE internals each package reuses.
-`clickstack`, `signoz`, `netbird`, `agent-network`, `neon`, `n8n`, and `langfuse` render
-two fixtures rather than one, because the SSH
-Keypair Standard has two modes and conformance means both keygen and opt-out
-hold; `rybbit` also renders two, one per compute provider. Read a
-golden diff after a pin bump; never `bb golden:accept` merely to make it pass.
+Use the actual deployment's installer and payload path, then compare every
+installed root launcher with its payload. Package source launchers may instead
+be symlinks. Some deployments have manually copied payloads and no lockfile;
+never fabricate a lockfile for a manual copy. Updating source or syncing Git
+checkouts does not authorize refreshing deployment payloads or transferring state.
+Manually installed Agent Skills with scripts have the same independent-copy risk.
 
 ## Git
 
-Every subdirectory is its own repository, and there is nothing to commit at this
-level. Work on the current branch. **Do not commit or push any repository unless
-explicitly asked** — a rule every checkout here repeats.
+Each checkout is its own repository; the workspace root has nothing to commit.
+Work on the current branch. **Do not commit or push any repository unless
+explicitly asked.** Prior authorization recorded in a repository document for
+another task does not authorize publication or live operations in the current task.
+
+For a request to sync repositories, discover the actual Git checkouts, fetch
+remotes, and fast-forward clean branches with configured upstreams. Preserve
+local changes, detached checkouts and diverged branches; report those requiring
+attention. Do not reset, automatically stash, rebase, switch branches, or push
+as an implicit part of a sync. Syncing repositories does not run deployment
+commands or update package pins independently of the fetched commits.
