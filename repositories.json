@@ -491,8 +491,13 @@
   },
   "walter": {
     "category": "package",
-    "description": "Provision and operate a remote development machine on Oracle Cloud with Green.",
+    "description": "Provision and operate Google Cloud development machines with Python and PocketDeploy.",
     "homepage": "https://getcolors.github.io/walter/"
+  },
+  "walter-gcp": {
+    "category": "deployment",
+    "description": "Desired state for the Walter GCP development machine, with a pinned Python launcher and Vault recovery.",
+    "homepage": ""
   },
   "walter-ada": {
     "category": "deployment",
